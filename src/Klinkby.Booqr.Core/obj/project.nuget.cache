@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "ZI9gXiH26RU=",
+  "success": true,
+  "projectFilePath": "D:\\kli\\booqr\\src\\Klinkby.Booqr.Core\\Klinkby.Booqr.Core.csproj",
+  "expectedPackageFiles": [
+    "D:\\.lib\\nuget\\dotnet.reproduciblebuilds\\1.2.25\\dotnet.reproduciblebuilds.1.2.25.nupkg.sha512",
+    "D:\\.lib\\nuget\\smartanalyzers.exceptionanalyzer\\1.0.10\\smartanalyzers.exceptionanalyzer.1.0.10.nupkg.sha512"
+  ],
+  "logs": []
+}
