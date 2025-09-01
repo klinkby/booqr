@@ -1,0 +1,5 @@
+﻿*.sln.DotSettings.user
+appsettings.Development.json
+bin/
+obj/
+.idea/
