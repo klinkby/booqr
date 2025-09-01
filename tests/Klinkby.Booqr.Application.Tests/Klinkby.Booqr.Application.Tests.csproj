@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Klinkby.Booqr.Application\Klinkby.Booqr.Application.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AutoFixture" Version="4.18.1"/>
+        <PackageReference Include="AutoFixture.Xunit2" Version="4.18.1"/>
+        <PackageReference Include="Moq" Version="4.20.72"/>
+        <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.14.1"/>
+        <PackageReference Update="xunit.runner.visualstudio" Version="3.1.4">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Moq"/>
+        <Using Include="AutoFixture.Xunit2"/>
+        <Using Include="Klinkby.Booqr.Core"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="Xunit.AssemblyTraitAttribute">
+            <_Parameter1>Category</_Parameter1>
+            <_Parameter2>Unit</_Parameter2>
+        </AssemblyAttribute>
+    </ItemGroup>
+
+
+</Project>

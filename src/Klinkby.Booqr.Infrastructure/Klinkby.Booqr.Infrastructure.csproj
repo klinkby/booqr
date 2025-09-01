@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Klinkby.Booqr.Core\Klinkby.Booqr.Core.csproj"/>
+        <ProjectReference Include="..\Klinkby.Booqr.Infrastructure.Generators\Klinkby.Booqr.Infrastructure.Generators.csproj"
+                          PrivateAssets="all"
+                          ReferenceOutputAssembly="false"
+                          OutputItemType="Analyzer"/>
+    </ItemGroup>
+
+
+    <ItemGroup>
+        <PackageReference Include="Dapper" Version="2.1.66"/>
+        <PackageReference Include="Dapper.AOT" Version="1.0.48"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0-preview.7.25380.108"/>
+        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.0-preview.7.25380.108"/>
+        <PackageReference Include="Npgsql.DependencyInjection" Version="9.0.3"/>
+        <PackageReference Include="ServiceScan.SourceGenerator" Version="2.3.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="Microsoft.Extensions.Configuration.Abstractions">
+            <HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\9.0.5\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="DDL.sql"/>
+        <EmbeddedResource Include="DDL.sql"/>
+    </ItemGroup>
+
+    <PropertyGroup Label="Dapper.AOT">
+        <InterceptorsNamespaces>$(InterceptorsNamespaces);Dapper.AOT</InterceptorsNamespaces>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <NoWarn>$(NoWarn);CA1812</NoWarn>
+    </PropertyGroup>
+
+</Project>

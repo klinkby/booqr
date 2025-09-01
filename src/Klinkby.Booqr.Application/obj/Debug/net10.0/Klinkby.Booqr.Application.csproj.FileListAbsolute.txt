@@ -1,0 +1,12 @@
+D:\kli\booqr\src\Klinkby.Booqr.Application\bin\Debug\net10.0\Klinkby.Booqr.Application.deps.json
+D:\kli\booqr\src\Klinkby.Booqr.Application\bin\Debug\net10.0\Klinkby.Booqr.Application.dll
+D:\kli\booqr\src\Klinkby.Booqr.Application\bin\Debug\net10.0\Klinkby.Booqr.Core.dll
+D:\kli\booqr\src\Klinkby.Booqr.Application\obj\Debug\net10.0\Klinkby.Booqr.Application.csproj.AssemblyReference.cache
+D:\kli\booqr\src\Klinkby.Booqr.Application\obj\Debug\net10.0\Klinkby.Booqr.Application.GeneratedMSBuildEditorConfig.editorconfig
+D:\kli\booqr\src\Klinkby.Booqr.Application\obj\Debug\net10.0\Klinkby.Booqr.Application.AssemblyInfoInputs.cache
+D:\kli\booqr\src\Klinkby.Booqr.Application\obj\Debug\net10.0\Klinkby.Booqr.Application.AssemblyInfo.cs
+D:\kli\booqr\src\Klinkby.Booqr.Application\obj\Debug\net10.0\Klinkby.Booqr.Application.csproj.CoreCompileInputs.cache
+D:\kli\booqr\src\Klinkby.Booqr.Application\obj\Debug\net10.0\Klinkby..1D6A7806.Up2Date
+D:\kli\booqr\src\Klinkby.Booqr.Application\obj\Debug\net10.0\Klinkby.Booqr.Application.dll
+D:\kli\booqr\src\Klinkby.Booqr.Application\obj\Debug\net10.0\refint\Klinkby.Booqr.Application.dll
+D:\kli\booqr\src\Klinkby.Booqr.Application\obj\Debug\net10.0\ref\Klinkby.Booqr.Application.dll

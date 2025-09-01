@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.8"/>
+        <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.14.1"/>
+        <PackageReference Update="xunit.runner.visualstudio" Version="3.1.4">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0-preview.7.25380.108"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Klinkby.Booqr.Api\Klinkby.Booqr.Api.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="Xunit.AssemblyTraitAttribute">
+            <_Parameter1>Category</_Parameter1>
+            <_Parameter2>Integration</_Parameter2>
+        </AssemblyAttribute>
+    </ItemGroup>
+
+
+</Project>
