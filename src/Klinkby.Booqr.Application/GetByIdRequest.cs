@@ -3,7 +3,7 @@ namespace Klinkby.Booqr.Application;
 /// <summary>
 ///     Anonymous requests for a single integer id.
 /// </summary>
-public record struct ByIdRequest([property: Range(1, int.MaxValue)] int Id)
+public record struct ByIdRequest([property: Range(1, int.MaxValue)] int Id) : IId
 {
     public static implicit operator ByIdRequest(int id)
     {
@@ -21,7 +21,7 @@ public record struct ByIdRequest([property: Range(1, int.MaxValue)] int Id)
 /// This request is used in scenarios where authentication is required
 /// alongside the identification of a specific resource by its id.
 /// </summary>
-public sealed record AuthenticatedByIdRequest([Range(1, int.MaxValue)] int Id) : AuthenticatedRequest
+public sealed record AuthenticatedByIdRequest([Range(1, int.MaxValue)] int Id) : AuthenticatedRequest, IId
 {
     public static implicit operator AuthenticatedByIdRequest(int id)
     {

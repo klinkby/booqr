@@ -82,7 +82,7 @@ public class ServiceCommandsTests
         _mockRepo.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), default))
             .Returns(expected.ToAsyncEnumerable());
 
-        GetServicesCommand command = new(_mockRepo.Object);
+        GetServiceCollectionCommand command = new(_mockRepo.Object);
         PageQuery request = new();
 
         IAsyncEnumerable<Service> result = command.Execute(request);
