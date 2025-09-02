@@ -82,7 +82,7 @@ public class LocationCommandsTests
         _mockRepo.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), default))
             .Returns(expected.ToAsyncEnumerable());
 
-        GetLocationsCommand command = new(_mockRepo.Object);
+        GetLocationCollectionCommand command = new(_mockRepo.Object);
         PageQuery request = new();
 
         IAsyncEnumerable<Location> result = command.Execute(request);

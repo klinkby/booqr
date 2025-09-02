@@ -11,7 +11,7 @@ internal static partial class Routes
             .WithTags("Service");
 
         group.MapGet("",
-                static (GetServicesCommand command,
+                static (GetServiceCollectionCommand command,
                         [AsParameters] PageQuery request,
                         CancellationToken cancellation) =>
                     command.GetCollection(request, cancellation))
