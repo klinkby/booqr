@@ -54,6 +54,7 @@ create table public.services
         constraint services_pk
             primary key,
     name     varchar(255)             not null,
+    duration interval                 not null,
     created  timestamp with time zone not null,
     modified timestamp with time zone not null,
     deleted  timestamp with time zone

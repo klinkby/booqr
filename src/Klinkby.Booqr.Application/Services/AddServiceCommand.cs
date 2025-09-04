@@ -3,7 +3,8 @@ namespace Klinkby.Booqr.Application.Services;
 public record AddServiceRequest(
     [property: Required]
     [property: StringLength(0xff)]
-    string Name
+    string Name,
+    TimeSpan Duration
 ) : AuthenticatedRequest;
 
 public sealed class AddServiceCommand(
@@ -12,5 +13,5 @@ public sealed class AddServiceCommand(
     : AddCommand<AddServiceRequest, Service>(services, logger)
 {
     protected override Service Map(AddServiceRequest query) =>
-        new(query.Name);
+        new(query.Name, query.Duration);
 }

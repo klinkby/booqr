@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace Klinkby.Booqr.Infrastructure.Repositories;
 
-[QueryFields("name")]
+[QueryFields("name", "duration")]
 internal sealed partial class ServiceRepository(IConnectionProvider connectionProvider, TimeProvider timeProvider)
     : AuditRepository<Service>(timeProvider), IServiceRepository
 {
