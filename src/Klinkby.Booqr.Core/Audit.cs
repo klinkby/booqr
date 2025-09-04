@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Klinkby.Booqr.Core;
 
@@ -17,8 +15,8 @@ namespace Klinkby.Booqr.Core;
 /// </remarks>
 public abstract record Audit : IId
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    // [Key]
+    // [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; init; }
 
     public DateTime Created { get; init; }

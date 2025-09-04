@@ -1,6 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using System.Runtime.CompilerServices;
-
 namespace Klinkby.Booqr.Core;
 
 /// <summary>
@@ -10,17 +7,10 @@ namespace Klinkby.Booqr.Core;
 ///     This record is immutable and inherits basic audit properties from the <see cref="Audit" /> base type.
 /// </remarks>
 public sealed record CalendarEvent(
-    [property: Required]
-    [property: Range(1, int.MaxValue)]
     int EmployeeId,
-    [property: Required]
-    [property: Range(1, int.MaxValue)]
     int LocationId,
-    [property: Range(1, int.MaxValue)]
     int? BookingId,
-    [property: Required]
     DateTime StartTime,
-    [property: Required]
     DateTime EndTime
 ) : Audit, IEvent;
 
@@ -35,4 +25,6 @@ public interface ICalendarRepository : IRepository<CalendarEvent>
     IAsyncEnumerable<CalendarEvent> GetRange(DateTime fromTime, DateTime toTime, IPageQuery pageQuery,
         bool available, bool booked,
         CancellationToken cancellation = default);
+
+    Task<CalendarEvent?> GetByBookingId(int bookingId, CancellationToken cancellation = default);
 }
