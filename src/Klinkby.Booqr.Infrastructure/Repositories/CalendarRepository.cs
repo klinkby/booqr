@@ -32,6 +32,18 @@ internal sealed partial class CalendarRepository(IConnectionProvider connectionP
         }
     }
 
+    public async Task<CalendarEvent?> GetByBookingId(int bookingId, CancellationToken cancellation = default)
+    {
+
+        DbConnection connection = await connectionProvider.GetConnection(cancellation);
+        return await connection.QuerySingleOrDefaultAsync<CalendarEvent>(
+            $"""
+              SELECT id,{CommaSeparated},created,modified,deleted
+              FROM {TableName}
+              WHERE deleted IS NULL AND bookingid=@Id
+              """, new GetByIdParameters(bookingId));
+    }
+
     #region IRepository
 
     public async IAsyncEnumerable<CalendarEvent> GetAll(IPageQuery pageQuery,
