@@ -10,13 +10,13 @@ public abstract partial class AddCommand<TRequest, TItem>(IRepository<TItem, int
 
         TItem item = Map(query);
         var newId = await repository.Add(item, cancellation);
-        LogUserCreateTypeId(logger, query.UserName, nameof(TItem), newId);
+        LogUserCreateTypeId(logger, query.AuthenticatedUserId, nameof(TItem), newId);
 
         return newId;
     }
 
     protected abstract TItem Map(TRequest query);
 
-    [LoggerMessage(LogLevel.Information, "User {User} created {Type}:{Id}")]
-    private static partial void LogUserCreateTypeId(ILogger logger, string? User, string Type, int Id);
+    [LoggerMessage(LogLevel.Information, "User {UserId} created {Type}:{Id}")]
+    private static partial void LogUserCreateTypeId(ILogger logger, int userId, string type, int id);
 }

@@ -8,3 +8,4 @@ D:\kli\booqr\src\Klinkby.Booqr.Infrastructure.Generators\obj\Debug\net10.0\Klink
 D:\kli\booqr\src\Klinkby.Booqr.Infrastructure.Generators\obj\Debug\net10.0\Klinkby.Booqr.Infrastructure.Generators.dll
 D:\kli\booqr\src\Klinkby.Booqr.Infrastructure.Generators\obj\Debug\net10.0\refint\Klinkby.Booqr.Infrastructure.Generators.dll
 D:\kli\booqr\src\Klinkby.Booqr.Infrastructure.Generators\obj\Debug\net10.0\ref\Klinkby.Booqr.Infrastructure.Generators.dll
+D:\kli\booqr\src\Klinkby.Booqr.Infrastructure.Generators\obj\Debug\net10.0\Klinkby.Booqr.Infrastructure.Generators.sourcelink.json

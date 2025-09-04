@@ -10,3 +10,4 @@ D:\kli\booqr\src\Klinkby.Booqr.Application\obj\Debug\net10.0\Klinkby..1D6A7806.U
 D:\kli\booqr\src\Klinkby.Booqr.Application\obj\Debug\net10.0\Klinkby.Booqr.Application.dll
 D:\kli\booqr\src\Klinkby.Booqr.Application\obj\Debug\net10.0\refint\Klinkby.Booqr.Application.dll
 D:\kli\booqr\src\Klinkby.Booqr.Application\obj\Debug\net10.0\ref\Klinkby.Booqr.Application.dll
+D:\kli\booqr\src\Klinkby.Booqr.Application\obj\Debug\net10.0\Klinkby.Booqr.Application.sourcelink.json

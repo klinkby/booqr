@@ -15,7 +15,7 @@ namespace Klinkby.Booqr.Core;
 ///     - Modification timestamp.
 ///     - Optional deletion timestamp.
 /// </remarks>
-public abstract record Audit
+public abstract record Audit : IId
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

@@ -7,3 +7,4 @@ D:\kli\booqr\src\Klinkby.Booqr.Core\obj\Debug\net10.0\Klinkby.Booqr.Core.csproj.
 D:\kli\booqr\src\Klinkby.Booqr.Core\obj\Debug\net10.0\Klinkby.Booqr.Core.dll
 D:\kli\booqr\src\Klinkby.Booqr.Core\obj\Debug\net10.0\refint\Klinkby.Booqr.Core.dll
 D:\kli\booqr\src\Klinkby.Booqr.Core\obj\Debug\net10.0\ref\Klinkby.Booqr.Core.dll
+D:\kli\booqr\src\Klinkby.Booqr.Core\obj\Debug\net10.0\Klinkby.Booqr.Core.sourcelink.json

@@ -3,23 +3,24 @@ using Klinkby.Booqr.Application.Calendar;
 using Klinkby.Booqr.Application.Locations;
 using Klinkby.Booqr.Application.Services;
 using Klinkby.Booqr.Application.Users;
+using Klinkby.Booqr.Application.Vacancies;
 
 namespace Klinkby.Booqr.Api;
 
-[JsonSerializable(typeof(PageQuery))]
-[JsonSerializable(typeof(ByIdRequest))]
+[JsonSerializable(typeof(AddLocationRequest))]
+[JsonSerializable(typeof(AddServiceRequest))]
+[JsonSerializable(typeof(AddVacancyRequest))]
 [JsonSerializable(typeof(AuthenticatedByIdRequest))]
+[JsonSerializable(typeof(ByIdRequest))]
+[JsonSerializable(typeof(CollectionResponse<CalendarEvent>))]
+[JsonSerializable(typeof(CollectionResponse<Location>))]
+[JsonSerializable(typeof(CollectionResponse<Service>))]
 [JsonSerializable(typeof(CreatedResponse))]
-[JsonSerializable(typeof(ProblemDetails))]
+[JsonSerializable(typeof(GetVacanciesRequest))]
 [JsonSerializable(typeof(LoginRequest))]
 [JsonSerializable(typeof(LoginResponse))]
-[JsonSerializable(typeof(GetAvailableEventsRequest))]
-[JsonSerializable(typeof(CollectionResponse<CalendarEvent>))]
-[JsonSerializable(typeof(AddServiceRequest))]
-[JsonSerializable(typeof(UpdateServiceRequest))]
-[JsonSerializable(typeof(CollectionResponse<Service>))]
 [JsonSerializable(typeof(PageQuery))]
-[JsonSerializable(typeof(AddLocationRequest))]
+[JsonSerializable(typeof(ProblemDetails))]
 [JsonSerializable(typeof(UpdateLocationRequest))]
-[JsonSerializable(typeof(CollectionResponse<Location>))]
+[JsonSerializable(typeof(UpdateServiceRequest))]
 internal sealed partial class AppJsonSerializerContext : JsonSerializerContext;

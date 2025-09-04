@@ -8,13 +8,13 @@ public abstract partial class UpdateCommand<TRequest, TItem>(IRepository<TItem, 
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        LogUserUpdateTypeName(logger, query.UserName, nameof(TItem), query.Id);
+        LogUserUpdateTypeName(logger, query.AuthenticatedUserId, nameof(TItem), query.Id);
         TItem item = Map(query);
         return repository.Update(item, cancellation);
     }
 
     protected abstract TItem Map(TRequest query);
 
-    [LoggerMessage(LogLevel.Information, "User {User} update {Type}:{Id}")]
-    private static partial void LogUserUpdateTypeName(ILogger logger, string? User, string Type, int Id);
+    [LoggerMessage(LogLevel.Information, "User {UserId} update {Type}:{Id}")]
+    private static partial void LogUserUpdateTypeName(ILogger logger, int userId, string type, int id);
 }

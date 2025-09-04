@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Security.Claims;
 
 namespace Klinkby.Booqr.Application;
@@ -11,12 +12,13 @@ public abstract record AuthenticatedRequest
 {
     public ClaimsPrincipal? User { get; init; }
 
-    public string UserName
+    public int AuthenticatedUserId
     {
         get
         {
-            Debug.Assert(User?.Identity?.Name is not null);
-            return User.Identity.Name;
+            var nameIdValue = User?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+            Debug.Assert(nameIdValue is not null);
+            return int.Parse(nameIdValue, CultureInfo.InvariantCulture);
         }
     }
 }

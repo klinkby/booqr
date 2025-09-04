@@ -9,7 +9,10 @@ internal sealed partial class CalendarRepository(IConnectionProvider connectionP
 {
     private const string TableName = "calendar";
 
-    public async IAsyncEnumerable<CalendarEvent> GetRange(DateTime fromTime, DateTime toTime, IPageQuery pageQuery,
+    public async IAsyncEnumerable<CalendarEvent> GetRange(
+        DateTime fromTime, DateTime toTime,
+        IPageQuery pageQuery,
+        bool available, bool booked,
         [EnumeratorCancellation] CancellationToken cancellation)
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
@@ -17,9 +20,12 @@ internal sealed partial class CalendarRepository(IConnectionProvider connectionP
             $"""
              SELECT id,{CommaSeparated},created,modified
              FROM {TableName}
-             WHERE ( starttime BETWEEN @fromTime AND @toTime OR endtime BETWEEN @fromTime AND @toTime ) AND deleted IS NULL
+             WHERE ( starttime BETWEEN @fromTime AND @toTime OR endtime BETWEEN @fromTime AND @toTime )
+               AND bookingid IS NULL
+               AND ((@available AND bookingid is NULL) OR (@booked AND bookingid IS NOT NULL))
+               AND deleted IS NULL
              LIMIT @Num OFFSET @Start
-             """, new { fromTime, toTime, pageQuery.Start, pageQuery.Num });
+             """, new { fromTime, toTime, pageQuery.Start, pageQuery.Num, available, booked });
         await foreach (CalendarEvent item in query.WithCancellation(cancellation))
         {
             yield return item;

@@ -4,10 +4,12 @@ namespace Klinkby.Booqr.Api;
 
 internal static partial class Routes
 {
-    private static void MapLocation(IEndpointRouteBuilder app)
+    private static void MapLocations(IEndpointRouteBuilder app)
     {
+        const string resourceName = "locations";
+
         RouteGroupBuilder group = app
-            .MapGroup("/location")
+            .MapGroup(resourceName)
             .WithTags("Location");
 
         group.MapGet("",
@@ -22,13 +24,13 @@ internal static partial class Routes
                         int id,
                         CancellationToken cancellation) =>
                     command.GetSingle(id, cancellation))
-            .WithSummary("Get a location");
+            .WithSummary("Get a single location");
 
         group.MapPost("",
                 static (AddLocationCommand command,
                         [FromBody] AddLocationRequest request,
                         ClaimsPrincipal user, CancellationToken cancellation) =>
-                    command.Created(request, user, "location", cancellation))
+                    command.Created(request, user, resourceName, cancellation))
             .RequireAuthorization(UserRole.Admin)
             .WithSummary("Add a location");
 

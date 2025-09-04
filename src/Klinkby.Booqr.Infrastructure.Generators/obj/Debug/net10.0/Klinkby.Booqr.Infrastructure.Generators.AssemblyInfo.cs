@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Klinkby.Booqr.Infrastructure.Generators")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9b97b8b7e21718f31496561272d08f257548c3df")]
 [assembly: System.Reflection.AssemblyProductAttribute("Klinkby.Booqr.Infrastructure.Generators")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Klinkby.Booqr.Infrastructure.Generators")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

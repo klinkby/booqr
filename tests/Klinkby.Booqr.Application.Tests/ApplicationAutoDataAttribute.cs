@@ -14,12 +14,14 @@ internal sealed class ApplicationAutoDataAttribute : AutoDataAttribute
     {
         var fixture = new Fixture();
         fixture.Customize<ClaimsPrincipal>(c =>
-            c.FromFactory(() =>
-            {
-                Claim[] claims = [new(ClaimTypes.Name, "TestUser")];
-                var identity = new ClaimsIdentity(claims, "Test");
-                return new ClaimsPrincipal(identity);
-            }));
+            c.FromFactory(GetTestUser));
         return fixture;
+    }
+
+    public static ClaimsPrincipal GetTestUser()
+    {
+        Claim[] claims = [new(ClaimTypes.NameIdentifier, "42")];
+        var identity = new ClaimsIdentity(claims, "Test");
+        return new ClaimsPrincipal(identity);
     }
 }

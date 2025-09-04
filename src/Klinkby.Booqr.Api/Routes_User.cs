@@ -4,10 +4,12 @@ namespace Klinkby.Booqr.Api;
 
 internal static partial class Routes
 {
-    private static void MapUser(IEndpointRouteBuilder app)
+    private static void MapUsers(IEndpointRouteBuilder app)
     {
+        const string resourceName = "users";
+
         RouteGroupBuilder group = app
-            .MapGroup("/user")
+            .MapGroup(resourceName)
             .WithTags("User");
 
         group.MapPost("/login",

@@ -237,13 +237,13 @@ public sealed class CalendarRepositoryTests(ServiceProviderFixture serviceProvid
                 null, startDate, endDate));
 
             CalendarEvent[] actual =
-                await _sut.GetRange(default, startDate.AddSeconds(-1), new PageQuery()).ToArrayAsync();
+                await _sut.GetRange(default, startDate.AddSeconds(-1), new PageQuery(), true, true).ToArrayAsync();
             Assert.Single(actual);
 
-            actual = await _sut.GetRange(startDate.AddSeconds(1), endDate.AddYears(1), new PageQuery()).ToArrayAsync();
+            actual = await _sut.GetRange(startDate.AddSeconds(1), endDate.AddYears(1), new PageQuery(), true, true).ToArrayAsync();
             Assert.Single(actual);
 
-            actual = await _sut.GetRange(endDate.AddSeconds(1), endDate.AddYears(1), new PageQuery()).ToArrayAsync();
+            actual = await _sut.GetRange(endDate.AddSeconds(1), endDate.AddYears(1), new PageQuery(), true, true).ToArrayAsync();
             Assert.Empty(actual);
         }
         finally

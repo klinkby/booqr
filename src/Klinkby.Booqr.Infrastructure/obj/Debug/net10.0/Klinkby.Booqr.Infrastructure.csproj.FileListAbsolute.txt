@@ -10,3 +10,4 @@ D:\kli\booqr\src\Klinkby.Booqr.Infrastructure\obj\Debug\net10.0\Klinkby..53C1258
 D:\kli\booqr\src\Klinkby.Booqr.Infrastructure\obj\Debug\net10.0\Klinkby.Booqr.Infrastructure.dll
 D:\kli\booqr\src\Klinkby.Booqr.Infrastructure\obj\Debug\net10.0\refint\Klinkby.Booqr.Infrastructure.dll
 D:\kli\booqr\src\Klinkby.Booqr.Infrastructure\obj\Debug\net10.0\ref\Klinkby.Booqr.Infrastructure.dll
+D:\kli\booqr\src\Klinkby.Booqr.Infrastructure\obj\Debug\net10.0\Klinkby.Booqr.Infrastructure.sourcelink.json
