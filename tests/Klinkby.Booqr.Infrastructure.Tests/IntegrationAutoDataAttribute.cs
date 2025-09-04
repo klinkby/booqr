@@ -25,6 +25,7 @@ internal sealed class IntegrationAutoDataAttribute : AutoDataAttribute
         // fixture.Customize<Service>(c => c
         //     .Without(p => p.Deleted));
         fixture.Customize<Location>(c => c
+            .With(p => p.Zip, () => "2301")
             .Without(p => p.Deleted));
         fixture.Customize<CalendarEvent>(c => c
             .Without(p => p.Deleted));

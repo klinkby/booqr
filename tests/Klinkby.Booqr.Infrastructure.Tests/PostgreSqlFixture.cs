@@ -52,7 +52,9 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
         IUserRepository users = Services.GetRequiredService<IUserRepository>();
         ILocationRepository locations = Services.GetRequiredService<ILocationRepository>();
         _fixture.Customize<User>(c => c.Without(p => p.Deleted));
-        _fixture.Customize<Location>(c => c.Without(p => p.Deleted));
+        _fixture.Customize<Location>(c => c
+            .With(p => p.Zip, () => "2301")
+            .Without(p => p.Deleted));
         _testData = new TestData(
             await users.Add(_fixture.Create<User>() with { Role = UserRole.Employee }),
             await users.Add(_fixture.Create<User>() with { Role = UserRole.Employee }),
@@ -69,5 +71,3 @@ public class PostgreSqlFixtureCollectionFixture : ICollectionFixture<ServiceProv
     // to be the place to apply [CollectionDefinition] and all the
     // ICollectionFixture<> interfaces.
 }
-
-internal sealed record TestData(int EmployeeId1, int EmployeeId2, int LocationId, int CustomerId2);
