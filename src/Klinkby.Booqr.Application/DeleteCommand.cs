@@ -6,8 +6,12 @@ public abstract partial class DeleteCommand<TItem>(IRepository<TItem, int> repos
     public Task Execute(AuthenticatedByIdRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
-        LogUserDeleteTypeName(logger, query.AuthenticatedUserId, nameof(Location), query.Id);
+        return Delete(query, cancellation);
+    }
 
+    internal virtual Task<bool> Delete(AuthenticatedByIdRequest query, CancellationToken cancellation)
+    {
+        LogUserDeleteTypeName(logger, query.AuthenticatedUserId, nameof(Location), query.Id);
         return repository.Delete(query.Id, cancellation);
     }
 

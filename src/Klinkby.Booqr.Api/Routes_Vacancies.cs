@@ -43,12 +43,12 @@ internal static partial class Routes
         //     .RequireAuthorization(UserRole.Employee)
         //     .WithSummary("Update a vacancy");
         //
-        // group.MapDelete("{id}",
-        //         static (DeleteVacancyCommand command,
-        //                 [AsParameters] AuthenticatedByIdRequest request,
-        //                 ClaimsPrincipal user, CancellationToken cancellation) =>
-        //             command.NoContent(request, user, cancellation))
-        //     .RequireAuthorization(UserRole.Employee)
-        //     .WithSummary("Delete a vacancy");
+        group.MapDelete("{id}",
+                static (DeleteVacancyCommand command,
+                        [AsParameters] AuthenticatedByIdRequest request,
+                        ClaimsPrincipal user, CancellationToken cancellation) =>
+                    command.NoContent(request, user, cancellation))
+            .RequireAuthorization(UserRole.Employee)
+            .WithSummary("Delete a vacancy");
     }
 }
