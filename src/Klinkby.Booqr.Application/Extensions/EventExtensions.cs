@@ -33,4 +33,7 @@ internal static class EventExtensions
         current.StartTime >= other.StartTime.AddTicks(-MarginTicks) &&
         current.EndTime <= other.EndTime.AddTicks(MarginTicks);
 
-}
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool Equalsish(this DateTime current, DateTime other) =>
+        current <= other.AddTicks(MarginTicks) &&
+        current.AddTicks(MarginTicks) >= other;}

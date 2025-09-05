@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 
 namespace Klinkby.Booqr.Application;
 
@@ -10,9 +11,11 @@ namespace Klinkby.Booqr.Application;
 /// <remarks>User property MUST be set POST validation</remarks>
 public abstract record AuthenticatedRequest
 {
+    [JsonIgnore]
     public ClaimsPrincipal? User { get; init; }
 
-    public int AuthenticatedUserId
+    [JsonIgnore]
+    internal int AuthenticatedUserId
     {
         get
         {

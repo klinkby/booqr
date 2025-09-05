@@ -122,12 +122,7 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
         await transaction.Begin(IsolationLevel.RepeatableRead, cancellation);
         try
         {
-            List<CalendarEvent> events = await calendar
-                .GetRange(query.StartTime, query.EndTime, new PageQuery(), true, true, cancellation)
-                .Where(e => e.EmployeeId == userId)
-                .ToListAsync(cancellation);
-
-            newId = await AddCalendarEvent(query, events, userId, cancellation);
+            newId = await AddVacancyCore(query, userId, cancellation);
         }
         catch
         {
@@ -135,6 +130,18 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
             throw;
         }
         await transaction.Commit(cancellation);
+        return newId;
+    }
+
+    async internal Task<int> AddVacancyCore(AddVacancyRequest query, int employeeId, CancellationToken cancellation)
+    {
+        int newId;
+        List<CalendarEvent> events = await calendar
+            .GetRange(query.StartTime, query.EndTime, new PageQuery(), true, true, cancellation)
+            .Where(e => e.EmployeeId == employeeId)
+            .ToListAsync(cancellation);
+
+        newId = await AddCalendarEvent(query, events, employeeId, cancellation);
         return newId;
     }
 

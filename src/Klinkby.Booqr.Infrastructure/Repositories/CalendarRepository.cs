@@ -24,6 +24,7 @@ internal sealed partial class CalendarRepository(IConnectionProvider connectionP
                AND bookingid IS NULL
                AND ((@available AND bookingid is NULL) OR (@booked AND bookingid IS NOT NULL))
                AND deleted IS NULL
+             ORDER BY starttime
              LIMIT @Num OFFSET @Start
              """, new { fromTime, toTime, pageQuery.Start, pageQuery.Num, available, booked });
         await foreach (CalendarEvent item in query.WithCancellation(cancellation))

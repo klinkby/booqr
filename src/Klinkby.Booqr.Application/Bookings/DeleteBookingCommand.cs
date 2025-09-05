@@ -38,6 +38,10 @@ public sealed partial class DeleteBookingCommand(
 
             await calendar.Delete(calendarEvent.Id, cancellation);
             deleted = await base.Delete(query, cancellation);
+
+            // reopen the vacancy, joining any adjacent vacancies
+            AddVacancyCommand addVacancyCommand = new(calendar, transaction, addVacancyLogger);
+            await addVacancyCommand.AddVacancyCore(Map(calendarEvent, query.User), calendarEvent.EmployeeId, cancellation);
         }
         catch
         {
@@ -47,9 +51,6 @@ public sealed partial class DeleteBookingCommand(
 
         await transaction.Commit(cancellation);
 
-        // reopen the vacancy, joining any adjacent vacancies
-        AddVacancyCommand addVacancyCommand = new(calendar, transaction, addVacancyLogger);
-        await addVacancyCommand.Execute(Map(calendarEvent, query.User), cancellation);
 
         return deleted;
     }

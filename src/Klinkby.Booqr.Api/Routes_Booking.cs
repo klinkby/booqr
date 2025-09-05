@@ -11,28 +11,30 @@ internal static partial class Routes
         RouteGroupBuilder group = app
             .MapGroup(resourceName)
             .WithTags("Booking");
-        //
+
         // group.MapGet("",
-        //         static (GetLocationCollectionCommand command,
-        //                 [AsParameters] PageQuery request,
+        //         static (GetBookingCollectionCommand command,
+        //                 [AsParameters] GetBookingsRequest request,
         //                 CancellationToken cancellation) =>
         //             command.GetCollection(request, cancellation))
-        //     .WithSummary("List all locations");
+        //     .RequireAuthorization(UserRole.Customer)
+        //     .WithSummary("List bookings");
         //
         // group.MapGet("{id}",
-        //         static (GetLocationByIdCommand command,
+        //         static (GetBookingByIdCommand command,
         //                 int id,
         //                 CancellationToken cancellation) =>
         //             command.GetSingle(id, cancellation))
-        //     .WithSummary("Get a single location");
-
-        // group.MapPost("",
-        //         static (AddBookingCommand command,
-        //                 [FromBody] AddBookingRequest request,
-        //                 ClaimsPrincipal user, CancellationToken cancellation) =>
-        //             command.Created(request, user, resourceName, cancellation))
         //     .RequireAuthorization(UserRole.Customer)
-        //     .WithSummary("Add a booking");
+        //     .WithSummary("Get a single booking");
+
+        group.MapPost("",
+                static (AddBookingCommand command,
+                        [FromBody] AddBookingRequest request,
+                        ClaimsPrincipal user, CancellationToken cancellation) =>
+                    command.Created(request, user, $"{BaseUrl}/{resourceName}", cancellation))
+            .RequireAuthorization(UserRole.Customer)
+            .WithSummary("Add a booking");
 
         // group.MapPut("{id}",
         //         static (UpdateLocationCommand command,

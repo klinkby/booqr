@@ -30,7 +30,7 @@ internal static partial class Routes
                 static (AddVacancyCommand command,
                         [FromBody] AddVacancyRequest request,
                         ClaimsPrincipal user, CancellationToken cancellation) =>
-                    command.Created(request, user, resourceName, cancellation))
+                    command.Created(request, user, $"{BaseUrl}/{resourceName}", cancellation))
             .RequireAuthorization(UserRole.Employee)
             .WithSummary("Add a vacancy");
 

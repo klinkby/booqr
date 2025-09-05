@@ -8,7 +8,8 @@ namespace Klinkby.Booqr.Core;
 /// </remarks>
 public sealed record Booking(
     int CustomerId,
-    int ServiceId
+    int ServiceId,
+    string? Notes
 ) : Audit;
 
 public interface IBookingRepository : IRepository<Booking>

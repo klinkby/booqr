@@ -30,7 +30,7 @@ internal static partial class Routes
                 static (AddLocationCommand command,
                         [FromBody] AddLocationRequest request,
                         ClaimsPrincipal user, CancellationToken cancellation) =>
-                    command.Created(request, user, resourceName, cancellation))
+                    command.Created(request, user, $"{BaseUrl}/{resourceName}", cancellation))
             .RequireAuthorization(UserRole.Admin)
             .WithSummary("Add a location");
 
