@@ -20,6 +20,8 @@ if (isMockServer)
 else
 {
     builder.WebHost.UseKestrelHttpsConfiguration();
+    builder.Services.AddHsts(options => options
+        .MaxAge = TimeSpan.FromSeconds(63072000)); // https://developer.mozilla.org/en-US/observatory/docs/faq#can_i_scan_non-websites_such_as_api_endpoints
 }
 
 WebApplication app = builder.Build();
@@ -34,16 +36,25 @@ if (!isMockServer)
     }
     else
     {
+        app.UseHsts();
         app.UseExceptionHandler(new ExceptionHandlerOptions
         {
             AllowStatusCode404Response = true,
             StatusCodeSelector = StatusCodeSelector.Map
         });
     }
+    app.UseSecurityHeaders();
 }
 
 app.UseStatusCodePages();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        ctx.Context.Response.Headers.Append(
+            "Cache-Control", $"public, max-age={TimeSpan.FromDays(1).TotalSeconds}");
+    }
+});
 Routes.MapApi(app);
 
 await app.RunAsync();
