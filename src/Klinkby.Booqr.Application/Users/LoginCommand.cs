@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
+using BCryptNet = global::BCrypt.Net.BCrypt;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -44,7 +45,7 @@ public sealed partial class LoginCommand(
             return null;
         }
 
-        var isPasswordValid = BCrypt.Net.BCrypt.EnhancedVerify(query.Password, user.PasswordHash);
+        var isPasswordValid = BCryptNet.EnhancedVerify(query.Password, user.PasswordHash);
         if (!isPasswordValid)
         {
             _log.WrongPassword(user.Email);

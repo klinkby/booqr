@@ -19,6 +19,7 @@ namespace Klinkby.Booqr.Api;
 [JsonSerializable(typeof(CollectionResponse<Location>))]
 [JsonSerializable(typeof(CollectionResponse<MyBooking>))]
 [JsonSerializable(typeof(CollectionResponse<Service>))]
+[JsonSerializable(typeof(CollectionResponse<User>))]
 [JsonSerializable(typeof(CreatedResponse))]
 [JsonSerializable(typeof(GetMyBookingsRequest))]
 [JsonSerializable(typeof(GetVacanciesRequest))]
@@ -28,4 +29,5 @@ namespace Klinkby.Booqr.Api;
 [JsonSerializable(typeof(ProblemDetails))]
 [JsonSerializable(typeof(UpdateLocationRequest))]
 [JsonSerializable(typeof(UpdateServiceRequest))]
+[JsonSerializable(typeof(User))]
 internal sealed partial class AppJsonSerializerContext : JsonSerializerContext;

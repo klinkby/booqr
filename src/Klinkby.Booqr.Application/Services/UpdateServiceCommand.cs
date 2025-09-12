@@ -3,8 +3,7 @@ using System.Runtime.Serialization;
 namespace Klinkby.Booqr.Application.Services;
 
 public sealed record UpdateServiceRequest(
-    [property: IgnoreDataMember]
-    int Id,
+    [property: IgnoreDataMember] int Id,
     string Name,
     TimeSpan Duration
     ) : AddServiceRequest(Name, Duration), IId;

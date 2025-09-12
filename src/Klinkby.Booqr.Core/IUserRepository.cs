@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Klinkby.Booqr.Core;
 
 /// <summary>
@@ -18,7 +20,7 @@ namespace Klinkby.Booqr.Core;
 /// </param>
 public sealed record User(
     string Email,
-    string PasswordHash,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.Always)] string PasswordHash,
     string Role,
     string? Name,
     long? Phone) : Audit;

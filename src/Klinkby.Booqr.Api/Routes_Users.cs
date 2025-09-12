@@ -29,5 +29,51 @@ internal static partial class Routes
             .RequireAuthorization(UserRole.Customer)
             .WithName("getMyBookings")
             .WithSummary("List my bookings");
+
+        group.MapGet("",
+                static (GetUserCollectionCommand command,
+                        [AsParameters] PageQuery request,
+                        CancellationToken cancellation) =>
+                    command.GetCollection(request, cancellation))
+            .RequireAuthorization(UserRole.Employee)
+            .WithName("getUsers")
+            .WithSummary("List users");
+
+        group.MapGet("{id}",
+                static (GetUserByIdCommand command,
+                        [AsParameters] ByIdRequest request,
+                        CancellationToken cancellation) =>
+                    command.Execute(request, cancellation))
+            .AddEndpointFilter<ETagProviderEndPointFilter>()
+            .RequireAuthorization(UserRole.Employee)
+            .WithName("getUserById")
+            .WithSummary("Get a single user");
+        //
+        // group.MapPost("",
+        //         static (SignUpCommand command,
+        //                 [FromBody] SignUpRequest request,
+        //                 ClaimsPrincipal user, CancellationToken cancellation) =>
+        //             command.Created(request, user, $"{BaseUrl}/{resourceName}", cancellation))
+        //     .WithName("addUser")
+        //     .WithSummary("Sign up for a user account");
+
+        // group.MapPut("{id}",
+        //         static (UpdateUserCommand command,
+        //                 int id,
+        //                 [FromBody] UpdateUserRequest request,
+        //                 ClaimsPrincipal user, CancellationToken cancellation) =>
+        //             command.NoContent(request with { Id = id }, user, cancellation))
+        //     .RequireAuthorization(UserRole.Admin)
+        //     .WithName("updateUser")
+        //     .WithSummary("Update a user");
+        //
+        // group.MapDelete("{id}",
+        //         static (DeleteUserCommand command,
+        //                 [AsParameters] AuthenticatedByIdRequest request,
+        //                 ClaimsPrincipal user, CancellationToken cancellation) =>
+        //             command.NoContent(request, user, cancellation))
+        //     .RequireAuthorization(UserRole.Admin)
+        //     .WithName("deleteUser")
+        //     .WithSummary("Delete a user");
     }
 }
