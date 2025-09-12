@@ -7,7 +7,7 @@ public sealed record GetVacanciesRequest(
     [Range(1, 1000)] int? Num = 100)
     : IPageQuery;
 
-public sealed class GetVacancyCollectionCommand(ICalendarRepository events)
+public sealed class GetVacancyCollectionCommand(ICalendarRepository events, TimeProvider timeProvider)
     : ICommand<GetVacanciesRequest, IAsyncEnumerable<CalendarEvent>>
 {
     public IAsyncEnumerable<CalendarEvent> Execute(GetVacanciesRequest query,
@@ -16,7 +16,7 @@ public sealed class GetVacancyCollectionCommand(ICalendarRepository events)
         ArgumentNullException.ThrowIfNull(query);
 
         return events.GetRange(
-            query.FromTime ?? DateTime.MinValue,
+            query.FromTime ?? timeProvider.GetUtcNow().UtcDateTime.AddDays(-1),
             query.ToTime ?? DateTime.MaxValue,
             query,
             true,

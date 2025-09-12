@@ -8,9 +8,9 @@ internal static partial class Routes
     {
         RouteGroupBuilder baseRoute = app.MapGroup(BaseUrl);
         MapBookings(baseRoute);
-        MapVacancies(baseRoute);
         MapLocations(baseRoute);
         MapServices(baseRoute);
         MapUsers(baseRoute);
+        MapVacancies(baseRoute);
     }
 }

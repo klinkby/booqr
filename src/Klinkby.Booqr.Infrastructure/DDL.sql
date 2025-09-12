@@ -131,3 +131,26 @@ create table public.employeeservices
 
 alter table public.employeeservices
     owner to postgres;
+
+---
+
+create view public.mybookings
+            (id, starttime, endtime, customerid, serviceid, locationid, employeeid, hasnote, created, modified, deleted) as
+SELECT b.id,
+       c.starttime,
+       c.endtime,
+       b.customerid,
+       b.serviceid,
+       c.locationid,
+       c.employeeid,
+       NOT b.notes IS NULL AND length(b.notes) > 0 AS hasnotes,
+       b.created,
+       b.modified,
+       b.deleted
+FROM bookings b
+    JOIN calendar c ON b.id = c.bookingid
+ORDER BY c.starttime;
+
+alter view public.mybookings
+    owner to postgres;
+

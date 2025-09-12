@@ -18,5 +18,16 @@ internal static partial class Routes
                 command.GetAuthenticationToken(request, cancellation))
             .WithName("login")
             .WithSummary("Sign in");
+
+        group.MapGet("{id}/my-bookings",
+                static (GetMyBookingsCommand command,
+
+                        [AsParameters] GetMyBookingsRequest request,
+                        ClaimsPrincipal user,
+                        CancellationToken cancellation) =>
+                    command.GetCollection(request with { User = user }, cancellation))
+            .RequireAuthorization(UserRole.Customer)
+            .WithName("getMyBookings")
+            .WithSummary("List my bookings");
     }
 }
