@@ -1,6 +1,9 @@
+using System.Runtime.Serialization;
+
 namespace Klinkby.Booqr.Application.Services;
 
 public sealed record UpdateServiceRequest(
+    [property: IgnoreDataMember]
     int Id,
     string Name,
     TimeSpan Duration
@@ -8,9 +11,14 @@ public sealed record UpdateServiceRequest(
 
 public sealed class UpdateServiceCommand(
     IServiceRepository services,
+    IETagProvider etagProvider,
     ILogger<UpdateServiceCommand> logger)
     : UpdateCommand<UpdateServiceRequest, Service>(services, logger)
 {
     protected override Service Map(UpdateServiceRequest query) =>
-        new(query.Name, query.Duration) { Id = query.Id };
+        new(query.Name, query.Duration)
+        {
+            Id = query.Id,
+            Version = etagProvider.Version
+        };
 }

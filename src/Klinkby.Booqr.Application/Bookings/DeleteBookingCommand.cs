@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using Klinkby.Booqr.Application.Vacancies;
 
@@ -13,6 +14,7 @@ public sealed partial class DeleteBookingCommand(
     ILogger<AddVacancyCommand> addVacancyLogger)
     : DeleteCommand<Booking>(bookings, logger)
 {
+    [SuppressMessage("Exceptions usages", "EX006:Do not write logic driven by exceptions.", Justification = "Unauthorized is an exceptional case")]
     async internal override Task<bool> Delete(AuthenticatedByIdRequest query, CancellationToken cancellation)
     {
         int userId = query.AuthenticatedUserId;

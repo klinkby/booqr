@@ -8,6 +8,7 @@ public class LocationCommandsTests
 {
     private const int ExpectedId = 42;
     private readonly Mock<ILocationRepository> _mockRepo = CreateMockLocationRepository();
+    private readonly Mock<IETagProvider> _mockEtag = new();
 
     [Theory]
     [ApplicationAutoData]

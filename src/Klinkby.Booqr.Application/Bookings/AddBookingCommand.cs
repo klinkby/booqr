@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using Klinkby.Booqr.Application.Extensions;
 
@@ -31,6 +32,7 @@ public partial class AddBookingCommand(
 {
     private readonly LoggerMessages _log = new(logger);
 
+    [SuppressMessage("Exceptions usages", "EX006:Do not write logic driven by exceptions.", Justification = "Conflict is an exceptional case")]
     public async Task<int> Execute(AddBookingRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -55,7 +57,7 @@ public partial class AddBookingCommand(
             {
                 Booking? booking = await bookings.GetById(vacancy.BookingId.Value, cancellation);
                 Debug.Assert(booking != null);
-                if (booking?.CustomerId == userId && booking.ServiceId == query.ServiceId)
+                if (booking.CustomerId == userId && booking.ServiceId == query.ServiceId)
                 {
                     // this event is already booked by the customer
                     await transaction.Rollback(cancellation);

@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace Klinkby.Booqr.Core;
 
@@ -22,6 +23,13 @@ public abstract record Audit : IId
     public DateTime Created { get; init; }
     public DateTime Modified { get; init; }
 
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DateTime? Deleted { get; init; }
+
+    [JsonPropertyName("_etag"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string ETag => Modified.Ticks.ToString(CultureInfo.InvariantCulture);
+
+    [JsonIgnore]
+    public DateTime? Version { get; init; }
+
 }

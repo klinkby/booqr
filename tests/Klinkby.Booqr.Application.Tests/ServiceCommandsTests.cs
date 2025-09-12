@@ -8,6 +8,7 @@ public class ServiceCommandsTests
 {
     private const int ExpectedId = 42;
     private readonly Mock<IServiceRepository> _mockRepo = CreateMockServiceRepository();
+    private readonly Mock<IETagProvider> _mockEtag = new();
 
     [Theory]
     [ApplicationAutoData]
@@ -32,7 +33,7 @@ public class ServiceCommandsTests
     {
         _mockRepo.Setup(x => x.Update(It.IsAny<Service>(), CancellationToken.None)).ReturnsAsync(true);
 
-        UpdateServiceCommand command = new(_mockRepo.Object, NullLogger<UpdateServiceCommand>.Instance);
+        UpdateServiceCommand command = new(_mockRepo.Object, _mockEtag.Object, NullLogger<UpdateServiceCommand>.Instance);
         UpdateServiceRequest request = new(ExpectedId, service.Name, service.Duration) { User = user };
 
         await command.Execute(request);

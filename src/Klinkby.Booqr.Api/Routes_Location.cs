@@ -21,9 +21,10 @@ internal static partial class Routes
 
         group.MapGet("{id}",
                 static (GetLocationByIdCommand command,
-                        int id,
+                        [AsParameters] ByIdRequest request,
                         CancellationToken cancellation) =>
-                    command.GetSingle(id, cancellation))
+                    command.Execute(request, cancellation))
+            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .WithSummary("Get a single location");
 
         group.MapPost("",
@@ -40,6 +41,7 @@ internal static partial class Routes
                         [FromBody] UpdateLocationRequest request,
                         ClaimsPrincipal user, CancellationToken cancellation) =>
                     command.NoContent(request with { Id = id }, user, cancellation))
+            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .RequireAuthorization(UserRole.Admin)
             .WithSummary("Update a location");
 

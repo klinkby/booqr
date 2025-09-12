@@ -71,10 +71,10 @@ public sealed class QueryFieldsGenerator : IIncrementalGenerator
 
                                       private const string GetAllQuery = $"SELECT id,{CommaSeparated},created,modified,deleted FROM {TableName} WHERE deleted IS NULL LIMIT @Num OFFSET @Start";
                                       private const string GetByIdQuery = $"SELECT id,{CommaSeparated},created,modified,deleted FROM {TableName} WHERE deleted IS NULL and id = @Id";
-                                      private const string InsertQuery = $"INSERT INTO {TableName} ({CommaSeparated},created,modified,deleted) VALUES ({ParametersCommaSeparated},@created,@modified,@deleted) RETURNING id";
-                                      private const string UpdateQuery = $"UPDATE {TableName} SET {ParametersAssignment},modified = @Modified WHERE id = @id";
-                                      private const string DeleteQuery = $"UPDATE {TableName} SET deleted = @Now WHERE id = @id AND deleted IS NULL";
-                                      private const string UndeleteQuery = $"UPDATE {TableName} SET deleted = NULL WHERE id = @id AND deleted IS NOT NULL";
+                                      private const string InsertQuery = $"INSERT INTO {TableName} ({CommaSeparated},created,modified,deleted) VALUES ({ParametersCommaSeparated},@Created,@Modified,@Deleted) RETURNING id";
+                                      private const string UpdateQuery = $"UPDATE {TableName} SET {ParametersAssignment},modified = @Modified WHERE deleted is NULL AND id = @Id AND (@Version IS NULL OR modified = @Version)";
+                                      private const string DeleteQuery = $"UPDATE {TableName} SET deleted = @Now WHERE id = @Id AND deleted IS NULL";
+                                      private const string UndeleteQuery = $"UPDATE {TableName} SET deleted = NULL WHERE id = @Id AND deleted IS NOT NULL";
                                   }
                               }
                               """;

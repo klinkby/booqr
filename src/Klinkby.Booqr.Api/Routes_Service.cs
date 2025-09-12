@@ -23,7 +23,8 @@ internal static partial class Routes
                 static (GetServiceByIdCommand command,
                         [AsParameters] ByIdRequest request,
                         CancellationToken cancellation) =>
-                    command.GetSingle(request, cancellation))
+                    command.Execute(request, cancellation))
+            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .WithSummary("Get a single service");
 
         group.MapPost("",

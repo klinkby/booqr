@@ -17,6 +17,7 @@ internal static class StatusCodeSelector
             ArgumentException => StatusCodes.Status400BadRequest,
             UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
             InvalidOperationException => StatusCodes.Status409Conflict,
+            MidAirCollisionException => StatusCodes.Status412PreconditionFailed,
             SocketException => StatusCodes.Status502BadGateway,
             TimeoutException => StatusCodes.Status504GatewayTimeout,
             NotImplementedException => StatusCodes.Status501NotImplemented,

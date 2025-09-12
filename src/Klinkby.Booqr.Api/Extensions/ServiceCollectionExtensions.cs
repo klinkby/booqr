@@ -1,13 +1,9 @@
 ﻿using System.Text;
-using Klinkby.Booqr.Api;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.IdentityModel.Tokens;
 
-// ReSharper disable once CheckNamespace
-#pragma warning disable IDE0130
-namespace Microsoft.Extensions.DependencyInjection;
-#pragma warning restore IDE0130
+namespace Klinkby.Booqr.Api.Extensions;
 
 internal static class ServiceCollectionExtensions
 {
@@ -46,6 +42,8 @@ internal static class ServiceCollectionExtensions
         {
             options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
         });
+        services.AddScoped<IETagProvider, ETagProvider>();
+        services.AddSingleton<ETagProviderEndPointFilter>();
         return services;
     }
 }

@@ -22,9 +22,10 @@ internal static partial class Routes
         //
         // group.MapGet("{id}",
         //         static (GetBookingByIdCommand command,
-        //                 int id,
+        // [AsParameters] ByIdRequest request,
         //                 CancellationToken cancellation) =>
-        //             command.GetSingle(id, cancellation))
+        // command.Execute(request, cancellation))
+        //     .AddEndpointFilter<ETagMiddleware>()
         //     .RequireAuthorization(UserRole.Customer)
         //     .WithSummary("Get a single booking");
 
@@ -43,6 +44,7 @@ internal static partial class Routes
         //                 ClaimsPrincipal user, CancellationToken cancellation) =>
         //             command.NoContent(request with { Id = id }, user, cancellation))
         //     .RequireAuthorization(UserRole.Admin)
+        //     .AddEndpointFilter<ETagProviderEndPointFilter>()
         //     .WithSummary("Update a location");
 
         group.MapDelete("{id}",

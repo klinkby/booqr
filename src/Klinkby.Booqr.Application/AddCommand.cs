@@ -3,6 +3,7 @@
 public abstract partial class AddCommand<TRequest, TItem>(IRepository<TItem, int> repository, ILogger logger)
     : ICommand<TRequest, Task<int>>
     where TRequest : AuthenticatedRequest
+    where TItem : notnull
 {
     public async Task<int> Execute(TRequest query, CancellationToken cancellation = default)
     {
@@ -10,7 +11,7 @@ public abstract partial class AddCommand<TRequest, TItem>(IRepository<TItem, int
 
         TItem item = Map(query);
         var newId = await repository.Add(item, cancellation);
-        LogUserCreateTypeId(logger, query.AuthenticatedUserId, nameof(TItem), newId);
+        LogUserCreateTypeId(logger, query.AuthenticatedUserId, item.GetType().Name, newId);
 
         return newId;
     }

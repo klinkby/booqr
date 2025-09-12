@@ -31,7 +31,8 @@ public sealed class LocationRepositoryTests(ServiceProviderFixture serviceProvid
             {
                 Id = actual!.Id,
                 Created = actual.Created,
-                Modified = actual.Modified
+                Modified = actual.Modified,
+                Version = actual.Version
             },
             actual);
     }

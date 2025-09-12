@@ -21,9 +21,11 @@ internal static partial class Routes
             .WithSummary("List vacancies");
 
         group.MapGet("{id}",
-                static (GetVacancyByIdCommand byIdCommand, [AsParameters] ByIdRequest request,
+                static (GetVacancyByIdCommand command,
+                        [AsParameters] ByIdRequest request,
                         CancellationToken cancellation) =>
-                    byIdCommand.GetSingle(request, cancellation))
+                    command.Execute(request, cancellation))
+            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .WithSummary("Get a single vacancy");
 
         group.MapPost("",
