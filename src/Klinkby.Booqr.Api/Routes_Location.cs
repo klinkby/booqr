@@ -10,14 +10,16 @@ internal static partial class Routes
 
         RouteGroupBuilder group = app
             .MapGroup(resourceName)
-            .WithTags("Location");
+            .WithTags("Location")
+            .WithDescription("Operations related to locations");
 
         group.MapGet("",
                 static (GetLocationCollectionCommand command,
                         [AsParameters] PageQuery request,
                         CancellationToken cancellation) =>
                     command.GetCollection(request, cancellation))
-            .WithSummary("List all locations");
+            .WithName("getLocations")
+            .WithSummary("List locations");
 
         group.MapGet("{id}",
                 static (GetLocationByIdCommand command,
@@ -25,6 +27,7 @@ internal static partial class Routes
                         CancellationToken cancellation) =>
                     command.Execute(request, cancellation))
             .AddEndpointFilter<ETagProviderEndPointFilter>()
+            .WithName("getLocationById")
             .WithSummary("Get a single location");
 
         group.MapPost("",
@@ -33,6 +36,7 @@ internal static partial class Routes
                         ClaimsPrincipal user, CancellationToken cancellation) =>
                     command.Created(request, user, $"{BaseUrl}/{resourceName}", cancellation))
             .RequireAuthorization(UserRole.Admin)
+            .WithName("addLocation")
             .WithSummary("Add a location");
 
         group.MapPut("{id}",
@@ -43,6 +47,7 @@ internal static partial class Routes
                     command.NoContent(request with { Id = id }, user, cancellation))
             .AddEndpointFilter<ETagProviderEndPointFilter>()
             .RequireAuthorization(UserRole.Admin)
+            .WithName("updateLocation")
             .WithSummary("Update a location");
 
         group.MapDelete("{id}",
@@ -52,6 +57,7 @@ internal static partial class Routes
                         CancellationToken cancellation) =>
                     command.NoContent(request, user, cancellation))
             .RequireAuthorization(UserRole.Admin)
+            .WithName("deleteLocation")
             .WithSummary("Delete a location");
     }
 }

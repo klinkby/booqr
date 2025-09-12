@@ -10,14 +10,16 @@ internal static partial class Routes
 
         RouteGroupBuilder group = app
             .MapGroup(resourceName)
-            .WithTags("Service");
+            .WithTags("Service")
+            .WithDescription("Operations related to services");
 
         group.MapGet("",
                 static (GetServiceCollectionCommand command,
                         [AsParameters] PageQuery request,
                         CancellationToken cancellation) =>
                     command.GetCollection(request, cancellation))
-            .WithSummary("List all services");
+            .WithName("getServices")
+            .WithSummary("List services");
 
         group.MapGet("{id}",
                 static (GetServiceByIdCommand command,
@@ -25,6 +27,7 @@ internal static partial class Routes
                         CancellationToken cancellation) =>
                     command.Execute(request, cancellation))
             .AddEndpointFilter<ETagProviderEndPointFilter>()
+            .WithName("getServiceById")
             .WithSummary("Get a single service");
 
         group.MapPost("",
@@ -33,6 +36,7 @@ internal static partial class Routes
                         ClaimsPrincipal user, CancellationToken cancellation) =>
                     command.Created(request, user, $"{BaseUrl}/{resourceName}", cancellation))
             .RequireAuthorization(UserRole.Admin)
+            .WithName("addService")
             .WithSummary("Add a service");
 
         group.MapPut("{id}",
@@ -42,6 +46,7 @@ internal static partial class Routes
                         ClaimsPrincipal user, CancellationToken cancellation) =>
                     command.NoContent(request with { Id = id }, user, cancellation))
             .RequireAuthorization(UserRole.Admin)
+            .WithName("updateService")
             .WithSummary("Update a service");
 
         group.MapDelete("{id}",
@@ -50,6 +55,7 @@ internal static partial class Routes
                         ClaimsPrincipal user, CancellationToken cancellation) =>
                     command.NoContent(request, user, cancellation))
             .RequireAuthorization(UserRole.Admin)
+            .WithName("deleteService")
             .WithSummary("Delete a service");
     }
 }

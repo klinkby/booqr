@@ -24,7 +24,7 @@ internal static class CommandExtensions
         return Task.FromResult<Results<Ok<CollectionResponse<TResult>>, BadRequest>>(TypedResults.Ok(response));
     }
 
-    public async static Task<Results<Ok<LoginResponse>, BadRequest, UnauthorizedHttpResult>> GetAuthenticationToken(
+    public async static Task<Results<Ok<LoginResponse>, UnauthorizedHttpResult, BadRequest>> GetAuthenticationToken(
         this ICommand<LoginRequest, Task<LoginResponse?>> command, LoginRequest query,
         CancellationToken cancellationToken)
     {

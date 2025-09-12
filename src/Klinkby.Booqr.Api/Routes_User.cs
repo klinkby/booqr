@@ -10,11 +10,13 @@ internal static partial class Routes
 
         RouteGroupBuilder group = app
             .MapGroup(resourceName)
-            .WithTags("User");
+            .WithTags("User")
+            .WithDescription("Operations related to users");
 
         group.MapPost("/login",
                 static (LoginCommand command, [FromBody] LoginRequest request, CancellationToken cancellation) =>
                 command.GetAuthenticationToken(request, cancellation))
-            .WithSummary("Sign in with username (email) and password");
+            .WithName("login")
+            .WithSummary("Sign in");
     }
 }

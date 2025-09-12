@@ -10,7 +10,8 @@ internal static partial class Routes
 
         RouteGroupBuilder group = app
             .MapGroup(resourceName)
-            .WithTags("Booking");
+            .WithTags("Booking")
+            .WithDescription("Operations related to bookings");
 
         // group.MapGet("",
         //         static (GetBookingCollectionCommand command,
@@ -18,7 +19,8 @@ internal static partial class Routes
         //                 CancellationToken cancellation) =>
         //             command.GetCollection(request, cancellation))
         //     .RequireAuthorization(UserRole.Customer)
-        //     .WithSummary("List bookings");
+
+        //                 .WithName("").WithSummary("List bookings");
         //
         // group.MapGet("{id}",
         //         static (GetBookingByIdCommand command,
@@ -27,7 +29,7 @@ internal static partial class Routes
         // command.Execute(request, cancellation))
         //     .AddEndpointFilter<ETagMiddleware>()
         //     .RequireAuthorization(UserRole.Customer)
-        //     .WithSummary("Get a single booking");
+        //     .WithName("").WithSummary("Get a single booking");
 
         group.MapPost("",
                 static (AddBookingCommand command,
@@ -35,6 +37,7 @@ internal static partial class Routes
                         ClaimsPrincipal user, CancellationToken cancellation) =>
                     command.Created(request, user, $"{BaseUrl}/{resourceName}", cancellation))
             .RequireAuthorization(UserRole.Customer)
+            .WithName("addBooking")
             .WithSummary("Add a booking");
 
         // group.MapPut("{id}",
@@ -45,7 +48,7 @@ internal static partial class Routes
         //             command.NoContent(request with { Id = id }, user, cancellation))
         //     .RequireAuthorization(UserRole.Admin)
         //     .AddEndpointFilter<ETagProviderEndPointFilter>()
-        //     .WithSummary("Update a location");
+        //     .WithName("").WithSummary("Update a location");
 
         group.MapDelete("{id}",
                 static (DeleteBookingCommand command,
@@ -54,6 +57,7 @@ internal static partial class Routes
                         CancellationToken cancellation) =>
                     command.NoContent(request, user, cancellation))
             .RequireAuthorization(UserRole.Customer)
+            .WithName("deleteBooking")
             .WithSummary("Delete a booking");
     }
 }
