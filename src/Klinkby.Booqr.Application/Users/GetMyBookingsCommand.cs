@@ -28,7 +28,7 @@ public sealed partial class GetMyBookingsCommand(
 
     private void ValidateUserAccess(GetMyBookingsRequest query)
     {
-        int userId = query.AuthenticatedUserId;
+        var userId = query.AuthenticatedUserId;
         if (userId == query.Id)
         {
             return;
@@ -47,5 +47,4 @@ public sealed partial class GetMyBookingsCommand(
     [LoggerMessage(LogLevel.Warning,
         "User {UserId} is not permitted to inspect {Id}'s bookings")]
     private static partial void LogCannotInspectBooking(ILogger logger, int userId, int id);
-
 }

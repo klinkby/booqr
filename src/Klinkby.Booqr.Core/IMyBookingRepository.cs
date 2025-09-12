@@ -8,7 +8,7 @@ public sealed record MyBooking(
     int EmployeeId,
     bool HasNotes) : Audit, IEvent;
 
-public interface IMyBookingRepository : IRepository<MyBooking>
+public interface IMyBookingRepository : IRepository
 {
     IAsyncEnumerable<MyBooking> GetRangeByUserId(int userId, DateTime fromTime, DateTime toTime, IPageQuery pageQuery,
         CancellationToken cancellation = default);

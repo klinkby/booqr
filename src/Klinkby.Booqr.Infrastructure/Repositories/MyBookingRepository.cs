@@ -8,13 +8,6 @@ internal sealed partial class MyBookingRepository(IConnectionProvider connection
 {
     private const string TableName = "mybookings";
 
-    // /// <inheritdoc />
-    // public async Task<MyBooking?> GetById(int id, CancellationToken cancellation)
-    // {
-    //     DbConnection connection = await connectionProvider.GetConnection(cancellation);
-    //     return await connection.QuerySingleOrDefaultAsync<MyBooking>($"{GetByIdQuery}", new GetByIdParameters(id));
-    // }
-
     public async IAsyncEnumerable<MyBooking> GetRangeByUserId(int userId, DateTime fromTime, DateTime toTime,
         IPageQuery pageQuery,
         [EnumeratorCancellation]
@@ -36,36 +29,4 @@ internal sealed partial class MyBookingRepository(IConnectionProvider connection
             yield return item;
         }
     }
-
-    IAsyncEnumerable<MyBooking> IRepository<MyBooking, int>.GetAll(IPageQuery pageQuery, CancellationToken cancellation)
-    {
-#pragma warning disable EX002
-        throw new NotImplementedException();
-    }
-
-    Task<MyBooking?> IRepository<MyBooking, int>.GetById(int id, CancellationToken cancellation)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task<int> IRepository<MyBooking, int>.Add(MyBooking newItem, CancellationToken cancellation)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task<bool> IRepository<MyBooking, int>.Update(MyBooking item, CancellationToken cancellation)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task<bool> IRepository<MyBooking, int>.Delete(int id, CancellationToken cancellation)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task<bool> IRepository<MyBooking, int>.Undelete(int id, CancellationToken cancellation)
-    {
-        throw new NotImplementedException();
-    }
 }
-#pragma warning restore EX002

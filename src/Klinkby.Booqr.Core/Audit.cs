@@ -16,8 +16,6 @@ namespace Klinkby.Booqr.Core;
 /// </remarks>
 public abstract record Audit : IId
 {
-    // [Key]
-    // [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; init; }
 
     public DateTime Created { get; init; }
@@ -31,5 +29,4 @@ public abstract record Audit : IId
 
     [JsonIgnore]
     public DateTime? Version { get; init; }
-
 }
