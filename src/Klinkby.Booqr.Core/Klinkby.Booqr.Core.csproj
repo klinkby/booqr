@@ -1,18 +1,2 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <TargetFramework>netstandard2.1</TargetFramework>
-    </PropertyGroup>
-
-    <ItemGroup Label="Nuget package references">
-        <PackageReference Include="Meziantou.Polyfill" Version="1.0.49">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="System.Text.Json" Version="9.0.8" />
-    </ItemGroup>
-
-    <PropertyGroup Label="Polyfill">
-        <MeziantouPolyfill_IncludedPolyfills>T:System.Runtime.CompilerServices</MeziantouPolyfill_IncludedPolyfills>
-    </PropertyGroup>
-
 </Project>
