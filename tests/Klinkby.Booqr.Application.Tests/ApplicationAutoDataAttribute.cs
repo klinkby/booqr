@@ -5,7 +5,7 @@ using Microsoft.Extensions.Time.Testing;
 
 namespace Klinkby.Booqr.Application.Tests;
 
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+[AttributeUsage(AttributeTargets.Method)]
 internal sealed class ApplicationAutoDataAttribute : AutoDataAttribute
 {
     public ApplicationAutoDataAttribute() : base(CreateFixture)

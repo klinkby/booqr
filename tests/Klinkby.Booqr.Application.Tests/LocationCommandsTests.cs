@@ -33,7 +33,7 @@ public class LocationCommandsTests
     {
         _mockRepo.Setup(x => x.Update(It.IsAny<Location>(), CancellationToken.None)).ReturnsAsync(true);
 
-        UpdateLocationCommand command = new(_mockRepo.Object, NullLogger<UpdateLocationCommand>.Instance);
+        UpdateLocationCommand command = new(_mockRepo.Object, _mockEtag.Object, NullLogger<UpdateLocationCommand>.Instance);
         UpdateLocationRequest request = new(ExpectedId, location.Name) { User = user };
 
         await command.Execute(request);
