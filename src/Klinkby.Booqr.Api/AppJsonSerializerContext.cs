@@ -27,6 +27,7 @@ namespace Klinkby.Booqr.Api;
 [JsonSerializable(typeof(LoginResponse))]
 [JsonSerializable(typeof(PageQuery))]
 [JsonSerializable(typeof(ProblemDetails))]
+[JsonSerializable(typeof(SignUpRequest))]
 [JsonSerializable(typeof(UpdateLocationRequest))]
 [JsonSerializable(typeof(UpdateServiceRequest))]
 [JsonSerializable(typeof(User))]

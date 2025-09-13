@@ -48,14 +48,14 @@ internal static partial class Routes
             .RequireAuthorization(UserRole.Employee)
             .WithName("getUserById")
             .WithSummary("Get a single user");
-        //
-        // group.MapPost("",
-        //         static (SignUpCommand command,
-        //                 [FromBody] SignUpRequest request,
-        //                 ClaimsPrincipal user, CancellationToken cancellation) =>
-        //             command.Created(request, user, $"{BaseUrl}/{resourceName}", cancellation))
-        //     .WithName("addUser")
-        //     .WithSummary("Sign up for a user account");
+
+        group.MapPost("",
+                static (SignUpCommand command,
+                        [FromBody] SignUpRequest request,
+                        CancellationToken cancellation) =>
+                    command.CreatedAnonymous(request, $"{BaseUrl}/{resourceName}", cancellation))
+            .WithName("addUser")
+            .WithSummary("Sign up for a user account");
 
         // group.MapPut("{id}",
         //         static (UpdateUserCommand command,

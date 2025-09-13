@@ -45,6 +45,17 @@ internal static class CommandExtensions
             new CreatedResponse(newId));
     }
 
+    public async static Task<Results<Created<CreatedResponse>, BadRequest>> CreatedAnonymous<TQuery>(
+        this ICommand<TQuery, Task<int>> command, TQuery query, string resourceName,
+        CancellationToken cancellationToken)
+        where TQuery : notnull
+    {
+        var newId = await command.Execute(query, cancellationToken);
+        return TypedResults.Created(
+            new Uri($"{resourceName}/{newId}", UriKind.Relative),
+            new CreatedResponse(newId));
+    }
+
     public static Task<Results<NoContent, BadRequest>> NoContent<TQuery>(
         this ICommand<TQuery> command, TQuery query, ClaimsPrincipal user, CancellationToken cancellationToken)
         where TQuery : AuthenticatedRequest

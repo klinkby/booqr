@@ -4,14 +4,14 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
-using BCryptNet = global::BCrypt.Net.BCrypt;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using BCryptNet = BCrypt.Net.BCrypt;
 
 namespace Klinkby.Booqr.Application.Users;
 
 public sealed record LoginRequest(
-    [Required] [StringLength(0xff)] string Username,
+    [Required] [StringLength(0xff)] string Email,
     [Required] [StringLength(0xff)] string Password);
 
 public sealed record LoginResponse(
@@ -36,7 +36,7 @@ public sealed partial class LoginCommand(
     public async Task<LoginResponse?> Execute(LoginRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
-        var userName = query.Username.Trim();
+        var userName = query.Email.Trim();
 
         User? user = await userRepository.GetByEmail(userName, cancellation);
         if (user is null)
