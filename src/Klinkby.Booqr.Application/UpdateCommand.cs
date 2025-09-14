@@ -17,6 +17,6 @@ public abstract partial class UpdateCommand<TRequest, TItem>(IRepository<TItem, 
 
     protected abstract TItem Map(TRequest query);
 
-    [LoggerMessage(LogLevel.Information, "User {UserId} update {Type}:{Id}")]
+    [LoggerMessage(190, LogLevel.Information, "User {UserId} update {Type}:{Id}")]
     private static partial void LogUserUpdateTypeName(ILogger logger, int userId, string type, int id);
 }

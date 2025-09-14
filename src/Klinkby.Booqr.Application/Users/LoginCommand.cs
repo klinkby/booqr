@@ -87,13 +87,13 @@ public sealed partial class LoginCommand(
         [SuppressMessage("Performance", "CA1823:Avoid unused private fields", Justification = "Ref by SG")]
         private readonly ILogger _logger = logger;
 
-        [LoggerMessage(1, LogLevel.Information, "User {Id} logged in")]
+        [LoggerMessage(130, LogLevel.Information, "User {Id} logged in")]
         public partial void LoggedIn(int id);
 
-        [LoggerMessage(2, LogLevel.Warning, "User {Email} not found")]
+        [LoggerMessage(131, LogLevel.Warning, "User {Email} not found")]
         public partial void NotFound(string email);
 
-        [LoggerMessage(3, LogLevel.Warning, "User {Email} typed the wrong password")]
+        [LoggerMessage(132, LogLevel.Warning, "User {Email} typed the wrong password")]
         public partial void WrongPassword(string email);
     }
 }

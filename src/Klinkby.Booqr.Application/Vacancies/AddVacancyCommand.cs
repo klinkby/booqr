@@ -268,28 +268,29 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
     {
         private readonly ILogger _logger = logger;
 
-        [LoggerMessage(LogLevel.Information, "User {UserId} created {Type}:{Id}")]
-        public partial void LogUserCreateTypeId(int userId, string type, int id);
-
-        [LoggerMessage(LogLevel.Information, "User {UserId} created vacancy but is within {Id}")]
+        [LoggerMessage(150, LogLevel.Information, "User {UserId} created vacancy but is within {Id}")]
         public partial void LogUserCreateTypeWithinId(int userId, int id);
 
-        [LoggerMessage(LogLevel.Warning,
+        [LoggerMessage(151, LogLevel.Warning,
             "User {UserId} cannot create vacancy in {StartTime} - {EndTime} because {Id} has a booking")]
         public partial void
             LogCannotAddVacancyWithBookingInIt(int userId, DateTime startTime, DateTime endTime, int id);
 
-        [LoggerMessage(LogLevel.Warning,
+        [LoggerMessage(152, LogLevel.Warning,
             "User {UserId} cannot create vacancy in {StartTime} - {EndTime} because {Id} has a different location")]
         public partial void LogCannotAddVacancyWithConflictingLocation(int userId, DateTime startTime, DateTime endTime,
             int id);
 
-        [LoggerMessage(LogLevel.Information,
+        [LoggerMessage(153, LogLevel.Information,
             "User {UserId} will create new vacancy in {StartTime} - {EndTime} obsoletes {Id}")]
         public partial void LogRemoveOverlapped(int userId, DateTime startTime, DateTime endTime, int id);
 
-        [LoggerMessage(LogLevel.Information,
+        [LoggerMessage(154, LogLevel.Information,
             "User {UserId} create new vacancy in {StartTime} - {EndTime} extends {Id}")]
         public partial void LogExtendIntersecting(int userId, DateTime startTime, DateTime endTime, int id);
+
+        [LoggerMessage(155, LogLevel.Information, "User {UserId} created {Type}:{Id}")]
+        public partial void LogUserCreateTypeId(int userId, string type, int id);
+
     }
 }

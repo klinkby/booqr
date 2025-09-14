@@ -48,6 +48,6 @@ public sealed partial class SignUpCommand(
             query.Phone);
     }
 
-    [LoggerMessage(LogLevel.Information, "Create new user {Email}")]
+    [LoggerMessage(140, LogLevel.Information, "Create new user {Email}")]
     private static partial void LogCreateUser(ILogger logger, string email);
 }

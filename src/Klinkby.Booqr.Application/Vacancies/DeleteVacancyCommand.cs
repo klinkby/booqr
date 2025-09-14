@@ -19,7 +19,7 @@ public sealed partial class DeleteVacancyCommand(
         return await base.Delete(query, cancellation);
     }
 
-    [LoggerMessage(LogLevel.Warning,
+    [LoggerMessage(160, LogLevel.Warning,
         "User {UserId} cannot delete vacancy {Id} because it has a booking")]
     private static partial void LogCannotDeleteVacancyWithBookingInIt(ILogger logger, int userId, int id);
 

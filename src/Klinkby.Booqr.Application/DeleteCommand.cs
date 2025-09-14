@@ -15,6 +15,6 @@ public abstract partial class DeleteCommand<TItem>(IRepository<TItem, int> repos
         return repository.Delete(query.Id, cancellation);
     }
 
-    [LoggerMessage(LogLevel.Information, "User {UserId} delete {Type}:{Id}")]
+    [LoggerMessage(180, LogLevel.Information, "User {UserId} delete {Type}:{Id}")]
     private static partial void LogUserDeleteTypeName(ILogger logger, int userId, string type, int id);
 }

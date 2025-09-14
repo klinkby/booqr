@@ -170,16 +170,16 @@ public partial class AddBookingCommand(
     {
         private readonly ILogger _logger = logger;
 
-        [LoggerMessage(LogLevel.Information, "User {UserId} created {Type}:{Id}")]
+        [LoggerMessage(100, LogLevel.Information, "User {UserId} created {Type}:{Id}")]
         public partial void LogUserCreateTypeId(int userId, string type, int id);
 
-        [LoggerMessage(LogLevel.Warning, "User {UserId} tried to get missing {Type} {Id}")]
+        [LoggerMessage(101, LogLevel.Warning, "User {UserId} tried to get missing {Type} {Id}")]
         public partial void LogUserMissingTypeId(int userId, string type, int id);
 
-        [LoggerMessage(LogLevel.Warning, "User {UserId} tried to book already booked {Id}")]
+        [LoggerMessage(102, LogLevel.Warning, "User {UserId} tried to book already booked {Id}")]
         public partial void LogUserConflict(int userId, int id);
 
-        [LoggerMessage(LogLevel.Warning, "User {UserId} booking {Id} use vacancy strategy {Covers}")]
+        [LoggerMessage(103, LogLevel.Warning, "User {UserId} booking {Id} use vacancy strategy {Covers}")]
         public partial void LogUserStrategy(int userId, int id, Covers covers);
     }
 }

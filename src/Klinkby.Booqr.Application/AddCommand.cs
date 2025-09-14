@@ -18,6 +18,6 @@ public abstract partial class AddCommand<TRequest, TItem>(IRepository<TItem, int
 
     protected abstract TItem Map(TRequest query);
 
-    [LoggerMessage(LogLevel.Information, "User {UserId} created {Type}:{Id}")]
+    [LoggerMessage(170, LogLevel.Information, "User {UserId} created {Type}:{Id}")]
     private static partial void LogUserCreateTypeId(ILogger logger, int userId, string type, int id);
 }

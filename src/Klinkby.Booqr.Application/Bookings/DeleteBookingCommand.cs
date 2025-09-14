@@ -66,7 +66,7 @@ public sealed partial class DeleteBookingCommand(
             User = user
         };
 
-    [LoggerMessage(LogLevel.Warning,
+    [LoggerMessage(110, LogLevel.Warning,
         "User {UserId} is not permitted to delete booking {Id}")]
     private static partial void LogCannotDeleteBooking(ILogger logger, int userId, int id);
 

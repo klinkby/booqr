@@ -44,7 +44,7 @@ public sealed partial class GetMyBookingsCommand(
         throw new UnauthorizedAccessException("Cannot list another customer's bookings");
     }
 
-    [LoggerMessage(LogLevel.Warning,
+    [LoggerMessage(120, LogLevel.Warning,
         "User {UserId} is not permitted to inspect {Id}'s bookings")]
     private static partial void LogCannotInspectBooking(ILogger logger, int userId, int id);
 }
