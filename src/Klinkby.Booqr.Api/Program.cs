@@ -24,8 +24,6 @@ if (isMockServer)
 else
 {
     builder.WebHost.UseKestrelHttpsConfiguration();
-    builder.Services.AddHsts(static options => options
-        .MaxAge = TimeSpan.FromSeconds(63072000)); // https://developer.mozilla.org/en-US/observatory/docs/faq#can_i_scan_non-websites_such_as_api_endpoints
 }
 
 WebApplication app = builder.Build();
@@ -40,7 +38,6 @@ if (!isMockServer)
     }
     else
     {
-        app.UseHsts();
         app.UseExceptionHandler(new ExceptionHandlerOptions
         {
             AllowStatusCode404Response = true,
