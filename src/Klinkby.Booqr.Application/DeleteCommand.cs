@@ -3,6 +3,8 @@
 public abstract partial class DeleteCommand<TItem>(IRepository<TItem, int> repository, ILogger logger)
     : ICommand<AuthenticatedByIdRequest>
 {
+    private readonly LoggerMessages _log = new(logger);
+
     public Task Execute(AuthenticatedByIdRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -11,10 +13,14 @@ public abstract partial class DeleteCommand<TItem>(IRepository<TItem, int> repos
 
     internal virtual Task<bool> Delete(AuthenticatedByIdRequest query, CancellationToken cancellation)
     {
-        LogUserDeleteTypeName(logger, query.AuthenticatedUserId, nameof(Location), query.Id);
+        _log.DeleteItem(query.AuthenticatedUserId, nameof(Location), query.Id);
         return repository.Delete(query.Id, cancellation);
     }
 
-    [LoggerMessage(180, LogLevel.Information, "User {UserId} delete {Type}:{Id}")]
-    private static partial void LogUserDeleteTypeName(ILogger logger, int userId, string type, int id);
+
+    private sealed partial class LoggerMessages(ILogger logger)
+    {
+        [LoggerMessage(180, LogLevel.Information, "User {UserId} delete {Type}:{Id}")]
+        public partial void DeleteItem(int userId, string type, int id);
+    }
 }

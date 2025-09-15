@@ -5,18 +5,24 @@ public abstract partial class UpdateCommand<TRequest, TItem>(IRepository<TItem, 
     where TRequest : AuthenticatedRequest, IId
     where TItem : notnull
 {
+    private readonly LoggerMessages _log = new(logger);
+
     public async Task Execute(TRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
         TItem item = Map(query);
-        LogUserUpdateTypeName(logger, query.AuthenticatedUserId, item.GetType().Name, query.Id);
+        _log.UpdateItem(query.AuthenticatedUserId, item.GetType().Name, query.Id);
         var updated = await repository.Update(item, cancellation);
         if (!updated) throw new MidAirCollisionException($"{item.GetType().Name} {query.Id} was already updated.");
     }
 
     protected abstract TItem Map(TRequest query);
 
-    [LoggerMessage(190, LogLevel.Information, "User {UserId} update {Type}:{Id}")]
-    private static partial void LogUserUpdateTypeName(ILogger logger, int userId, string type, int id);
+
+    private sealed partial class LoggerMessages(ILogger logger)
+    {
+        [LoggerMessage(190, LogLevel.Information, "User {UserId} update {Type}:{Id}")]
+        public partial void UpdateItem(int userId, string type, int id);
+    }
 }

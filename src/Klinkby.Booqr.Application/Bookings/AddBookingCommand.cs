@@ -63,14 +63,14 @@ public partial class AddBookingCommand(
                     await transaction.Rollback(cancellation);
                     return vacancy.BookingId.Value;
                 }
-                _log.LogUserConflict(userId, vacancy.BookingId.Value);
+                _log.BookingConflict(userId, vacancy.BookingId.Value);
                 throw new InvalidOperationException("The requested vacancy was already booked.");
             }
 
             newId = await bookings.Add(Map(query), cancellation);
             Covers strategy = GetCoverage(vacancy, query);
 
-            _log.LogUserStrategy(userId, newId, strategy);
+            _log.BookingStrategy(userId, newId, strategy);
             Task updateStrategy = strategy switch
             {
                 Covers.EntireSlot => UpdateVacancyCoversEntireSlot(vacancy, newId, cancellation),
@@ -88,7 +88,7 @@ public partial class AddBookingCommand(
         }
         await transaction.Commit(cancellation);
 
-        _log.LogUserCreateTypeId(userId, nameof(Booking), newId);
+        _log.CreateBooking(userId, nameof(Booking), newId);
         return newId;
     }
 
@@ -100,7 +100,7 @@ public partial class AddBookingCommand(
             return vacancy;
         }
 
-        _log.LogUserMissingTypeId(userId, nameof(CalendarEvent), query.VacancyId);
+        _log.BookingMissingItem(userId, nameof(CalendarEvent), query.VacancyId);
         throw new ArgumentException("The requested vacancy was not found.", nameof(query));
     }
 
@@ -112,7 +112,7 @@ public partial class AddBookingCommand(
             return service;
         }
 
-        _log.LogUserMissingTypeId(userId, nameof(Service), query.VacancyId);
+        _log.BookingMissingItem(userId, nameof(Service), query.VacancyId);
         throw new ArgumentException("The requested service was not found.", nameof(query));
     }
 
@@ -171,16 +171,16 @@ public partial class AddBookingCommand(
         private readonly ILogger _logger = logger;
 
         [LoggerMessage(100, LogLevel.Information, "User {UserId} created {Type}:{Id}")]
-        public partial void LogUserCreateTypeId(int userId, string type, int id);
+        public partial void CreateBooking(int userId, string type, int id);
 
         [LoggerMessage(101, LogLevel.Warning, "User {UserId} tried to get missing {Type} {Id}")]
-        public partial void LogUserMissingTypeId(int userId, string type, int id);
+        public partial void BookingMissingItem(int userId, string type, int id);
 
         [LoggerMessage(102, LogLevel.Warning, "User {UserId} tried to book already booked {Id}")]
-        public partial void LogUserConflict(int userId, int id);
+        public partial void BookingConflict(int userId, int id);
 
         [LoggerMessage(103, LogLevel.Warning, "User {UserId} booking {Id} use vacancy strategy {Covers}")]
-        public partial void LogUserStrategy(int userId, int id, Covers covers);
+        public partial void BookingStrategy(int userId, int id, Covers covers);
     }
 }
 

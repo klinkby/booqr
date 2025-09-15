@@ -77,15 +77,15 @@ internal partial class Program
         Routes.MapApi(app);
 
         LoggerMessages log = new(app.Services.GetRequiredService<ILogger<Program>>());
-        log.LogAppLaunch(timer.Elapsed);
+        log.AppLaunch(timer.Elapsed);
         try
         {
             await app.RunAsync();
-            log.LogAppShutdown(timer.Elapsed);
+            log.AppShutdown(timer.Elapsed);
         }
         catch (Exception exception)
         {
-            log.LogAppCrash(exception, timer.Elapsed);
+            log.AppCrash(exception, timer.Elapsed);
             throw;
         }
         finally
@@ -129,12 +129,12 @@ internal partial class Program
         private readonly ILogger _logger = logger;
 
         [LoggerMessage(1, LogLevel.Information, "App initialized in {TimeSpan}")]
-        public partial void LogAppLaunch(TimeSpan timeSpan);
+        public partial void AppLaunch(TimeSpan timeSpan);
 
         [LoggerMessage(2, LogLevel.Information, "App shutdown ran for {TimeSpan}")]
-        public partial void LogAppShutdown(TimeSpan timeSpan);
+        public partial void AppShutdown(TimeSpan timeSpan);
 
         [LoggerMessage(3, LogLevel.Error, "App crash after {TimeSpan}")]
-        public partial void LogAppCrash(Exception exception, TimeSpan timeSpan);
+        public partial void AppCrash(Exception exception, TimeSpan timeSpan);
     }
 }

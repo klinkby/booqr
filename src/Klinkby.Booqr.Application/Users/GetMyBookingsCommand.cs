@@ -13,6 +13,8 @@ public sealed partial class GetMyBookingsCommand(
     TimeProvider timeProvider,
     ILogger<GetMyBookingsCommand> logger) : ICommand<GetMyBookingsRequest, IAsyncEnumerable<MyBooking>>
 {
+    private readonly LoggerMessages _log = new(logger);
+
     public IAsyncEnumerable<MyBooking> Execute(GetMyBookingsRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -40,11 +42,15 @@ public sealed partial class GetMyBookingsCommand(
             return;
         }
 
-        LogCannotInspectBooking(logger, userId, query.Id);
+        _log.CannotInspectBooking(userId, query.Id);
         throw new UnauthorizedAccessException("Cannot list another customer's bookings");
     }
 
-    [LoggerMessage(120, LogLevel.Warning,
-        "User {UserId} is not permitted to inspect {Id}'s bookings")]
-    private static partial void LogCannotInspectBooking(ILogger logger, int userId, int id);
+
+    private sealed partial class LoggerMessages(ILogger logger)
+    {
+        [LoggerMessage(120, LogLevel.Warning,
+            "User {UserId} is not permitted to inspect {Id}'s bookings")]
+        public partial void CannotInspectBooking(int userId, int id);
+    }
 }

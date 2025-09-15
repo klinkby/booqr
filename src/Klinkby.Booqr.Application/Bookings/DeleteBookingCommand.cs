@@ -14,6 +14,8 @@ public sealed partial class DeleteBookingCommand(
     ILogger<AddVacancyCommand> addVacancyLogger)
     : DeleteCommand<Booking>(bookings, logger)
 {
+    private readonly LoggerMessages _log = new(logger);
+
     [SuppressMessage("Exceptions usages", "EX006:Do not write logic driven by exceptions.", Justification = "Unauthorized is an exceptional case")]
     async internal override Task<bool> Delete(AuthenticatedByIdRequest query, CancellationToken cancellation)
     {
@@ -31,7 +33,7 @@ public sealed partial class DeleteBookingCommand(
             var bookingCustomerId = booking.CustomerId;
             if (!isEmployee || bookingCustomerId != userId)
             {
-                LogCannotDeleteBooking(logger, query.AuthenticatedUserId, booking.Id);
+                _log.CannotDeleteBooking(query.AuthenticatedUserId, booking.Id);
                 throw new UnauthorizedAccessException("You do not have access to delete this booking");
             }
 
@@ -66,8 +68,10 @@ public sealed partial class DeleteBookingCommand(
             User = user
         };
 
-    [LoggerMessage(110, LogLevel.Warning,
-        "User {UserId} is not permitted to delete booking {Id}")]
-    private static partial void LogCannotDeleteBooking(ILogger logger, int userId, int id);
 
+    private sealed partial class LoggerMessages(ILogger logger)
+    {
+        [LoggerMessage(110, LogLevel.Warning, "User {UserId} is not permitted to delete booking {Id}")]
+        public partial void CannotDeleteBooking(int userId, int id);
+    }
 }

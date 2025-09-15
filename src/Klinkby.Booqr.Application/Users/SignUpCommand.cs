@@ -30,11 +30,13 @@ public sealed partial class SignUpCommand(
     ILogger<SignUpCommand> logger
 ) : ICommand<SignUpRequest, Task<int>>
 {
+    private readonly LoggerMessages _log = new(logger);
+
     public Task<int> Execute(SignUpRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        LogCreateUser(logger, query.Email);
+        _log.CreateUser(query.Email);
         return userRepository.Add(Map(query), cancellation);
     }
 
@@ -48,6 +50,9 @@ public sealed partial class SignUpCommand(
             query.Phone);
     }
 
-    [LoggerMessage(140, LogLevel.Information, "Create new user {Email}")]
-    private static partial void LogCreateUser(ILogger logger, string email);
+    private sealed partial class LoggerMessages(ILogger logger)
+    {
+        [LoggerMessage(140, LogLevel.Information, "Create new user {Email}")]
+        public partial void CreateUser(string email);
+    }
 }
