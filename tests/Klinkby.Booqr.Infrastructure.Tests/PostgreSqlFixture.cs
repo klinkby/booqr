@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using AutoFixture;
-using Klinkby.Booqr.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -12,12 +10,9 @@ namespace Klinkby.Booqr.Infrastructure.Tests;
 [SuppressMessage("Maintainability", "CA1515:Consider making public types internal")]
 public sealed class ServiceProviderFixture : IAsyncLifetime
 {
-    private readonly Fixture _fixture = new();
     private ServiceProvider? _services;
-    private TestData? _testData;
 
     internal IServiceProvider Services => _services!;
-    internal TestData TestData => _testData!;
 
     private PostgreSqlContainer SqlContainer { get; } = new PostgreSqlBuilder()
         .WithImage("postgres:14-alpine")
@@ -44,22 +39,6 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
     {
         IDatabaseInitializer initializer = Services.GetRequiredService<IDatabaseInitializer>();
         await initializer.Initialize(CancellationToken.None);
-        await InitializeUserTestData();
-    }
-
-    async private Task InitializeUserTestData()
-    {
-        IUserRepository users = Services.GetRequiredService<IUserRepository>();
-        ILocationRepository locations = Services.GetRequiredService<ILocationRepository>();
-        _fixture.Customize<User>(c => c.Without(p => p.Deleted));
-        _fixture.Customize<Location>(c => c
-            .With(p => p.Zip, () => "2301")
-            .Without(p => p.Deleted));
-        _testData = new TestData(
-            await users.Add(_fixture.Create<User>() with { Role = UserRole.Employee }),
-            await users.Add(_fixture.Create<User>() with { Role = UserRole.Employee }),
-            await locations.Add(_fixture.Create<Location>()),
-            await users.Add(_fixture.Create<User>() with { Role = UserRole.Customer }));
     }
 }
 

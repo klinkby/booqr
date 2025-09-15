@@ -34,5 +34,5 @@ public static class UserRole
 
 public interface IUserRepository : IRepository<User>
 {
-    Task<User?> GetByEmail(string email, CancellationToken cancellation);
+    Task<User?> GetByEmail(string email, CancellationToken cancellation = default);
 }
