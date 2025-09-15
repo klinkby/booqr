@@ -30,22 +30,11 @@ public sealed partial class GetMyBookingsCommand(
 
     private void ValidateUserAccess(GetMyBookingsRequest query)
     {
-        var userId = query.AuthenticatedUserId;
-        if (userId == query.Id)
-        {
-            return;
-        }
+        if (query.CanUserAccess(query.Id)) return;
 
-        var isEmployee = query.User!.IsInRole(UserRole.Employee) || query.User.IsInRole(UserRole.Admin);
-        if (isEmployee)
-        {
-            return;
-        }
-
-        _log.CannotInspectBooking(userId, query.Id);
+        _log.CannotInspectBooking(query.AuthenticatedUserId, query.Id);
         throw new UnauthorizedAccessException("Cannot list another customer's bookings");
     }
-
 
     private sealed partial class LoggerMessages(ILogger logger)
     {

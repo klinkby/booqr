@@ -22,14 +22,11 @@ internal static partial class Routes
 
         //                 .WithName("").WithSummary("List bookings");
         //
-        // group.MapGet("{id}",
-        //         static (GetBookingByIdCommand command,
-        // [AsParameters] ByIdRequest request,
-        //                 CancellationToken cancellation) =>
-        // command.Execute(request, cancellation))
-        //     .AddEndpointFilter<ETagMiddleware>()
-        //     .RequireAuthorization(UserRole.Customer)
-        //     .WithName("").WithSummary("Get a single booking");
+        group.MapGet("{id}", static ([AsParameters] AuthenticatedByIdRequest request, ClaimsPrincipal user) =>
+            TypedResults.LocalRedirect($"/api/users/{(request with { User = user }).AuthenticatedUserId}/my-bookings/{request.Id}"))
+            .RequireAuthorization(UserRole.Customer)
+            .WithName("getBookingById")
+            .WithSummary("Get a single booking");
 
         group.MapPost("",
                 static (AddBookingCommand command,

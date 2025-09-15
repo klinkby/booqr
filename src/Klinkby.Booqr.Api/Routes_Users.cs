@@ -21,7 +21,6 @@ internal static partial class Routes
 
         group.MapGet("{id}/my-bookings",
                 static (GetMyBookingsCommand command,
-
                         [AsParameters] GetMyBookingsRequest request,
                         ClaimsPrincipal user,
                         CancellationToken cancellation) =>
@@ -29,6 +28,17 @@ internal static partial class Routes
             .RequireAuthorization(UserRole.Customer)
             .WithName("getMyBookings")
             .WithSummary("List my bookings");
+
+        group.MapGet("{id}/my-bookings/{bookingId}",
+                static (GetMyBookingByIdCommand command,
+                        [AsParameters] GetMyBookingByIdRequest request,
+                        ClaimsPrincipal user,
+                        CancellationToken cancellation) =>
+                    command.Execute(request with { User = user }, cancellation))
+            .RequireAuthorization(UserRole.Customer)
+            .AddEndpointFilter<ETagProviderEndPointFilter>()
+            .WithName("getMyBookingById")
+            .WithSummary("Get a single my booking item");
 
         group.MapGet("",
                 static (GetUserCollectionCommand command,

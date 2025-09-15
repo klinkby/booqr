@@ -15,7 +15,7 @@ public abstract record AuthenticatedRequest
     public ClaimsPrincipal? User { get; init; }
 
     [JsonIgnore]
-    internal int AuthenticatedUserId
+    public int AuthenticatedUserId
     {
         get
         {
@@ -23,5 +23,22 @@ public abstract record AuthenticatedRequest
             Debug.Assert(nameIdValue is not null);
             return int.Parse(nameIdValue, CultureInfo.InvariantCulture);
         }
+    }
+
+    internal bool CanUserAccess(int resourceForUserId)
+    {
+        var userId = AuthenticatedUserId;
+        if (userId == resourceForUserId)
+        {
+            return true; // is for me
+        }
+
+        var isEmployee = User!.IsInRole(UserRole.Employee) || User.IsInRole(UserRole.Admin);
+        if (isEmployee)
+        {
+            return true; // I am employee
+        }
+
+        return false;
     }
 }

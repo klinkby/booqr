@@ -29,4 +29,11 @@ internal sealed partial class MyBookingRepository(IConnectionProvider connection
             yield return item;
         }
     }
+
+    /// <inheritdoc />
+    public async Task<MyBooking?> GetById(int id, CancellationToken cancellation)
+    {
+        DbConnection connection = await connectionProvider.GetConnection(cancellation);
+        return await connection.QuerySingleOrDefaultAsync<MyBooking>($"{GetByIdQuery}", new GetByIdParameters(id));
+    }
 }
