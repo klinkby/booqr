@@ -31,6 +31,13 @@ internal sealed class ApplicationAutoDataAttribute : AutoDataAttribute
             .With(p => p.Id, vacancyId)
             .With(p => p.StartTime, t0)
             .With(p => p.EndTime, t0.AddHours(1)));
+        fixture.Customize<MyBooking>(c => c
+            .With(p => p.StartTime, t0)
+            .With(p => p.EndTime, t0.AddHours(1))
+            .With(p => p.ServiceId, serviceId)
+            .With(p => p.LocationId, locationId));
+        fixture.Customize<Booking>(c => c
+            .With(p => p.ServiceId, serviceId));
         fixture.Customize<AddBookingRequest>(c => c
             .With(p => p.ServiceId, serviceId)
             .With(p => p.StartTime, t0));

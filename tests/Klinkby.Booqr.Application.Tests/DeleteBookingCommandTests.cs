@@ -47,7 +47,7 @@ public class DeleteBookingCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_Unauthorized_NotEmployeeOrAdmin_EvenIfOwner_WHEN_Execute_THEN_Throws(DateTime t0)
+    public async Task GIVEN_Unauthorized_NotEmployeeOrAdmin_EvenIfOwner_WHEN_Execute_THEN_Throws(DateTime t0, Booking autoBooking, CalendarEvent autoEvent)
     {
         // Arrange
         var userId = 42;
@@ -55,11 +55,12 @@ public class DeleteBookingCommandTests
         ClaimsPrincipal user = CreateUser(userId, roles);
         var request = new AuthenticatedByIdRequest(321) { User = user };
 
-        var booking = new Booking(userId, 10, "notes") { Id = request.Id };
+        var booking = autoBooking with { CustomerId = userId, Id = request.Id };
         _bookings.Setup(x => x.GetById(request.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
+        var calendarEvent = autoEvent with { BookingId = request.Id, StartTime = t0, EndTime = t0.AddHours(1), Id = 777 };
         _calendar.Setup(x => x.GetByBookingId(request.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new CalendarEvent(7, 3, request.Id, t0, t0.AddHours(1)) { Id = 777 });
+            .ReturnsAsync(calendarEvent);
 
         DeleteBookingCommand sut = CreateSut();
 
@@ -70,7 +71,7 @@ public class DeleteBookingCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_Unauthorized_EmployeeButNotOwner_WHEN_Execute_THEN_Throws(DateTime t0)
+    public async Task GIVEN_Unauthorized_EmployeeButNotOwner_WHEN_Execute_THEN_Throws(DateTime t0, Booking autoBooking, CalendarEvent autoEvent)
     {
         // Arrange
         var userId = 42;
@@ -78,11 +79,12 @@ public class DeleteBookingCommandTests
         ClaimsPrincipal user = CreateUser(userId, roles);
         var request = new AuthenticatedByIdRequest(321) { User = user };
 
-        var booking = new Booking(99, 10, "notes") { Id = request.Id };
+        var booking = autoBooking with { CustomerId = 99, Id = request.Id };
         _bookings.Setup(x => x.GetById(request.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
+        var calendarEvent = autoEvent with { BookingId = request.Id, StartTime = t0, EndTime = t0.AddHours(1), Id = 777 };
         _calendar.Setup(x => x.GetByBookingId(request.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new CalendarEvent(7, 3, request.Id, t0, t0.AddHours(1)) { Id = 777 });
+            .ReturnsAsync(calendarEvent);
 
         DeleteBookingCommand sut = CreateSut();
 
@@ -93,15 +95,15 @@ public class DeleteBookingCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_Authorized_WHEN_Execute_THEN_DeletesBookingAndReopensVacancy(DateTime t0)
+    public async Task GIVEN_Authorized_WHEN_Execute_THEN_DeletesBookingAndReopensVacancy(DateTime t0, Booking autoBooking, CalendarEvent autoEvent)
     {
         // Arrange
         var userId = 42;
         ClaimsPrincipal user = CreateUser(userId, UserRole.Employee);
         var request = new AuthenticatedByIdRequest(555) { User = user };
 
-        var booking = new Booking(userId, 10, null) { Id = request.Id };
-        var calEvent = new CalendarEvent(7, 3, request.Id, t0, t0.AddHours(1)) { Id = 901 };
+        var booking = autoBooking with { CustomerId = userId, Notes = null, Id = request.Id };
+        var calEvent = autoEvent with { BookingId = request.Id, StartTime = t0, EndTime = t0.AddHours(1), Id = 901 };
 
         _bookings.Setup(x => x.GetById(request.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
@@ -131,12 +133,13 @@ public class DeleteBookingCommandTests
         _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    [Fact]
-    public async Task GIVEN_ExceptionDuringProcess_WHEN_Execute_THEN_RollsBack()
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_ExceptionDuringProcess_WHEN_Execute_THEN_RollsBack(Booking autoBooking)
     {
         // Arrange
         var request = new AuthenticatedByIdRequest(777) { User = CreateUser(42, UserRole.Employee) };
-        var booking = new Booking(request.AuthenticatedUserId, 10, null) { Id = request.Id };
+        var booking = autoBooking with { CustomerId = request.AuthenticatedUserId, Id = request.Id };
         _bookings.Setup(x => x.GetById(request.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(booking);
         _calendar.Setup(x => x.GetByBookingId(request.Id, It.IsAny<CancellationToken>()))

@@ -6,11 +6,11 @@ public class GetUserByIdCommandTests
 {
     private readonly Mock<IUserRepository> _users = new();
 
-    [Fact]
-    public async Task GIVEN_UserExists_WHEN_Execute_THEN_ReturnsUser_And_CallsRepository()
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_UserExists_WHEN_Execute_THEN_ReturnsUser_And_CallsRepository(User user)
     {
         // Arrange
-        var user = new User("someone@example.com", "hash", UserRole.Customer, "Some One", 12345678) { Id = 123 };
         _users.Setup(x => x.GetById(user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 

@@ -6,11 +6,11 @@ public class GetVacancyByIdCommandTests
 {
     private readonly Mock<ICalendarRepository> _calendar = new();
 
-    [Fact]
-    public async Task GIVEN_VacancyExists_WHEN_Execute_THEN_ReturnsVacancy_And_CallsRepository()
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_VacancyExists_WHEN_Execute_THEN_ReturnsVacancy_And_CallsRepository(CalendarEvent vacancy)
     {
         // Arrange
-        var vacancy = new CalendarEvent(10, 20, null, DateTime.UtcNow, DateTime.UtcNow.AddHours(1)) { Id = 321 };
         _calendar.Setup(x => x.GetById(vacancy.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(vacancy);
 

@@ -18,14 +18,11 @@ public class DeleteVacancyCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_VacancyHasBooking_WHEN_Execute_THEN_Throws_And_DoesNotDelete(DateTime t0)
+    public async Task GIVEN_VacancyHasBooking_WHEN_Execute_THEN_Throws_And_DoesNotDelete(DateTime t0, CalendarEvent autoVacancy)
     {
         // Arrange
         var request = new AuthenticatedByIdRequest(123) { User = CreateUser() };
-        var vacancyWithBooking = new CalendarEvent(7, 3, 999, t0, t0.AddHours(1))
-        {
-            Id = request.Id
-        };
+        var vacancyWithBooking = autoVacancy with { BookingId = 999, StartTime = t0, EndTime = t0.AddHours(1), Id = request.Id };
         _calendar.Setup(x => x.GetById(request.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(vacancyWithBooking);
 
@@ -55,14 +52,11 @@ public class DeleteVacancyCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_VacancyWithoutBooking_WHEN_Execute_THEN_DeletesViaRepository(DateTime t0)
+    public async Task GIVEN_VacancyWithoutBooking_WHEN_Execute_THEN_DeletesViaRepository(DateTime t0, CalendarEvent autoVacancy)
     {
         // Arrange
         var request = new AuthenticatedByIdRequest(789) { User = CreateUser() };
-        var vacancy = new CalendarEvent(7, 3, null, t0, t0.AddHours(1))
-        {
-            Id = request.Id
-        };
+        var vacancy = autoVacancy with { BookingId = null, StartTime = t0, EndTime = t0.AddHours(1), Id = request.Id };
         _calendar.Setup(x => x.GetById(request.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(vacancy);
 

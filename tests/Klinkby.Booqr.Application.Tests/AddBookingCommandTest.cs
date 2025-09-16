@@ -221,8 +221,7 @@ public class AddBookingCommandTest
     [Theory]
     [ApplicationAutoData]
     public void GIVEN_BookingCoversEntireSlot_WHEN_GetCoverage_THEN_ReturnsEntireSlot(
-        int employeeId,
-        int locationId,
+        CalendarEvent vacancy,
         int customerId,
         int vacancyId,
         int serviceId,
@@ -231,7 +230,7 @@ public class AddBookingCommandTest
         TimeSpan duration)
     {
         DateTime endTime = startTime.Add(duration);
-        var vacancy = new CalendarEvent(employeeId, locationId, null, startTime, endTime);
+        vacancy = vacancy with { BookingId = null, StartTime = startTime, EndTime = endTime };
         var request = new AddBookingRequest(
             customerId,
             vacancyId,

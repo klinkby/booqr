@@ -19,13 +19,13 @@ public class GetMyBookingByIdCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_CustomerOwnsBooking_WHEN_Execute_THEN_ReturnsBooking(DateTime t0)
+    public async Task GIVEN_CustomerOwnsBooking_WHEN_Execute_THEN_ReturnsBooking(DateTime t0, MyBooking autoBooking)
     {
         // Arrange
         var userId = 42;
         ClaimsPrincipal user = CreateUser(userId);
         var request = new GetMyBookingByIdRequest(userId, 1001) { User = user };
-        var booking = new MyBooking(t0, t0.AddHours(1), 10, 20, 30, userId, false) { Id = request.BookingId };
+        var booking = autoBooking with { CustomerId = userId, StartTime = t0, EndTime = t0.AddHours(1), Id = request.BookingId };
         _repo.Setup(x => x.GetById(request.BookingId, It.IsAny<CancellationToken>())).ReturnsAsync(booking);
 
         GetMyBookingByIdCommand sut = CreateSut();
@@ -54,12 +54,12 @@ public class GetMyBookingByIdCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_Employee_WHEN_Execute_THEN_CanViewAnyBooking(DateTime t0)
+    public async Task GIVEN_Employee_WHEN_Execute_THEN_CanViewAnyBooking(DateTime t0, MyBooking autoBooking)
     {
         // Arrange
         ClaimsPrincipal user = CreateUser(7, UserRole.Employee);
         var request = new GetMyBookingByIdRequest(123, 3003) { User = user };
-        var booking = new MyBooking(t0, t0.AddHours(1), 10, 20, 30, 999, true) { Id = request.BookingId };
+        var booking = autoBooking with { CustomerId = 999, StartTime = t0, EndTime = t0.AddHours(1), Id = request.BookingId };
         _repo.Setup(x => x.GetById(request.BookingId, It.IsAny<CancellationToken>())).ReturnsAsync(booking);
 
         GetMyBookingByIdCommand sut = CreateSut();
@@ -74,12 +74,12 @@ public class GetMyBookingByIdCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_Admin_WHEN_Execute_THEN_CanViewAnyBooking(DateTime t0)
+    public async Task GIVEN_Admin_WHEN_Execute_THEN_CanViewAnyBooking(DateTime t0, MyBooking autoBooking)
     {
         // Arrange
         ClaimsPrincipal user = CreateUser(8, UserRole.Admin);
         var request = new GetMyBookingByIdRequest(321, 4004) { User = user };
-        var booking = new MyBooking(t0, t0.AddHours(1), 11, 22, 33, 111, false) { Id = request.BookingId };
+        var booking = autoBooking with { CustomerId = 111, StartTime = t0, EndTime = t0.AddHours(1), Id = request.BookingId };
         _repo.Setup(x => x.GetById(request.BookingId, It.IsAny<CancellationToken>())).ReturnsAsync(booking);
 
         GetMyBookingByIdCommand sut = CreateSut();

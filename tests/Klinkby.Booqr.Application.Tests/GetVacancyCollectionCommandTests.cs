@@ -14,14 +14,14 @@ public class GetVacancyCollectionCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_PageQueryAndRange_WHEN_Execute_THEN_CallsRepositoryWithFlags_And_ReturnsItems(DateTime t0)
+    public async Task GIVEN_PageQueryAndRange_WHEN_Execute_THEN_CallsRepositoryWithFlags_And_ReturnsItems(DateTime t0, CalendarEvent e1, CalendarEvent e2)
     {
         // Arrange
         var page = new GetVacanciesRequest(t0.AddDays(-2), t0.AddDays(2), 5, 10);
         CalendarEvent[] expected = new[]
         {
-            new CalendarEvent(1, 10, null, t0, t0.AddHours(1)) { Id = 11 },
-            new CalendarEvent(2, 20, null, t0.AddHours(2), t0.AddHours(3)) { Id = 22 }
+            e1 with { EmployeeId = 1, LocationId = 10, BookingId = null, StartTime = t0, EndTime = t0.AddHours(1), Id = 11 },
+            e2 with { EmployeeId = 2, LocationId = 20, BookingId = null, StartTime = t0.AddHours(2), EndTime = t0.AddHours(3), Id = 22 }
         };
 
         _calendar.Setup(x =>

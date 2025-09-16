@@ -7,16 +7,17 @@ public class GetUserCollectionCommandTests
 {
     private readonly Mock<IUserRepository> _users = new();
 
-    [Fact]
-    public async Task GIVEN_PageQuery_WHEN_Execute_THEN_CallsRepositoryAndReturnsItems()
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_PageQuery_WHEN_Execute_THEN_CallsRepositoryAndReturnsItems(PageQuery page, User u1, User u2, User u3)
     {
         // Arrange
-        var page = new PageQuery { Start = 10, Num = 5 };
+        page = new PageQuery { Start = 10, Num = 5 };
         User[] expected = new[]
         {
-            new User("a@example.com", "h1", UserRole.Customer, "A", 11111111) { Id = 1 },
-            new User("b@example.com", "h2", UserRole.Employee, "B", 22222222) { Id = 2 },
-            new User("c@example.com", "h3", UserRole.Admin, "C", 33333333) { Id = 3 }
+            u1 with { Role = UserRole.Customer, Id = 1 },
+            u2 with { Role = UserRole.Employee, Id = 2 },
+            u3 with { Role = UserRole.Admin, Id = 3 }
         };
 
         _users.Setup(x => x.GetAll(page, It.IsAny<CancellationToken>()))
