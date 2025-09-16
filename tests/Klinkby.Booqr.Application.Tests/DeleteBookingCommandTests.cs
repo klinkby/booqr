@@ -2,6 +2,7 @@
 using Klinkby.Booqr.Application.Bookings;
 using Klinkby.Booqr.Application.Vacancies;
 using Microsoft.Extensions.Logging.Abstractions;
+using static Klinkby.Booqr.Application.Tests.TestHelpers;
 
 namespace Klinkby.Booqr.Application.Tests;
 
@@ -11,16 +12,6 @@ public class DeleteBookingCommandTests
     private readonly Mock<ICalendarRepository> _calendar = new();
     private readonly Mock<ITransaction> _transaction = new();
 
-    private static ClaimsPrincipal CreateUser(int id = 42, params string[] roles)
-    {
-        var identity = new ClaimsIdentity("TestAuth");
-        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, id.ToString()));
-        foreach (var role in roles)
-        {
-            identity.AddClaim(new Claim(ClaimTypes.Role, role));
-        }
-        return new ClaimsPrincipal(identity);
-    }
 
     private DeleteBookingCommand CreateSut() => new(
         _bookings.Object,

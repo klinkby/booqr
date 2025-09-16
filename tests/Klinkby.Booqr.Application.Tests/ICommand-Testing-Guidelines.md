@@ -43,9 +43,9 @@ When a command explicitly uses ITransaction:
 
 ## 5) Time Defaults and Ranges
 
-For commands that accept FromTime/ToTime and use TimeProvider (e.g., GetVacancyCollection, GetMyBookings):
+For commands that accept FromTime/ToTime and use AutoData (e.g., GetVacancyCollection, GetMyBookings):
 
-- Use FakeTimeProvider to make ‘now’ deterministic.
+- Do not instantiate FakeTimeProvider in tests, just take a `DateTime t0` parameter, assumed to be UtcNow, and calculate from there.
 - Assert exact values forwarded to repositories:
   - FromTime default: now - 1 day
   - ToTime default: DateTime.MaxValue

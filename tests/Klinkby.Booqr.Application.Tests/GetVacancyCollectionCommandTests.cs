@@ -1,21 +1,13 @@
 ﻿using Klinkby.Booqr.Application.Calendar;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
+using static Klinkby.Booqr.Application.Tests.TestHelpers;
 
 namespace Klinkby.Booqr.Application.Tests;
 
 public class GetVacancyCollectionCommandTests
 {
     private readonly Mock<ICalendarRepository> _calendar = new();
-
-    private static async IAsyncEnumerable<CalendarEvent> Yield(params CalendarEvent[] items)
-    {
-        foreach (var item in items)
-        {
-            yield return item;
-            await Task.Yield();
-        }
-    }
 
     private GetVacancyCollectionCommand CreateSut(TimeProvider? timeProvider = null) =>
         new(_calendar.Object, timeProvider ?? new FakeTimeProvider());
@@ -55,7 +47,7 @@ public class GetVacancyCollectionCommandTests
         var page = new GetVacanciesRequest(null, null, Start: 0, Num: 100);
 
         _calendar.Setup(x => x.GetRange(It.IsAny<DateTime>(), It.IsAny<DateTime>(), page, true, false, It.IsAny<CancellationToken>()))
-            .Returns(Yield());
+            .Returns(Yield<CalendarEvent>());
 
         var sut = CreateSut(fakeTime);
 

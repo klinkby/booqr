@@ -1,19 +1,11 @@
 ﻿using Klinkby.Booqr.Application.Users;
+using static Klinkby.Booqr.Application.Tests.TestHelpers;
 
 namespace Klinkby.Booqr.Application.Tests;
 
 public class GetUserCollectionCommandTests
 {
     private readonly Mock<IUserRepository> _users = new();
-
-    private static async IAsyncEnumerable<User> Yield(params User[] items)
-    {
-        foreach (var item in items)
-        {
-            yield return item;
-            await Task.Yield();
-        }
-    }
 
     [Fact]
     public async Task GIVEN_PageQuery_WHEN_Execute_THEN_CallsRepositoryAndReturnsItems()

@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Klinkby.Booqr.Application.Vacancies;
 using Microsoft.Extensions.Logging.Abstractions;
+using static Klinkby.Booqr.Application.Tests.TestHelpers;
 
 namespace Klinkby.Booqr.Application.Tests;
 
@@ -8,12 +9,6 @@ public class DeleteVacancyCommandTests
 {
     private readonly Mock<ICalendarRepository> _calendar = new();
 
-    private static ClaimsPrincipal CreateUser(int id = 42)
-    {
-        var identity = new ClaimsIdentity("TestAuth");
-        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, id.ToString()));
-        return new ClaimsPrincipal(identity);
-    }
 
     private DeleteVacancyCommand CreateSut() => new(
         _calendar.Object,

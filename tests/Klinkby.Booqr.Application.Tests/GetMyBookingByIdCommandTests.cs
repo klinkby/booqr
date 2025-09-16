@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Klinkby.Booqr.Application.Users;
 using Microsoft.Extensions.Logging.Abstractions;
+using static Klinkby.Booqr.Application.Tests.TestHelpers;
 
 namespace Klinkby.Booqr.Application.Tests;
 
@@ -8,16 +9,6 @@ public class GetMyBookingByIdCommandTests
 {
     private readonly Mock<IMyBookingRepository> _repo = new();
 
-    private static ClaimsPrincipal CreateUser(int id = 42, params string[] roles)
-    {
-        var identity = new ClaimsIdentity("TestAuth");
-        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, id.ToString()));
-        foreach (var role in roles)
-        {
-            identity.AddClaim(new Claim(ClaimTypes.Role, role));
-        }
-        return new ClaimsPrincipal(identity);
-    }
 
     private GetMyBookingByIdCommand CreateSut() => new(
         _repo.Object,
