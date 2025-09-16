@@ -5,11 +5,11 @@ namespace Klinkby.Booqr.Application.Tests;
 
 public class AddBookingCommandTest
 {
+    private readonly AddBookingCommand _command;
     private readonly Mock<IBookingRepository> _mockBookingRepository;
     private readonly Mock<ICalendarRepository> _mockCalendarRepository;
     private readonly Mock<IServiceRepository> _mockServiceRepository;
     private readonly Mock<ITransaction> _mockTransaction;
-    private readonly AddBookingCommand _command;
 
     public AddBookingCommandTest()
     {
@@ -41,7 +41,7 @@ public class AddBookingCommandTest
         CalendarEvent vacancy,
         int newBookingId)
     {
-        var updatedVacancy = vacancy with { BookingId = null };
+        CalendarEvent updatedVacancy = vacancy with { BookingId = null };
 
         _mockServiceRepository.Setup(x => x.GetById(request.ServiceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
@@ -63,8 +63,8 @@ public class AddBookingCommandTest
         CalendarEvent vacancy,
         int newBookingId)
     {
-        var requestWithNullCustomer = request with { CustomerId = null };
-        var updatedVacancy = vacancy with { BookingId = null };
+        AddBookingRequest requestWithNullCustomer = request with { CustomerId = null };
+        CalendarEvent updatedVacancy = vacancy with { BookingId = null };
 
         _mockServiceRepository.Setup(x => x.GetById(request.ServiceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
@@ -88,7 +88,7 @@ public class AddBookingCommandTest
         _mockServiceRepository.Setup(x => x.GetById(0, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Service?)null);
 
-        var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+        ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(() =>
             _command.Execute(request));
 
         Assert.Contains("service", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -107,7 +107,7 @@ public class AddBookingCommandTest
         _mockCalendarRepository.Setup(x => x.GetById(request.VacancyId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((CalendarEvent?)null);
 
-        var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+        ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(() =>
             _command.Execute(request));
 
         Assert.Contains("vacancy", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -124,8 +124,8 @@ public class AddBookingCommandTest
         Booking existingBooking,
         int existingBookingId)
     {
-        var bookedVacancy = vacancy with { BookingId = existingBookingId };
-        var matchingBooking = existingBooking with
+        CalendarEvent bookedVacancy = vacancy with { BookingId = existingBookingId };
+        Booking matchingBooking = existingBooking with
         {
             CustomerId = request.AuthenticatedUserId,
             ServiceId = request.ServiceId
@@ -154,8 +154,8 @@ public class AddBookingCommandTest
         int existingBookingId,
         int differentUserId)
     {
-        var bookedVacancy = vacancy with { BookingId = existingBookingId };
-        var differentUserBooking = existingBooking with
+        CalendarEvent bookedVacancy = vacancy with { BookingId = existingBookingId };
+        Booking differentUserBooking = existingBooking with
         {
             CustomerId = differentUserId,
             ServiceId = request.ServiceId
@@ -168,129 +168,12 @@ public class AddBookingCommandTest
         _mockBookingRepository.Setup(x => x.GetById(existingBookingId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(differentUserBooking);
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             _command.Execute(request));
 
         Assert.Equal("The requested vacancy was already booked.", exception.Message);
         _mockTransaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
     }
-
-    #region GetCoverage Tests
-
-    [Theory]
-    [ApplicationAutoData]
-    public void GIVEN_BookingCoversEntireSlot_WHEN_GetCoverage_THEN_ReturnsEntireSlot(
-        int employeeId,
-        int locationId,
-        int customerId,
-        int vacancyId,
-        int serviceId,
-        string notes,
-        DateTime startTime,
-        TimeSpan duration)
-    {
-        var endTime = startTime.Add(duration);
-        var vacancy = new CalendarEvent(employeeId, locationId, null, startTime, endTime);
-        var request = new AddBookingRequest(
-            CustomerId: customerId,
-            VacancyId: vacancyId,
-            ServiceId: serviceId,
-            Notes: notes,
-            StartTime: startTime)
-        {
-            EndTime = endTime
-        };
-
-        var result = AddBookingCommand.GetCoverage(vacancy, request);
-
-        Assert.Equal(Covers.EntireSlot, result);
-    }
-
-    [Theory]
-    [ApplicationAutoData]
-    public void GIVEN_BookingCoversOnlyBeginning_WHEN_GetCoverage_THEN_ReturnsOnlyBeginning(
-        CalendarEvent vacancy,
-        AddBookingRequest request,
-        Service service
-        )
-    {
-        // Ensure the booking covers only the beginning by:
-        // 1. Making booking start at the same time as vacancy
-        // 2. Making booking end before vacancy ends (half duration)
-        var bookingDuration = TimeSpan.FromTicks(service.Duration.Ticks / 2);
-        var modifiedRequest = request with
-        {
-            StartTime = vacancy.StartTime
-        };
-        modifiedRequest = modifiedRequest with
-        {
-            EndTime = vacancy.StartTime.Add(bookingDuration)
-        };
-
-        var result = AddBookingCommand.GetCoverage(vacancy, modifiedRequest);
-
-        Assert.Equal(Covers.OnlyBeginning, result);
-    }
-
-
-    [Theory]
-    [ApplicationAutoData]
-    public void GIVEN_BookingCoversOnlyEnd_WHEN_GetCoverage_THEN_ReturnsOnlyEnd(
-        CalendarEvent vacancy,
-        AddBookingRequest request,
-        Service service)
-    {
-        // Ensure the booking covers only the end by:
-        // 1. Making booking end at the same time as vacancy
-        // 2. Making booking start partway through vacancy (half duration from end)
-        var bookingDuration = TimeSpan.FromTicks(service.Duration.Ticks / 2);
-        var bookingStartTime = vacancy.EndTime.Subtract(bookingDuration);
-
-        var modifiedRequest = request with
-        {
-            StartTime = bookingStartTime
-        };
-        modifiedRequest = modifiedRequest with
-        {
-            EndTime = vacancy.EndTime
-        };
-
-        var result = AddBookingCommand.GetCoverage(vacancy, modifiedRequest);
-
-        Assert.Equal(Covers.OnlyEnd, result);
-    }
-
-    [Theory]
-    [ApplicationAutoData]
-    public void GIVEN_BookingInMiddleOfSlot_WHEN_GetCoverage_THEN_ReturnsSomewhereInTheMiddle(
-        CalendarEvent vacancy,
-        AddBookingRequest request,
-        Service service)
-    {
-        // Ensure the booking is in the middle by:
-        // 1. Starting the booking 1/4 into the vacancy
-        // 2. Using service duration but ensuring it doesn't extend beyond 3/4 of vacancy
-        var bookingStartTime = vacancy.StartTime.Add(TimeSpan.FromTicks(service.Duration.Ticks / 4));
-        var maxBookingDuration = TimeSpan.FromTicks(service.Duration.Ticks / 2); // Leave space at both ends
-        var actualBookingDuration = TimeSpan.FromTicks(Math.Min(maxBookingDuration.Ticks, service.Duration.Ticks));
-        var bookingEndTime = bookingStartTime.Add(actualBookingDuration);
-
-        var modifiedRequest = request with
-        {
-            StartTime = bookingStartTime
-        };
-        modifiedRequest = modifiedRequest with
-        {
-            EndTime = bookingEndTime
-        };
-
-        var result = AddBookingCommand.GetCoverage(vacancy, modifiedRequest);
-
-        Assert.Equal(Covers.SomewhereInTheMiddle, result);
-    }
-
-
-    #endregion
 
     [Theory]
     [ApplicationAutoData]
@@ -316,7 +199,7 @@ public class AddBookingCommandTest
         CalendarEvent vacancy,
         int newBookingId)
     {
-        var availableVacancy = vacancy with { BookingId = null };
+        CalendarEvent availableVacancy = vacancy with { BookingId = null };
 
         _mockServiceRepository.Setup(x => x.GetById(request.ServiceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(service);
@@ -332,4 +215,120 @@ public class AddBookingCommandTest
         _mockTransaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
         _mockTransaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Never);
     }
+
+    #region GetCoverage Tests
+
+    [Theory]
+    [ApplicationAutoData]
+    public void GIVEN_BookingCoversEntireSlot_WHEN_GetCoverage_THEN_ReturnsEntireSlot(
+        int employeeId,
+        int locationId,
+        int customerId,
+        int vacancyId,
+        int serviceId,
+        string notes,
+        DateTime startTime,
+        TimeSpan duration)
+    {
+        DateTime endTime = startTime.Add(duration);
+        var vacancy = new CalendarEvent(employeeId, locationId, null, startTime, endTime);
+        var request = new AddBookingRequest(
+            customerId,
+            vacancyId,
+            serviceId,
+            notes,
+            startTime)
+        {
+            EndTime = endTime
+        };
+
+        Covers result = AddBookingCommand.GetCoverage(vacancy, request);
+
+        Assert.Equal(Covers.EntireSlot, result);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public void GIVEN_BookingCoversOnlyBeginning_WHEN_GetCoverage_THEN_ReturnsOnlyBeginning(
+        CalendarEvent vacancy,
+        AddBookingRequest request,
+        Service service
+    )
+    {
+        // Ensure the booking covers only the beginning by:
+        // 1. Making booking start at the same time as vacancy
+        // 2. Making booking end before vacancy ends (half duration)
+        var bookingDuration = TimeSpan.FromTicks(service.Duration.Ticks / 2);
+        AddBookingRequest modifiedRequest = request with
+        {
+            StartTime = vacancy.StartTime
+        };
+        modifiedRequest = modifiedRequest with
+        {
+            EndTime = vacancy.StartTime.Add(bookingDuration)
+        };
+
+        Covers result = AddBookingCommand.GetCoverage(vacancy, modifiedRequest);
+
+        Assert.Equal(Covers.OnlyBeginning, result);
+    }
+
+
+    [Theory]
+    [ApplicationAutoData]
+    public void GIVEN_BookingCoversOnlyEnd_WHEN_GetCoverage_THEN_ReturnsOnlyEnd(
+        CalendarEvent vacancy,
+        AddBookingRequest request,
+        Service service)
+    {
+        // Ensure the booking covers only the end by:
+        // 1. Making booking end at the same time as vacancy
+        // 2. Making booking start partway through vacancy (half duration from end)
+        var bookingDuration = TimeSpan.FromTicks(service.Duration.Ticks / 2);
+        DateTime bookingStartTime = vacancy.EndTime.Subtract(bookingDuration);
+
+        AddBookingRequest modifiedRequest = request with
+        {
+            StartTime = bookingStartTime
+        };
+        modifiedRequest = modifiedRequest with
+        {
+            EndTime = vacancy.EndTime
+        };
+
+        Covers result = AddBookingCommand.GetCoverage(vacancy, modifiedRequest);
+
+        Assert.Equal(Covers.OnlyEnd, result);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public void GIVEN_BookingInMiddleOfSlot_WHEN_GetCoverage_THEN_ReturnsSomewhereInTheMiddle(
+        CalendarEvent vacancy,
+        AddBookingRequest request,
+        Service service)
+    {
+        // Ensure the booking is in the middle by:
+        // 1. Starting the booking 1/4 into the vacancy
+        // 2. Using service duration but ensuring it doesn't extend beyond 3/4 of vacancy
+        DateTime bookingStartTime = vacancy.StartTime.Add(TimeSpan.FromTicks(service.Duration.Ticks / 4));
+        var maxBookingDuration = TimeSpan.FromTicks(service.Duration.Ticks / 2); // Leave space at both ends
+        var actualBookingDuration = TimeSpan.FromTicks(Math.Min(maxBookingDuration.Ticks, service.Duration.Ticks));
+        DateTime bookingEndTime = bookingStartTime.Add(actualBookingDuration);
+
+        AddBookingRequest modifiedRequest = request with
+        {
+            StartTime = bookingStartTime
+        };
+        modifiedRequest = modifiedRequest with
+        {
+            EndTime = bookingEndTime
+        };
+
+        Covers result = AddBookingCommand.GetCoverage(vacancy, modifiedRequest);
+
+        Assert.Equal(Covers.SomewhereInTheMiddle, result);
+    }
+
+    #endregion
 }

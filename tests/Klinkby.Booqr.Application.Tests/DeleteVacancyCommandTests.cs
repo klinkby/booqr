@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using Klinkby.Booqr.Application.Vacancies;
+﻿using Klinkby.Booqr.Application.Vacancies;
 using Microsoft.Extensions.Logging.Abstractions;
 using static Klinkby.Booqr.Application.Tests.TestHelpers;
 
@@ -10,23 +9,27 @@ public class DeleteVacancyCommandTests
     private readonly Mock<ICalendarRepository> _calendar = new();
 
 
-    private DeleteVacancyCommand CreateSut() => new(
-        _calendar.Object,
-        NullLogger<DeleteVacancyCommand>.Instance);
+    private DeleteVacancyCommand CreateSut()
+    {
+        return new DeleteVacancyCommand(
+            _calendar.Object,
+            NullLogger<DeleteVacancyCommand>.Instance);
+    }
 
-    [Fact]
-    public async Task GIVEN_VacancyHasBooking_WHEN_Execute_THEN_Throws_And_DoesNotDelete()
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_VacancyHasBooking_WHEN_Execute_THEN_Throws_And_DoesNotDelete(DateTime t0)
     {
         // Arrange
         var request = new AuthenticatedByIdRequest(123) { User = CreateUser() };
-        var vacancyWithBooking = new CalendarEvent(7, 3, 999, DateTime.UtcNow, DateTime.UtcNow.AddHours(1))
+        var vacancyWithBooking = new CalendarEvent(7, 3, 999, t0, t0.AddHours(1))
         {
             Id = request.Id
         };
         _calendar.Setup(x => x.GetById(request.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(vacancyWithBooking);
 
-        var sut = CreateSut();
+        DeleteVacancyCommand sut = CreateSut();
 
         // Act + Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => sut.Execute(request));
@@ -41,7 +44,7 @@ public class DeleteVacancyCommandTests
         _calendar.Setup(x => x.GetById(request.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((CalendarEvent?)null);
 
-        var sut = CreateSut();
+        DeleteVacancyCommand sut = CreateSut();
 
         // Act
         await sut.Execute(request);
@@ -50,19 +53,20 @@ public class DeleteVacancyCommandTests
         _calendar.Verify(x => x.Delete(request.Id, It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    [Fact]
-    public async Task GIVEN_VacancyWithoutBooking_WHEN_Execute_THEN_DeletesViaRepository()
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_VacancyWithoutBooking_WHEN_Execute_THEN_DeletesViaRepository(DateTime t0)
     {
         // Arrange
         var request = new AuthenticatedByIdRequest(789) { User = CreateUser() };
-        var vacancy = new CalendarEvent(7, 3, null, DateTime.UtcNow, DateTime.UtcNow.AddHours(1))
+        var vacancy = new CalendarEvent(7, 3, null, t0, t0.AddHours(1))
         {
             Id = request.Id
         };
         _calendar.Setup(x => x.GetById(request.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(vacancy);
 
-        var sut = CreateSut();
+        DeleteVacancyCommand sut = CreateSut();
 
         // Act
         await sut.Execute(request);

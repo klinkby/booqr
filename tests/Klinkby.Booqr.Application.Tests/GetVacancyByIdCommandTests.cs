@@ -17,7 +17,7 @@ public class GetVacancyByIdCommandTests
         var sut = new GetVacancyByIdCommand(_calendar.Object);
 
         // Act
-        var result = await sut.Execute(new ByIdRequest(vacancy.Id));
+        CalendarEvent? result = await sut.Execute(new ByIdRequest(vacancy.Id));
 
         // Assert
         Assert.NotNull(result);
@@ -29,14 +29,14 @@ public class GetVacancyByIdCommandTests
     public async Task GIVEN_VacancyNotFound_WHEN_Execute_THEN_ReturnsNull()
     {
         // Arrange
-        int id = 99999;
+        var id = 99999;
         _calendar.Setup(x => x.GetById(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((CalendarEvent?)null);
 
         var sut = new GetVacancyByIdCommand(_calendar.Object);
 
         // Act
-        var result = await sut.Execute(new ByIdRequest(id));
+        CalendarEvent? result = await sut.Execute(new ByIdRequest(id));
 
         // Assert
         Assert.Null(result);

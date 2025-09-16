@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using AutoFixture;
 using Klinkby.Booqr.Application.Bookings;
-using Microsoft.Extensions.Time.Testing;
 
 namespace Klinkby.Booqr.Application.Tests;
 
@@ -14,11 +13,13 @@ internal sealed class ApplicationAutoDataAttribute : AutoDataAttribute
 
     private static IFixture CreateFixture()
     {
-        DateTime t0 = new FakeTimeProvider().GetUtcNow().UtcDateTime;
+        DateTime t0 = TestHelpers.TimeProvider.GetUtcNow().UtcDateTime;
         const int serviceId = 56;
         const int locationId = 101;
         const int vacancyId = 77;
         var fixture = new Fixture();
+        fixture.Customize<DateTime>(c => c
+            .FromFactory(() => t0));
         fixture.Customize<ClaimsPrincipal>(c => c
             .FromFactory(GetTestUser));
         fixture.Customize<Service>(c => c

@@ -12,10 +12,10 @@ internal sealed class IntegrationAutoDataAttribute() : AutoDataAttribute(CreateF
 {
     private static IFixture CreateFixture()
     {
-        DateTime origo = new FakeTimeProvider().GetUtcNow().UtcDateTime.Date;
+        DateTime t0 = new FakeTimeProvider().GetUtcNow().UtcDateTime.Date;
         var fixture = new Fixture();
         fixture.Customize<DateTime>(c =>
-            c.FromFactory(() => origo));
+            c.FromFactory(() => t0));
         fixture.Customize<TimeSpan>(c =>
             c.FromFactory(() => TimeSpan.FromHours(1)));
         fixture.Customize<Location>(c => c
@@ -24,7 +24,7 @@ internal sealed class IntegrationAutoDataAttribute() : AutoDataAttribute(CreateF
         fixture.Customize<Booking>(c => c
             .Without(p => p.Deleted));
         fixture.Customize<CalendarEvent>(c => c
-            .With(p => p.EndTime, () => origo + TimeSpan.FromHours(1))
+            .With(p => p.EndTime, () => t0 + TimeSpan.FromHours(1))
             .Without(p => p.Deleted));
         fixture.Customize<User>(c => c
             .With(p => p.Role, () => UserRole.Customer)

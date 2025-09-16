@@ -7,15 +7,18 @@ public class SignUpCommandTests
 {
     private readonly Mock<IUserRepository> _users = new();
 
-    private SignUpCommand CreateSut() => new(
-        _users.Object,
-        NullLogger<SignUpCommand>.Instance);
+    private SignUpCommand CreateSut()
+    {
+        return new SignUpCommand(
+            _users.Object,
+            NullLogger<SignUpCommand>.Instance);
+    }
 
     [Fact]
     public async Task GIVEN_NullRequest_WHEN_Execute_THEN_ThrowsArgumentNullException()
     {
         // Arrange
-        var sut = CreateSut();
+        SignUpCommand sut = CreateSut();
 
         // Act + Assert
         await Assert.ThrowsAsync<ArgumentNullException>(() => sut.Execute(null!));
@@ -24,7 +27,8 @@ public class SignUpCommandTests
     [Theory]
     [InlineData("  Jane Doe  ", 12345678, "  user@example.com  ", "  P@ssw0rd!  ")]
     [InlineData("John", 87654321, "USER@EXAMPLE.COM", "S0mething#Hard")]
-    public async Task GIVEN_ValidRequest_WHEN_Execute_THEN_MapsAndCallsRepository(string name, long phone, string email, string password)
+    public async Task GIVEN_ValidRequest_WHEN_Execute_THEN_MapsAndCallsRepository(string name, long phone, string email,
+        string password)
     {
         // Arrange
         const int newUserId = 987;
@@ -38,7 +42,7 @@ public class SignUpCommandTests
         var expectedName = name.Trim();
         var expectedPassword = password.Trim();
 
-        var sut = CreateSut();
+        SignUpCommand sut = CreateSut();
 
         // Act
         var result = await sut.Execute(request);

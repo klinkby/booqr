@@ -1,7 +1,6 @@
 ﻿using System.Security.Claims;
 using Klinkby.Booqr.Application.Users;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Time.Testing;
 using static Klinkby.Booqr.Application.Tests.TestHelpers;
 
 namespace Klinkby.Booqr.Application.Tests;
@@ -11,103 +10,118 @@ public class GetMyBookingsCommandTests
     private readonly Mock<IMyBookingRepository> _repo = new();
 
 
-    private GetMyBookingsCommand CreateSut(TimeProvider? timeProvider = null) => new(
-        _repo.Object,
-        timeProvider ?? new FakeTimeProvider(),
-        NullLogger<GetMyBookingsCommand>.Instance);
+    private GetMyBookingsCommand CreateSut()
+    {
+        return new GetMyBookingsCommand(
+            _repo.Object,
+            TestHelpers.TimeProvider,
+            NullLogger<GetMyBookingsCommand>.Instance);
+    }
 
-    [Fact]
-    public void GIVEN_CustomerOwnsProfile_WHEN_Execute_THEN_RepositoryCalled()
+    [Theory]
+    [ApplicationAutoData]
+    public void GIVEN_CustomerOwnsProfile_WHEN_Execute_THEN_RepositoryCalled(DateTime t0)
     {
         // Arrange
-        int userId = 42;
-        var user = CreateUser(userId);
-        var request = new GetMyBookingsRequest(userId, DateTime.UtcNow.AddDays(-2), DateTime.UtcNow.AddDays(2)) { User = user };
+        var userId = 42;
+        ClaimsPrincipal user = CreateUser(userId);
+        var request = new GetMyBookingsRequest(userId, t0.AddDays(-2), t0.AddDays(2)) { User = user };
 
-        _repo.Setup(x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request, It.IsAny<CancellationToken>()))
+        _repo.Setup(x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request,
+                It.IsAny<CancellationToken>()))
             .Returns(Yield());
 
-        var sut = CreateSut();
+        GetMyBookingsCommand sut = CreateSut();
 
         // Act
-        var _ = sut.Execute(request);
+        IAsyncEnumerable<MyBooking> _ = sut.Execute(request);
 
         // Assert
-        _repo.Verify(x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request, It.IsAny<CancellationToken>()), Times.Once);
+        _repo.Verify(
+            x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request,
+                It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public void GIVEN_CustomerNotOwner_WHEN_Execute_THEN_ThrowsUnauthorized_And_DoesNotQueryRepo()
     {
         // Arrange
-        var user = CreateUser(42);
+        ClaimsPrincipal user = CreateUser();
         var request = new GetMyBookingsRequest(99, null, null) { User = user };
-        var sut = CreateSut();
+        GetMyBookingsCommand sut = CreateSut();
 
         // Act + Assert
         Assert.Throws<UnauthorizedAccessException>(() => sut.Execute(request));
-        _repo.Verify(x => x.GetRangeByUserId(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repo.Verify(
+            x => x.GetRangeByUserId(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<IPageQuery>(),
+                It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public void GIVEN_Employee_WHEN_Execute_THEN_CanViewAnyUsersBookings()
     {
         // Arrange
-        var user = CreateUser(7, UserRole.Employee);
+        ClaimsPrincipal user = CreateUser(7, UserRole.Employee);
         var request = new GetMyBookingsRequest(123, null, null) { User = user };
 
-        _repo.Setup(x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request, It.IsAny<CancellationToken>()))
+        _repo.Setup(x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request,
+                It.IsAny<CancellationToken>()))
             .Returns(Yield());
 
-        var sut = CreateSut();
+        GetMyBookingsCommand sut = CreateSut();
 
         // Act
-        var _ = sut.Execute(request);
+        IAsyncEnumerable<MyBooking> _ = sut.Execute(request);
 
         // Assert
-        _repo.Verify(x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request, It.IsAny<CancellationToken>()), Times.Once);
+        _repo.Verify(
+            x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request,
+                It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public void GIVEN_Admin_WHEN_Execute_THEN_CanViewAnyUsersBookings()
     {
         // Arrange
-        var user = CreateUser(8, UserRole.Admin);
+        ClaimsPrincipal user = CreateUser(8, UserRole.Admin);
         var request = new GetMyBookingsRequest(321, null, null) { User = user };
 
-        _repo.Setup(x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request, It.IsAny<CancellationToken>()))
+        _repo.Setup(x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request,
+                It.IsAny<CancellationToken>()))
             .Returns(Yield());
 
-        var sut = CreateSut();
+        GetMyBookingsCommand sut = CreateSut();
 
         // Act
-        var _ = sut.Execute(request);
+        IAsyncEnumerable<MyBooking> _ = sut.Execute(request);
 
         // Assert
-        _repo.Verify(x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request, It.IsAny<CancellationToken>()), Times.Once);
+        _repo.Verify(
+            x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request,
+                It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    [Fact]
-    public void GIVEN_NullFromAndTo_WHEN_Execute_THEN_DefaultsApplied()
+    [Theory]
+    [ApplicationAutoData]
+    public void GIVEN_NullFromAndTo_WHEN_Execute_THEN_DefaultsApplied(DateTime t0)
     {
         // Arrange
-        var t0 = new DateTimeOffset(new DateTime(2025, 01, 15, 10, 30, 0, DateTimeKind.Utc));
-        var fakeTime = new FakeTimeProvider(t0);
-        var user = CreateUser(77, UserRole.Employee);
+        ClaimsPrincipal user = CreateUser(77, UserRole.Employee);
         var request = new GetMyBookingsRequest(999, null, null) { User = user };
 
-        _repo.Setup(x => x.GetRangeByUserId(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), request, It.IsAny<CancellationToken>()))
+        _repo.Setup(x => x.GetRangeByUserId(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), request,
+                It.IsAny<CancellationToken>()))
             .Returns(Yield());
 
-        var sut = CreateSut(fakeTime);
+        GetMyBookingsCommand sut = CreateSut();
 
         // Act
-        var _ = sut.Execute(request);
+        IAsyncEnumerable<MyBooking> _ = sut.Execute(request);
 
         // Assert
         _repo.Verify(x => x.GetRangeByUserId(
             request.Id,
-            t0.UtcDateTime.AddDays(-1),
+            t0.AddDays(-1),
             DateTime.MaxValue,
             request,
             It.IsAny<CancellationToken>()), Times.Once);

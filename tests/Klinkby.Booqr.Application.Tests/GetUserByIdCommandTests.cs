@@ -17,7 +17,7 @@ public class GetUserByIdCommandTests
         var sut = new GetUserByIdCommand(_users.Object);
 
         // Act
-        var result = await sut.Execute(new ByIdRequest(user.Id));
+        User? result = await sut.Execute(new ByIdRequest(user.Id));
 
         // Assert
         Assert.NotNull(result);
@@ -29,14 +29,14 @@ public class GetUserByIdCommandTests
     public async Task GIVEN_UserNotFound_WHEN_Execute_THEN_ReturnsNull()
     {
         // Arrange
-        int id = 9999;
+        var id = 9999;
         _users.Setup(x => x.GetById(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
         var sut = new GetUserByIdCommand(_users.Object);
 
         // Act
-        var result = await sut.Execute(new ByIdRequest(id));
+        User? result = await sut.Execute(new ByIdRequest(id));
 
         // Assert
         Assert.Null(result);

@@ -12,11 +12,11 @@ public class GetUserCollectionCommandTests
     {
         // Arrange
         var page = new PageQuery { Start = 10, Num = 5 };
-        var expected = new[]
+        User[] expected = new[]
         {
             new User("a@example.com", "h1", UserRole.Customer, "A", 11111111) { Id = 1 },
             new User("b@example.com", "h2", UserRole.Employee, "B", 22222222) { Id = 2 },
-            new User("c@example.com", "h3", UserRole.Admin, "C", 33333333) { Id = 3 },
+            new User("c@example.com", "h3", UserRole.Admin, "C", 33333333) { Id = 3 }
         };
 
         _users.Setup(x => x.GetAll(page, It.IsAny<CancellationToken>()))
@@ -25,8 +25,8 @@ public class GetUserCollectionCommandTests
         var sut = new GetUserCollectionCommand(_users.Object);
 
         // Act
-        var result = sut.Execute(page);
-        var list = await result.ToListAsync();
+        IAsyncEnumerable<User> result = sut.Execute(page);
+        List<User> list = await result.ToListAsync();
 
         // Assert
         Assert.Equal(expected.Length, list.Count);

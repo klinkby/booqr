@@ -1,20 +1,20 @@
 ﻿using Klinkby.Booqr.Application.Vacancies;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Time.Testing;
 
 namespace Klinkby.Booqr.Application.Tests;
 
 public class AddVacancyCommandTests
 {
-    private readonly static DateTime StartTime = new FakeTimeProvider().GetUtcNow().UtcDateTime;
+    private readonly static DateTime StartTime = TestHelpers.TimeProvider.GetUtcNow().UtcDateTime;
 
-    private readonly Mock<ICalendarRepository> _repoMock = new();
-    private readonly Mock<ITransaction> _transactionMock = new();
     private readonly AddVacancyRequest _query = new(
-            42, 1, StartTime, StartTime.AddHours(1))
+        42, 1, StartTime, StartTime.AddHours(1))
     {
         User = ApplicationAutoDataAttribute.GetTestUser()
     };
+
+    private readonly Mock<ICalendarRepository> _repoMock = new();
+    private readonly Mock<ITransaction> _transactionMock = new();
 
     [Theory]
     [InlineData(666, 1)]
@@ -22,11 +22,12 @@ public class AddVacancyCommandTests
     public async Task GIVEN_Conflicts_WHEN_AddCalendarEvent_THEN_Throws(int? bookingId, int locationId)
     {
         List<CalendarEvent> events =
-            [
-                new(_query.EmployeeId ?? 0, _query.LocationId, null, _query.StartTime, _query.EndTime),
-                new(_query.EmployeeId ?? 0, locationId, bookingId, _query.StartTime, _query.EndTime)
-            ];
-        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, NullLogger<AddVacancyCommand>.Instance);
+        [
+            new(_query.EmployeeId ?? 0, _query.LocationId, null, _query.StartTime, _query.EndTime),
+            new(_query.EmployeeId ?? 0, locationId, bookingId, _query.StartTime, _query.EndTime)
+        ];
+        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object,
+            NullLogger<AddVacancyCommand>.Instance);
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             sut.AddCalendarEvent(_query, events, 0, CancellationToken.None));
     }
@@ -35,11 +36,12 @@ public class AddVacancyCommandTests
     public async Task GIVEN_CompletelyCovered_WHEN_AddCalendarEvent_THEN_ReturnsExistingId()
     {
         // Arrange
-        var coveringEvent = CreateCalendarEvent(100, _query.EmployeeId, _query.LocationId, null,
+        CalendarEvent coveringEvent = CreateCalendarEvent(100, _query.EmployeeId, _query.LocationId, null,
             _query.StartTime.AddHours(-1), _query.EndTime.AddHours(1));
         List<CalendarEvent> events = [coveringEvent];
 
-        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, NullLogger<AddVacancyCommand>.Instance);
+        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object,
+            NullLogger<AddVacancyCommand>.Instance);
 
         // Act
         var result = await sut.AddCalendarEvent(_query, events, _query.EmployeeId ?? 0, CancellationToken.None);
@@ -55,16 +57,17 @@ public class AddVacancyCommandTests
     public async Task GIVEN_CompletelyOverlapped_WHEN_AddCalendarEvent_THEN_DeletesOverlappedAndCreatesNew()
     {
         // Arrange
-        var overlapped1 = CreateCalendarEvent(101, _query.EmployeeId, _query.LocationId, null,
+        CalendarEvent overlapped1 = CreateCalendarEvent(101, _query.EmployeeId, _query.LocationId, null,
             _query.StartTime.AddMinutes(15), _query.StartTime.AddMinutes(30));
-        var overlapped2 = CreateCalendarEvent(102, _query.EmployeeId, _query.LocationId, null,
+        CalendarEvent overlapped2 = CreateCalendarEvent(102, _query.EmployeeId, _query.LocationId, null,
             _query.StartTime.AddMinutes(35), _query.StartTime.AddMinutes(50));
         List<CalendarEvent> events = [overlapped1, overlapped2];
 
         _repoMock.Setup(x => x.Add(It.IsAny<CalendarEvent>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(999);
 
-        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, NullLogger<AddVacancyCommand>.Instance);
+        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object,
+            NullLogger<AddVacancyCommand>.Instance);
 
         // Act
         var result = await sut.AddCalendarEvent(_query, events, _query.EmployeeId ?? 0, CancellationToken.None);
@@ -80,13 +83,14 @@ public class AddVacancyCommandTests
     public async Task GIVEN_TwoIntersectingEvents_WHEN_AddCalendarEvent_THEN_CombinesIntoOne()
     {
         // Arrange - request spans 10:00-11:00, endOf ends at 10:00, startOf starts at 11:00
-        var endOfEvent = CreateCalendarEvent(201, _query.EmployeeId, _query.LocationId, null,
+        CalendarEvent endOfEvent = CreateCalendarEvent(201, _query.EmployeeId, _query.LocationId, null,
             _query.StartTime.AddHours(-1), _query.StartTime);
-        var startOfEvent = CreateCalendarEvent(202, _query.EmployeeId, _query.LocationId, null,
+        CalendarEvent startOfEvent = CreateCalendarEvent(202, _query.EmployeeId, _query.LocationId, null,
             _query.EndTime, _query.EndTime.AddHours(1));
         List<CalendarEvent> events = [endOfEvent, startOfEvent];
 
-        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, NullLogger<AddVacancyCommand>.Instance);
+        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object,
+            NullLogger<AddVacancyCommand>.Instance);
 
         // Act
         var result = await sut.AddCalendarEvent(_query, events, _query.EmployeeId ?? 0, CancellationToken.None);
@@ -104,11 +108,12 @@ public class AddVacancyCommandTests
     public async Task GIVEN_IntersectsEndOf_WHEN_AddCalendarEvent_THEN_ExtendsEndOfEvent()
     {
         // Arrange - request spans 10:00-11:00, existing event ends at 10:00
-        var endOfEvent = CreateCalendarEvent(301, _query.EmployeeId, _query.LocationId, null,
+        CalendarEvent endOfEvent = CreateCalendarEvent(301, _query.EmployeeId, _query.LocationId, null,
             _query.StartTime.AddHours(-1), _query.StartTime);
         List<CalendarEvent> events = [endOfEvent];
 
-        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, NullLogger<AddVacancyCommand>.Instance);
+        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object,
+            NullLogger<AddVacancyCommand>.Instance);
 
         // Act
         var result = await sut.AddCalendarEvent(_query, events, _query.EmployeeId ?? 0, CancellationToken.None);
@@ -125,11 +130,12 @@ public class AddVacancyCommandTests
     public async Task GIVEN_IntersectsStartOf_WHEN_AddCalendarEvent_THEN_ExtendsStartOfEvent()
     {
         // Arrange - request spans 10:00-11:00, existing event starts at 11:00
-        var startOfEvent = CreateCalendarEvent(401, _query.EmployeeId, _query.LocationId, null,
+        CalendarEvent startOfEvent = CreateCalendarEvent(401, _query.EmployeeId, _query.LocationId, null,
             _query.EndTime, _query.EndTime.AddHours(1));
         List<CalendarEvent> events = [startOfEvent];
 
-        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, NullLogger<AddVacancyCommand>.Instance);
+        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object,
+            NullLogger<AddVacancyCommand>.Instance);
 
         // Act
         var result = await sut.AddCalendarEvent(_query, events, _query.EmployeeId ?? 0, CancellationToken.None);
@@ -151,7 +157,8 @@ public class AddVacancyCommandTests
         _repoMock.Setup(x => x.Add(It.IsAny<CalendarEvent>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(555);
 
-        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, NullLogger<AddVacancyCommand>.Instance);
+        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object,
+            NullLogger<AddVacancyCommand>.Instance);
 
         // Act
         var result = await sut.AddCalendarEvent(_query, events, _query.EmployeeId ?? 0, CancellationToken.None);
