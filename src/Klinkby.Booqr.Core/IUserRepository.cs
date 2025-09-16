@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Klinkby.Booqr.Core;
 
@@ -19,16 +19,10 @@ namespace Klinkby.Booqr.Core;
 ///     The role assigned to the user. Determines the user's permissions within the system.
 /// </param>
 public sealed record User(
-    [property: Required]
-    [property: StringLength(0xff)]
     string Email,
-    [property: Required]
-    [property: StringLength(0xff)]
-    string PasswordHash,
-    [property: Required]
-    [property: StringLength(20)]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.Always)] string PasswordHash,
     string Role,
-    [property: StringLength(0xff)] string? Name,
+    string? Name,
     long? Phone) : Audit;
 
 public static class UserRole
@@ -40,5 +34,5 @@ public static class UserRole
 
 public interface IUserRepository : IRepository<User>
 {
-    Task<User?> GetByEmail(string email, CancellationToken cancellation);
+    Task<User?> GetByEmail(string email, CancellationToken cancellation = default);
 }

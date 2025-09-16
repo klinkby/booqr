@@ -455,6 +455,29 @@
         "resolved": "13.0.3",
         "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
       },
+      "NLog": {
+        "type": "Transitive",
+        "resolved": "6.0.4",
+        "contentHash": "Xr+lIk1ZlTTFXEqnxQVLxrDqZlt2tm5X+/AhJbaY2emb/dVtGDiU5QuEtj3gHtwV/SWlP/rJ922I/BPuOJXlRw=="
+      },
+      "NLog.Extensions.Logging": {
+        "type": "Transitive",
+        "resolved": "6.0.4",
+        "contentHash": "8lQ44ZFdJwOJNH61HySZiNUWHjWfT3GYRT3gcTrnlf4mDHWMRKhWvNmr1P0VznT/0sNqpnga+Zy4CECX1SJiDQ==",
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "8.0.0",
+          "Microsoft.Extensions.Logging": "8.0.0",
+          "NLog": "6.0.4"
+        }
+      },
+      "NLog.Web.AspNetCore": {
+        "type": "Transitive",
+        "resolved": "6.0.4",
+        "contentHash": "F68UvNGQXp7TTah6sG7tKLQpIluzu+VGtpEj6jB+c0nZqjMjKLAhLFzTBHbl69XWaZ7d9zQfyFkRqPa8U+V98A==",
+        "dependencies": {
+          "NLog.Extensions.Logging": "6.0.4"
+        }
+      },
       "Npgsql": {
         "type": "Transitive",
         "resolved": "9.0.3",
@@ -533,7 +556,9 @@
           "Klinkby.Booqr.Infrastructure": "[1.0.0, )",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.0-preview.7.25380.108, )",
           "Microsoft.AspNetCore.OpenApi": "[10.0.0-preview.7.25380.108, )",
-          "Microsoft.OpenApi": "[2.0.0, )"
+          "Microsoft.OpenApi": "[2.0.0, )",
+          "NLog": "[6.0.4, )",
+          "NLog.Web.AspNetCore": "[6.0.4, )"
         }
       },
       "klinkby.booqr.application": {

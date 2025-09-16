@@ -2,12 +2,15 @@
 
 internal static partial class Routes
 {
+    private const string BaseUrl = "/api";
+
     public static void MapApi(IEndpointRouteBuilder app)
     {
-        RouteGroupBuilder baseRoute = app.MapGroup("/api");
-        MapCalendar(baseRoute);
-        MapLocation(baseRoute);
-        MapService(baseRoute);
-        MapUser(baseRoute);
+        RouteGroupBuilder baseRoute = app.MapGroup(BaseUrl);
+        MapBookings(baseRoute);
+        MapLocations(baseRoute);
+        MapServices(baseRoute);
+        MapUsers(baseRoute);
+        MapVacancies(baseRoute);
     }
 }

@@ -22,7 +22,7 @@ public static partial class ServiceCollectionExtensions
     }
 
     [GenerateServiceRegistrations(
-        AssignableTo = typeof(IRepository<,>),
+        AssignableTo = typeof(IRepository),
         AsImplementedInterfaces = true)]
     private static partial IServiceCollection AddRepositories(this IServiceCollection services);
 }

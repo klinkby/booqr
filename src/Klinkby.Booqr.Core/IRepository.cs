@@ -1,4 +1,11 @@
-﻿namespace Klinkby.Booqr.Core;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Klinkby.Booqr.Core;
+
+[SuppressMessage("Design", "CA1040:Avoid empty interfaces", Justification = "Marks all repositories")]
+public interface IRepository
+{
+}
 
 /// <Inheritdoc />
 public interface IRepository<T> : IRepository<T, int>;
@@ -9,7 +16,7 @@ public interface IRepository<T> : IRepository<T, int>;
 /// </summary>
 /// <typeparam name="T">The type of the entities managed by the repository.</typeparam>
 /// <typeparam name="TKey">The type of the unique identifier for entities.</typeparam>
-public interface IRepository<T, TKey>
+public interface IRepository<T, TKey> : IRepository
 {
     /// <summary>
     ///     Retrieves all items of type <typeparamref name="T" /> from the repository based on the given paging parameters.

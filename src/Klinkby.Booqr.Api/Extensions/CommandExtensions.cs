@@ -24,7 +24,7 @@ internal static class CommandExtensions
         return Task.FromResult<Results<Ok<CollectionResponse<TResult>>, BadRequest>>(TypedResults.Ok(response));
     }
 
-    public async static Task<Results<Ok<LoginResponse>, BadRequest, UnauthorizedHttpResult>> GetAuthenticationToken(
+    public async static Task<Results<Ok<LoginResponse>, UnauthorizedHttpResult, BadRequest>> GetAuthenticationToken(
         this ICommand<LoginRequest, Task<LoginResponse?>> command, LoginRequest query,
         CancellationToken cancellationToken)
     {
@@ -40,6 +40,17 @@ internal static class CommandExtensions
         where TQuery : AuthenticatedRequest
     {
         var newId = await command.Execute(query with { User = user }, cancellationToken);
+        return TypedResults.Created(
+            new Uri($"{resourceName}/{newId}", UriKind.Relative),
+            new CreatedResponse(newId));
+    }
+
+    public async static Task<Results<Created<CreatedResponse>, BadRequest>> CreatedAnonymous<TQuery>(
+        this ICommand<TQuery, Task<int>> command, TQuery query, string resourceName,
+        CancellationToken cancellationToken)
+        where TQuery : notnull
+    {
+        var newId = await command.Execute(query, cancellationToken);
         return TypedResults.Created(
             new Uri($"{resourceName}/{newId}", UriKind.Relative),
             new CreatedResponse(newId));

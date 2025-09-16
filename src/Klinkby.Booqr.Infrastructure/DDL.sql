@@ -54,6 +54,7 @@ create table public.services
         constraint services_pk
             primary key,
     name     varchar(255)             not null,
+    duration interval                 not null,
     created  timestamp with time zone not null,
     modified timestamp with time zone not null,
     deleted  timestamp with time zone
@@ -70,10 +71,10 @@ create table public.bookings
     customerid     integer                  not null
         constraint bookings_users_id_fk
             references public.users,
-    "serviceid   " integer                  not null
+    serviceid      integer                  not null
         constraint bookings_services_id_fk
             references public.services,
-    notes          text,
+    notes          varchar(8000),
     created        timestamp with time zone not null,
     modified       timestamp with time zone not null,
     deleted        timestamp with time zone
@@ -130,3 +131,26 @@ create table public.employeeservices
 
 alter table public.employeeservices
     owner to postgres;
+
+---
+
+create view public.mybookings
+            (id, starttime, endtime, customerid, serviceid, locationid, employeeid, hasnote, created, modified, deleted) as
+SELECT b.id,
+       c.starttime,
+       c.endtime,
+       b.customerid,
+       b.serviceid,
+       c.locationid,
+       c.employeeid,
+       NOT b.notes IS NULL AND length(b.notes) > 0 AS hasnotes,
+       b.created,
+       b.modified,
+       b.deleted
+FROM bookings b
+    JOIN calendar c ON b.id = c.bookingid
+ORDER BY c.starttime;
+
+alter view public.mybookings
+    owner to postgres;
+
