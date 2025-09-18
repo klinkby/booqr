@@ -1,0 +1,27 @@
+services:
+  booqr-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    image: klinkby/booqr:latest
+    ports:
+      - "8443:8443"
+    read_only: true
+    volumes:
+      - ./certs:/app/certs:ro
+      - ./w3clog:/home/app/w3clog
+      - ./dpkeys:/home/app/.aspnet/DataProtection-Keys
+    tmpfs:
+      - /tmp
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certs/booqr.pfx
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '1.5'
+          

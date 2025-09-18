@@ -1,0 +1,14 @@
+﻿**/bin
+**/obj
+**/out
+**/.vs
+**/*.user
+**/appsettings.*.json
+Dockerfile/*
+**/*.md
+
+tests
+
+certs
+dpkeys
+w3clog
