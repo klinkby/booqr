@@ -2,10 +2,6 @@ create extension btree_gist
     schema public
     version '1.6';
 
-comment on extension btree_gist is 'support for indexing common datatypes in GiST';
-
----
-
 create table public.users
 (
     id           integer generated always as identity
@@ -22,9 +18,6 @@ create table public.users
     modified     timestamp with time zone not null,
     deleted      timestamp with time zone
 );
-
-alter table public.users
-    owner to postgres;
 
 create index idx_users_email
     on public.users (email)
@@ -45,9 +38,6 @@ create table public.locations
     deleted  timestamp with time zone
 );
 
-alter table public.locations
-    owner to postgres;
-
 create table public.services
 (
     id       integer generated always as identity
@@ -59,9 +49,6 @@ create table public.services
     modified timestamp with time zone not null,
     deleted  timestamp with time zone
 );
-
-alter table public.services
-    owner to postgres;
 
 create table public.bookings
 (
@@ -79,9 +66,6 @@ create table public.bookings
     modified       timestamp with time zone not null,
     deleted        timestamp with time zone
 );
-
-alter table public.bookings
-    owner to postgres;
 
 create table public.calendar
 (
@@ -107,9 +91,6 @@ create table public.calendar
         check (endtime > starttime)
 );
 
-alter table public.calendar
-    owner to postgres;
-
 create index idx_calendar_time_range
     on public.calendar (starttime desc, endtime desc)
     where (deleted IS NULL);
@@ -129,11 +110,6 @@ create table public.employeeservices
         primary key (serviceid, employeeid)
 );
 
-alter table public.employeeservices
-    owner to postgres;
-
----
-
 create view public.mybookings
             (id, starttime, endtime, customerid, serviceid, locationid, employeeid, hasnote, created, modified, deleted) as
 SELECT b.id,
@@ -150,7 +126,3 @@ SELECT b.id,
 FROM bookings b
     JOIN calendar c ON b.id = c.bookingid
 ORDER BY c.starttime;
-
-alter view public.mybookings
-    owner to postgres;
-
