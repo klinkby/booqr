@@ -32,11 +32,11 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-#      test: ["CMD", "wget", "https://localhost:8443/api/health", "-q", "-O", "-"]
-#      interval: 10s
-#      timeout: 5s
-#      start_interval: 5s
-#      retries: 5
+      test: [ "CMD-SHELL", "nc -z 127.0.0.1 8443 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      start_interval: 5s
+      retries: 5
     deploy:
       resources:
         limits:
