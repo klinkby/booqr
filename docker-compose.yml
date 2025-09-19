@@ -56,7 +56,7 @@ services:
     read_only: true
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./src/Klinkby.Booqr.Infrastructure/DDL.sql:/docker-entrypoint-initdb.d/DDL.sql
+      - ./ddl/initdb.sql:/docker-entrypoint-initdb.d/DDL.sql
     tmpfs:
       - /tmp
       - /var/run/postgresql

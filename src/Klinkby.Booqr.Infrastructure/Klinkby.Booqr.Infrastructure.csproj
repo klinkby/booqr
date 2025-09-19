@@ -27,12 +27,6 @@
         </Reference>
     </ItemGroup>
 
-    <ItemGroup>
-
-        <None Remove="DDL.sql"/>
-        <EmbeddedResource Include="DDL.sql"/>
-    </ItemGroup>
-
     <PropertyGroup Label="Dapper.AOT">
         <InterceptorsNamespaces>$(InterceptorsNamespaces);Dapper.AOT</InterceptorsNamespaces>
     </PropertyGroup>

@@ -3,7 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
+using Dapper;
 using Testcontainers.PostgreSql;
+
+[module: DapperAot]
 
 namespace Klinkby.Booqr.Infrastructure.Tests;
 
@@ -35,10 +38,16 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
         await _services!.DisposeAsync();
     }
 
-    async private Task InitializeDatabase()
+    async private Task InitializeDatabase(CancellationToken cancellationToken = default)
     {
-        IDatabaseInitializer initializer = Services.GetRequiredService<IDatabaseInitializer>();
-        await initializer.Initialize(CancellationToken.None);
+        var connectionProvider = Services.GetRequiredService<IConnectionProvider>();
+        var connection = await connectionProvider.GetConnection(cancellationToken);
+        using StreamReader sr = new(
+            typeof(ServiceProviderFixture)
+                .Assembly
+                .GetManifestResourceStream("Klinkby.Booqr.Infrastructure.Tests.initdb.sql")!);
+        var initScript = await sr.ReadToEndAsync(cancellationToken);
+        await connection.ExecuteScalarAsync(initScript);
     }
 }
 
