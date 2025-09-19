@@ -30,5 +30,13 @@
         </AssemblyAttribute>
     </ItemGroup>
 
+    <ItemGroup>
+      <EmbeddedResource Include="..\..\ddl\initdb.sql">
+        <Link>initdb.sql</Link>
+      </EmbeddedResource>
+    </ItemGroup>
 
+    <PropertyGroup Label="Dapper.AOT">
+        <InterceptorsNamespaces>$(InterceptorsNamespaces);Dapper.AOT</InterceptorsNamespaces>
+    </PropertyGroup>
 </Project>

@@ -5,3 +5,6 @@ obj/
 .idea/
 /src/Klinkby.Booqr.Api/wwwroot/openapi/*
 NLog.xsd
+certs/
+dpkeys/
+w3clog/

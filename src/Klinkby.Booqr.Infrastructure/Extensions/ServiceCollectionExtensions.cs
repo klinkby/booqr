@@ -17,8 +17,7 @@ public static partial class ServiceCollectionExtensions
             .AddNpgsqlSlimDataSource(settings.ConnectionString ?? "", serviceKey: nameof(ConnectionProvider))
             .AddScoped<ITransaction, Transaction>()
             .AddScoped<IConnectionProvider, ConnectionProvider>()
-            .AddRepositories()
-            .AddTransient<IDatabaseInitializer, DatabaseInitializer>();
+            .AddRepositories();
     }
 
     [GenerateServiceRegistrations(
