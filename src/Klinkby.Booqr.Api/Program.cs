@@ -35,7 +35,7 @@ if (isMockServer)
 }
 else
 {
-    builder.WebHost.UseKestrelHttpsConfiguration();
+    builder.WebHost.UseKestrelCore();
 }
 
 WebApplication app = builder.Build();
