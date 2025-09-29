@@ -10,9 +10,7 @@ services:
       - service-net
     read_only: true
     volumes:
-      - ./certs/booqr.pfx:/app/certs/booqr.pfx:ro
       - ./w3clog:/home/app/w3clog
-      - ./src/Klinkby.Booqr.Api/appsettings.json:/app/appsettings.json:ro
       - postgres_socket:/var/run/postgresql
     tmpfs:
       - /tmp
@@ -26,7 +24,6 @@ services:
       - no-new-privileges:true
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health" ]
-#      test: [ "CMD-SHELL", "nc -z 127.0.0.1 8080 || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -49,7 +46,8 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=scram-sha-256
     read_only: true
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - /mnt/postgres-hel1-1/beta:/var/lib/postgresql/data
+#      - postgres_data:/var/lib/postgresql/data
       - ./ddl/initdb.sql:/docker-entrypoint-initdb.d/DDL.sql
       - postgres_socket:/var/run/postgresql
     tmpfs:
@@ -76,12 +74,14 @@ services:
 
   proxy:
     ports:
-      - "8080:8080"
-      - "8443:8443"
+      - '80:8080/tcp'
+      - '443:8443/tcp'
     image: haproxy:3.2-alpine3.22
     volumes:
       - ./web-gateway/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-      - ./web-gateway/haproxy.pem:/etc/letsencrypt/live/beta.booqr.com/haproxy.pem:ro
+      - /etc/ssl/certs:/etc/ssl/certs:ro
+    env_file:
+      - ./web-gateway/gateway.env
     tmpfs:
       - /tmp
     restart: unless-stopped
@@ -91,6 +91,7 @@ services:
     stop_grace_period: 5s
     networks:
       - service-net
+      - dmz-net
     deploy:
       resources:
         limits:
@@ -108,12 +109,12 @@ services:
 volumes:
   postgres_socket:
     driver: local
-  postgres_data:
-    driver: local
+#  postgres_data:
+#    driver: local
 
 networks:
   database-net:
     internal: true
   service-net:
     internal: true
-     
+  dmz-net:
