@@ -43,6 +43,7 @@ internal static partial class Routes
         //                 [FromBody] UpdateLocationRequest request,
         //                 ClaimsPrincipal user, CancellationToken cancellation) =>
         //             command.NoContent(request with { Id = id }, user, cancellation))
+        //     .AddEndpointFilter<ETagProviderEndPointFilter>()
         //     .RequireAuthorization(UserRole.Admin)
         //     .AddEndpointFilter<ETagProviderEndPointFilter>()
         //     .WithName("").WithSummary("Update a location");
