@@ -45,6 +45,7 @@ internal static partial class Routes
                         [FromBody] UpdateServiceRequest request,
                         ClaimsPrincipal user, CancellationToken cancellation) =>
                     command.NoContent(request with { Id = id }, user, cancellation))
+            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .RequireAuthorization(UserRole.Admin)
             .WithName("updateService")
             .WithSummary("Update a service");
