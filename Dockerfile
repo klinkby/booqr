@@ -1,4 +1,4 @@
-﻿FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine3.22-aot AS build
+﻿FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine-aot AS build
 WORKDIR /source
 
 # Build the app
@@ -11,9 +11,9 @@ RUN --mount=type=cache,target=/root/.nuget \
         -p:DebugType=None
 
 # Final stage/image
-FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-alpine3.22
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-alpine
 WORKDIR /app
 COPY --from=build /app .
-USER $APP_UID
 EXPOSE 8443
+USER $APP_UID
 ENTRYPOINT ["/app/Klinkby.Booqr.Api"]

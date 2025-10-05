@@ -1,4 +1,35 @@
 services:
+#  kli:
+#    image: rtsp/lighttpd:1.4.76
+#    networks:
+#      - service-net
+#    read_only: true
+#    volumes:
+#      - /root/beta/kli/kli.dk/src/public:/var/www/html:ro
+#      - /root/beta/kli/01-server.conf:/etc/lighttpd/conf.d/01-server.conf:ro
+#      - /root/beta/kli/12-expire.conf:/etc/lighttpd/conf.d/12-expire.conf:ro
+#      - /root/beta/kli/20-setenv.conf:/etc/lighttpd/conf.d/20-setenv.conf:ro
+#    tmpfs:
+#      - /tmp
+#    restart: unless-stopped
+#    stop_grace_period: 5s
+#    user: 1000:1000
+#    security_opt:
+#      - no-new-privileges:true
+#    healthcheck:
+#      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:8080/" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 64M
+#          cpus: '1.0'
+#        reservations:
+#          memory: 8M
+#          cpus: '0.25'
+
   api1:
     build:
       context: .
@@ -47,7 +78,6 @@ services:
     read_only: true
     volumes:
       - /mnt/postgres-hel1-1/beta:/var/lib/postgresql/data
-#      - postgres_data:/var/lib/postgresql/data
       - ./ddl/initdb.sql:/docker-entrypoint-initdb.d/DDL.sql
       - postgres_socket:/var/run/postgresql
     tmpfs:
@@ -79,7 +109,7 @@ services:
     image: haproxy:3.2-alpine3.22
     volumes:
       - ./web-gateway/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-      - /etc/ssl/certs:/etc/ssl/certs:ro
+      - /root/certs.pem:/etc/ssl/certs/certs.pem:ro
     env_file:
       - ./web-gateway/gateway.env
     tmpfs:
@@ -95,10 +125,10 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 512M
           cpus: '1.0'
         reservations:
-          memory: 32M
+          memory: 64M
           cpus: '0.25'
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health" ]
@@ -109,8 +139,6 @@ services:
 volumes:
   postgres_socket:
     driver: local
-#  postgres_data:
-#    driver: local
 
 networks:
   database-net:
