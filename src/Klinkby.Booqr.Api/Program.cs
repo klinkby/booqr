@@ -35,14 +35,14 @@ if (isMockServer)
 }
 else
 {
-    builder.WebHost.UseKestrelHttpsConfiguration();
+    builder.WebHost.UseKestrelCore();
 }
 
 WebApplication app = builder.Build();
 if (!isMockServer)
 {
     app.UseAuthorization();
-    app.UseHealthChecks("/api/health");
+    app.UseHealthChecks("/health");
     app.UseW3CLogging();
     if (app.Environment.IsDevelopment())
     {

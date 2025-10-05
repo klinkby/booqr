@@ -1,75 +1,97 @@
-networks:
-  booqr-network:
-    driver: bridge
-
 services:
-  api:
+#  kli:
+#    image: rtsp/lighttpd:1.4.76
+#    networks:
+#      - service-net
+#    read_only: true
+#    volumes:
+#      - /root/beta/kli/kli.dk/src/public:/var/www/html:ro
+#      - /root/beta/kli/01-server.conf:/etc/lighttpd/conf.d/01-server.conf:ro
+#      - /root/beta/kli/12-expire.conf:/etc/lighttpd/conf.d/12-expire.conf:ro
+#      - /root/beta/kli/20-setenv.conf:/etc/lighttpd/conf.d/20-setenv.conf:ro
+#    tmpfs:
+#      - /tmp
+#    restart: unless-stopped
+#    stop_grace_period: 5s
+#    user: 1000:1000
+#    security_opt:
+#      - no-new-privileges:true
+#    healthcheck:
+#      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:8080/" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 64M
+#          cpus: '1.0'
+#        reservations:
+#          memory: 8M
+#          cpus: '0.25'
+
+  api1:
     build:
       context: .
       dockerfile: Dockerfile
     env_file:
       - .env
     image: klinkby/booqr:latest
-    ports:
-      - "8443:8443"
+    networks:
+      - service-net
     read_only: true
     volumes:
-      - ./certs:/app/certs:ro
       - ./w3clog:/home/app/w3clog
-      - ./dpkeys:/home/app/.aspnet/DataProtection-Keys
+      - postgres_socket:/var/run/postgresql
     tmpfs:
       - /tmp
+      - /home/app/.aspnet/DataProtection-Keys
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certs/booqr.pfx
-      - Infrastructure__ConnectionString=Host=postgres;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
-    networks:
-      - booqr-network
+      - Infrastructure__ConnectionString=Host=/var/run/postgresql;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
     restart: unless-stopped
+    stop_grace_period: 5s
     security_opt:
       - no-new-privileges:true
-    depends_on:
-      postgres:
-        condition: service_healthy
     healthcheck:
-      test: [ "CMD-SHELL", "nc -z 127.0.0.1 8443 || exit 1" ]
+      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health" ]
       interval: 10s
       timeout: 5s
-      start_interval: 5s
       retries: 5
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 256M
           cpus: '1.5'
         reservations:
-          memory: 64M
+          memory: 32M
           cpus: '0.25'
 
   postgres:
-    image: postgres:14-alpine
+    image: postgres:14-alpine3.22
     environment:
+      - INSTANCE_UNIX_SOCKET=/var/run/postgresql
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_HOST_AUTH_METHOD=scram-sha-256
     read_only: true
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - /mnt/postgres-hel1-1/beta:/var/lib/postgresql/data
       - ./ddl/initdb.sql:/docker-entrypoint-initdb.d/DDL.sql
+      - postgres_socket:/var/run/postgresql
     tmpfs:
       - /tmp
-      - /var/run/postgresql
     networks:
-      - booqr-network
+      - database-net
     restart: unless-stopped
+    stop_grace_period: 30s
     security_opt:
       - no-new-privileges:true
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
-      start_interval: 5s
       retries: 5
     deploy:
       resources:
@@ -80,8 +102,47 @@ services:
           memory: 64M
           cpus: '0.25'
 
+  proxy:
+    ports:
+      - '80:8080/tcp'
+      - '443:8443/tcp'
+    image: haproxy:3.2-alpine3.22
+    volumes:
+      - ./web-gateway/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - /root/certs.pem:/etc/ssl/certs/certs.pem:ro
+    env_file:
+      - ./web-gateway/gateway.env
+    tmpfs:
+      - /tmp
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 5s
+    networks:
+      - service-net
+      - dmz-net
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 64M
+          cpus: '0.25'
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
-  postgres_data:
+  postgres_socket:
     driver: local
 
-
+networks:
+  database-net:
+    internal: true
+  service-net:
+    internal: true
+  dmz-net:
