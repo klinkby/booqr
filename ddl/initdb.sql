@@ -1,6 +1,5 @@
 create extension btree_gist
-    schema public
-    version '1.6';
+    schema public;
 
 create table public.users
 (
@@ -52,19 +51,19 @@ create table public.services
 
 create table public.bookings
 (
-    id             integer generated always as identity
+    id         integer generated always as identity
         constraint bookings_pk
             primary key,
-    customerid     integer                  not null
+    customerid integer                  not null
         constraint bookings_users_id_fk
             references public.users,
-    serviceid      integer                  not null
+    serviceid  integer                  not null
         constraint bookings_services_id_fk
             references public.services,
-    notes          varchar(8000),
-    created        timestamp with time zone not null,
-    modified       timestamp with time zone not null,
-    deleted        timestamp with time zone
+    notes      varchar(8000),
+    created    timestamp with time zone not null,
+    modified   timestamp with time zone not null,
+    deleted    timestamp with time zone
 );
 
 create table public.calendar
@@ -111,7 +110,8 @@ create table public.employeeservices
 );
 
 create view public.mybookings
-            (id, starttime, endtime, customerid, serviceid, locationid, employeeid, hasnote, created, modified, deleted) as
+            (id, starttime, endtime, customerid, serviceid, locationid, employeeid, hasnote, created, modified,
+             deleted) as
 SELECT b.id,
        c.starttime,
        c.endtime,
@@ -119,10 +119,10 @@ SELECT b.id,
        b.serviceid,
        c.locationid,
        c.employeeid,
-       NOT b.notes IS NULL AND length(b.notes) > 0 AS hasnotes,
+       NOT b.notes IS NULL AND length(b.notes) > 0 AS hasnote,
        b.created,
        b.modified,
        b.deleted
 FROM bookings b
-    JOIN calendar c ON b.id = c.bookingid
+         JOIN calendar c ON b.id = c.bookingid
 ORDER BY c.starttime;
