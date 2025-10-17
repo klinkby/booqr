@@ -8,12 +8,12 @@
         <PackageReference Include="AutoFixture" Version="4.18.1"/>
         <PackageReference Include="AutoFixture.Xunit2" Version="4.18.1"/>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-preview.7.25380.108"/>
-        <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="9.8.0"/>
+        <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="9.10.0" />
         <PackageReference Include="Moq" Version="4.20.72"/>
         <PackageReference Include="Testcontainers.PostgreSql" Version="4.7.0"/>
         <PackageReference Include="Testcontainers.Xunit" Version="4.7.0"/>
-        <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.14.1"/>
-        <PackageReference Update="xunit.runner.visualstudio" Version="3.1.4">
+        <PackageReference Update="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+        <PackageReference Update="xunit.runner.visualstudio" Version="3.1.5">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
