@@ -1,5 +1,7 @@
 ﻿# Klinkby.Booqr
 
+[![Build and Push Docker image](https://github.com/klinkby/booqr/actions/workflows/docker-publish.yml/badge.svg?branch=main)](https://github.com/klinkby/booqr/actions/workflows/docker-publish.yml)
+
 This repository contains an AOT (Ahead-of-Time) enabled ASP.NET Core 10 Web API, designed to serve as a robust backend for applications requiring efficient and secure data management with a PostgreSQL database.
 
 ## Features
