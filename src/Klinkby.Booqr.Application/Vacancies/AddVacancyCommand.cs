@@ -133,30 +133,30 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
         return newId;
     }
 
-    async internal Task<int> AddVacancyCore(AddVacancyRequest query, int employeeId, CancellationToken cancellation)
+    async internal Task<int> AddVacancyCore(AddVacancyRequest query, int creatorUserId, CancellationToken cancellation)
     {
         int newId;
         List<CalendarEvent> events = await calendar
             .GetRange(query.StartTime, query.EndTime, new PageQuery(), true, true, cancellation)
-            .Where(e => e.EmployeeId == employeeId)
+            .Where(e => e.EmployeeId == query.EmployeeId)
             .ToListAsync(cancellation);
 
-        newId = await AddCalendarEvent(query, events, employeeId, cancellation);
+        newId = await AddCalendarEvent(query, events, creatorUserId, cancellation);
         return newId;
     }
 
-    async internal Task<int> AddCalendarEvent(AddVacancyRequest query, List<CalendarEvent> events, int userId,
+    async internal Task<int> AddCalendarEvent(AddVacancyRequest query, List<CalendarEvent> events, int creatorUserId,
         CancellationToken cancellation)
     {
         if (TryGetEventWithBooking(events, out CalendarEvent? bookingConflict))
         {
-            _log.CannotAddVacancyWithBookingInIt(userId, query.StartTime, query.EndTime, bookingConflict.Id);
+            _log.CannotAddVacancyWithBookingInIt(creatorUserId, query.EmployeeId, query.StartTime, query.EndTime, bookingConflict.Id);
             throw new InvalidOperationException("There is already a booking within requested time");
         }
 
         if (query.TryGetEventWithConflictingLocation(events, out CalendarEvent? locationConflict))
         {
-            _log.CannotAddVacancyWithConflictingLocation(userId, query.StartTime, query.EndTime,
+            _log.CannotAddVacancyWithConflictingLocation(creatorUserId, query.EmployeeId, query.StartTime, query.EndTime,
                 locationConflict.Id);
             throw new InvalidOperationException("There is already a vacancy at a different location");
         }
@@ -166,7 +166,7 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
 
         if (query.TryGetCompletelyCovered(events, out CalendarEvent? completelyWithin))
         {
-            _log.CreateVacancyWithinId(userId, completelyWithin.Id);
+            _log.CreateVacancyWithinId(creatorUserId, query.EmployeeId, completelyWithin.Id);
             return completelyWithin.Id;
         }
 
@@ -174,7 +174,7 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
         {
             foreach (CalendarEvent obsolete in overlapped)
             {
-                _log.RemoveOverlapped(userId, query.StartTime, query.EndTime, obsolete.Id);
+                _log.RemoveOverlapped(creatorUserId, query.EmployeeId, query.StartTime, query.EndTime, obsolete.Id);
                 await calendar.Delete(obsolete.Id, cancellation);
                 events.Remove(obsolete);
             }
@@ -184,10 +184,10 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
 
         if (TryCombineIntersectingEvents(intersects, out var obsoleteId, out CalendarEvent? combined))
         {
-            _log.RemoveOverlapped(userId, query.StartTime, query.EndTime, obsoleteId);
+            _log.RemoveOverlapped(creatorUserId, query.EmployeeId, query.StartTime, query.EndTime, obsoleteId);
             await calendar.Delete(obsoleteId, cancellation);
 
-            _log.ExtendIntersecting(userId, query.StartTime, query.EndTime, combined.Id);
+            _log.ExtendIntersecting(creatorUserId, query.EmployeeId, query.StartTime, query.EndTime, combined.Id);
             await calendar.Update(combined, cancellation);
 
             return combined.Id;
@@ -195,20 +195,20 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
 
         if (query.TryExtendEnd(intersects.EndOf, out CalendarEvent? extendedEnd))
         {
-            _log.ExtendIntersecting(userId, query.StartTime, query.EndTime, extendedEnd.Id);
+            _log.ExtendIntersecting(creatorUserId, query.EmployeeId, query.StartTime, query.EndTime, extendedEnd.Id);
             await calendar.Update(extendedEnd, cancellation);
             return extendedEnd.Id;
         }
 
         if (query.TryExtendStart(intersects.StartOf, out CalendarEvent? extendedStart))
         {
-            _log.ExtendIntersecting(userId, query.StartTime, query.EndTime, extendedStart.Id);
+            _log.ExtendIntersecting(creatorUserId, query.EmployeeId, query.StartTime, query.EndTime, extendedStart.Id);
             await calendar.Update(extendedStart, cancellation);
             return extendedStart.Id;
         }
 
         var newId = await AddNewVacancy(query, cancellation);
-        _log.CreateVacancy(userId, "Vacancy", newId);
+        _log.CreateVacancy(creatorUserId, query.EmployeeId, "Vacancy", newId);
         return newId;
     }
 
@@ -257,7 +257,7 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
     private static CalendarEvent Map(AddVacancyRequest query)
     {
         return new CalendarEvent(
-            query.AuthenticatedUserId,
+            query.EmployeeId!.Value,
             query.LocationId,
             null,
             query.StartTime,
@@ -268,29 +268,29 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
     {
         private readonly ILogger _logger = logger;
 
-        [LoggerMessage(150, LogLevel.Information, "User {UserId} created vacancy but is within {Id}")]
-        public partial void CreateVacancyWithinId(int userId, int id);
+        [LoggerMessage(150, LogLevel.Information, "User {UserId} created vacancy for {EmployeeId} but is within {Id}")]
+        public partial void CreateVacancyWithinId(int userId, int? employeeId, int id);
 
         [LoggerMessage(151, LogLevel.Warning,
-            "User {UserId} cannot create vacancy in {StartTime} - {EndTime} because {Id} has a booking")]
+            "User {UserId} cannot create vacancy for {EmployeeId} in {StartTime} - {EndTime} because {Id} has a booking")]
         public partial void
-            CannotAddVacancyWithBookingInIt(int userId, DateTime startTime, DateTime endTime, int id);
+            CannotAddVacancyWithBookingInIt(int userId, int? employeeId, DateTime startTime, DateTime endTime, int id);
 
         [LoggerMessage(152, LogLevel.Warning,
-            "User {UserId} cannot create vacancy in {StartTime} - {EndTime} because {Id} has a different location")]
-        public partial void CannotAddVacancyWithConflictingLocation(int userId, DateTime startTime, DateTime endTime,
+            "User {UserId} cannot create vacancy for {EmployeeId} in {StartTime} - {EndTime} because {Id} has a different location")]
+        public partial void CannotAddVacancyWithConflictingLocation(int userId, int? employeeId, DateTime startTime, DateTime endTime,
             int id);
 
         [LoggerMessage(153, LogLevel.Information,
-            "User {UserId} will create new vacancy in {StartTime} - {EndTime} obsoletes {Id}")]
-        public partial void RemoveOverlapped(int userId, DateTime startTime, DateTime endTime, int id);
+            "User {UserId} will create new vacancy for {EmployeeId} in {StartTime} - {EndTime} obsoletes {Id}")]
+        public partial void RemoveOverlapped(int userId, int? employeeId, DateTime startTime, DateTime endTime, int id);
 
         [LoggerMessage(154, LogLevel.Information,
-            "User {UserId} create new vacancy in {StartTime} - {EndTime} extends {Id}")]
-        public partial void ExtendIntersecting(int userId, DateTime startTime, DateTime endTime, int id);
+            "User {UserId} create new vacancy for {EmployeeId} in {StartTime} - {EndTime} extends {Id}")]
+        public partial void ExtendIntersecting(int userId, int? employeeId, DateTime startTime, DateTime endTime, int id);
 
-        [LoggerMessage(155, LogLevel.Information, "User {UserId} created {Type}:{Id}")]
-        public partial void CreateVacancy(int userId, string type, int id);
+        [LoggerMessage(155, LogLevel.Information, "User {UserId} created {Type}:{Id} for {EmployeeId}")]
+        public partial void CreateVacancy(int userId, int? employeeId, string type, int id);
 
     }
 }
