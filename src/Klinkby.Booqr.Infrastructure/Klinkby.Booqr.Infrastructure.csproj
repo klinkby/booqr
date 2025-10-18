@@ -13,21 +13,13 @@
         <PackageReference Include="Dapper" Version="2.1.66"/>
         <PackageReference Include="Dapper.AOT" Version="1.0.48"/>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0-preview.7.25380.108"/>
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.10" />
         <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.0-preview.7.25380.108"/>
         <PackageReference Include="Npgsql.DependencyInjection" Version="9.0.4" />
         <PackageReference Include="ServiceScan.SourceGenerator" Version="2.3.4">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Reference Include="Microsoft.Extensions.Configuration.Abstractions">
-            <HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\9.0.5\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
-        </Reference>
-        <Reference Include="Microsoft.Extensions.Hosting.Abstractions">
-          <HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\10.0.0-rc.2.25502.107\Microsoft.Extensions.Hosting.Abstractions.dll</HintPath>
-        </Reference>
     </ItemGroup>
 
     <PropertyGroup Label="Dapper.AOT">
