@@ -1,13 +1,13 @@
-﻿using BCryptNet = BCrypt.Net.BCrypt;
+﻿using System.Threading.Channels;
 
 namespace Klinkby.Booqr.Application.Users;
 
 public sealed record SignUpRequest(
-    [Required] [StringLength(0xff)] string Name,
     [Required]
-    [Range(10_00_00_00, 99_99_99_99)]
-    long Phone,
+    [StringLength(0xff)]
+    string Name,
     // https://emailregex.com/
+    // // https://gist.github.com/StephenWDickey/8cd8f97a36f357b0df8d2559b0e1c2ab
     [Required]
     [StringLength(0xff)]
     [RegularExpression(
@@ -16,43 +16,52 @@ public sealed record SignUpRequest(
         """, ErrorMessage = "Email is not valid"
     )]
     string Email,
-    // https://gist.github.com/StephenWDickey/8cd8f97a36f357b0df8d2559b0e1c2ab
     [Required]
-    [StringLength(0x7f)]
-    [RegularExpression(
-        """
-        ^(?=(.*[0-9]))(?=.*[\!@#$%^&*()\\[\]{}\-_+=~`|:;"'<>,./?])(?=.*[a-z])(?=(.*[A-Z])).{8,}$
-        """, ErrorMessage = "Password is too simple")]
-    string Password);
+    [Range(10_00_00_00, 99_99_99_99)]
+    long Phone
+    );
 
 public sealed partial class SignUpCommand(
     IUserRepository userRepository,
+    ChannelWriter<Message> channelWriter,
     ILogger<SignUpCommand> logger
 ) : ICommand<SignUpRequest, Task<int>>
 {
     private readonly LoggerMessages _log = new(logger);
 
-    public Task<int> Execute(SignUpRequest query, CancellationToken cancellation = default)
+    public async Task<int> Execute(SignUpRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
         _log.CreateUser(query.Email);
-        return userRepository.Add(Map(query), cancellation);
+        var password = ResetPasswordCommand.GenerateRandomPassword();
+        User newUser = Map(query, password);
+        var userId = await userRepository.Add(newUser, cancellation);
+
+        Message message = ResetPasswordCommand.CreateMessage(newUser.Email, password, "Thank you for signing up");
+        await channelWriter.WriteAsync(message, cancellation);
+
+        _log.CreatedUser(newUser.Email, userId);
+        return userId;
     }
 
-    private static User Map(SignUpRequest query)
+    private static User Map(SignUpRequest query, string password)
     {
-        return new User(
+        var user = new User(
             query.Email.Trim(),
-            BCryptNet.EnhancedHashPassword(query.Password.Trim()),
+            string.Empty,
             UserRole.Customer,
             query.Name.Trim(),
             query.Phone);
+        return ResetPasswordCommand.WithPasswordHash(user, password);
     }
 
     private sealed partial class LoggerMessages(ILogger logger)
     {
         [LoggerMessage(140, LogLevel.Information, "Create new user {Email}")]
         public partial void CreateUser(string email);
+
+        [LoggerMessage(140, LogLevel.Information, "{Email} is user {Id}")]
+        public partial void CreatedUser(string email, int id);
     }
 }

@@ -25,6 +25,9 @@
         <Reference Include="Microsoft.Extensions.Configuration.Abstractions">
             <HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\9.0.5\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
         </Reference>
+        <Reference Include="Microsoft.Extensions.Hosting.Abstractions">
+          <HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\10.0.0-rc.2.25502.107\Microsoft.Extensions.Hosting.Abstractions.dll</HintPath>
+        </Reference>
     </ItemGroup>
 
     <PropertyGroup Label="Dapper.AOT">
