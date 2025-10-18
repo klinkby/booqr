@@ -21,7 +21,7 @@ internal sealed partial class EmailBackgroundService(
                 await smtpClient.Send(message, stoppingToken);
                 _log.SendSuccess(message.To);
             }
-            catch (Exception e)
+            catch (InvalidOperationException e) // TODO use specific
             {
                 _log.SendFail(e, message.To);
             }
