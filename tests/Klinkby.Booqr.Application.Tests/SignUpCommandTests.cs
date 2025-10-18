@@ -1,4 +1,5 @@
-﻿using Klinkby.Booqr.Application.Users;
+﻿using System.Threading.Channels;
+using Klinkby.Booqr.Application.Users;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Klinkby.Booqr.Application.Tests;
@@ -6,11 +7,13 @@ namespace Klinkby.Booqr.Application.Tests;
 public class SignUpCommandTests
 {
     private readonly Mock<IUserRepository> _users = new();
+    private readonly Channel<Message> _channel = Channel.CreateBounded<Message>(100);
 
     private SignUpCommand CreateSut()
     {
         return new SignUpCommand(
             _users.Object,
+            _channel.Writer,
             NullLogger<SignUpCommand>.Instance);
     }
 
@@ -25,10 +28,9 @@ public class SignUpCommandTests
     }
 
     [Theory]
-    [InlineData("  Jane Doe  ", 12345678, "  user@example.com  ", "  P@ssw0rd!  ")]
-    [InlineData("John", 87654321, "USER@EXAMPLE.COM", "S0mething#Hard")]
-    public async Task GIVEN_ValidRequest_WHEN_Execute_THEN_MapsAndCallsRepository(string name, long phone, string email,
-        string password)
+    [InlineData("  Jane Doe  ", 12345678, "  user@example.com  ")]
+    [InlineData("John", 87654321, "USER@EXAMPLE.COM")]
+    public async Task GIVEN_ValidRequest_WHEN_Execute_THEN_MapsAndCallsRepository(string name, long phone, string email)
     {
         // Arrange
         const int newUserId = 987;
@@ -37,10 +39,9 @@ public class SignUpCommandTests
             .Callback<User, CancellationToken>((u, _) => capturedUser = u)
             .ReturnsAsync(newUserId);
 
-        var request = new SignUpRequest(name, phone, email, password);
+        var request = new SignUpRequest(name, email, phone);
         var expectedEmail = email.Trim();
         var expectedName = name.Trim();
-        var expectedPassword = password.Trim();
 
         SignUpCommand sut = CreateSut();
 
@@ -54,6 +55,11 @@ public class SignUpCommandTests
         Assert.Equal(expectedName, capturedUser.Name);
         Assert.Equal(phone, capturedUser.Phone);
         Assert.Equal(UserRole.Customer, capturedUser.Role);
-        Assert.True(BCrypt.Net.BCrypt.EnhancedVerify(expectedPassword, capturedUser.PasswordHash));
+
+        bool hasMessage = _channel.Reader.TryRead(out Message? message);
+        Assert.True(hasMessage && message is not null);
+
+        Assert.Equal(expectedEmail, message.To);
+        Assert.Contains("password",  message.Body, StringComparison.InvariantCulture);
     }
 }

@@ -21,6 +21,7 @@ internal sealed partial class UserRepository(IConnectionProvider connectionProvi
             new { email });
     }
 
+
     #region IRepository
 
     /// <inheritdoc />

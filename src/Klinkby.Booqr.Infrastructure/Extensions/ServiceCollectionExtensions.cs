@@ -1,4 +1,5 @@
-﻿using Klinkby.Booqr.Infrastructure;
+﻿using System.Threading.Channels;
+using Klinkby.Booqr.Infrastructure;
 using ServiceScan.SourceGenerator;
 
 // ReSharper disable once CheckNamespace
@@ -13,11 +14,23 @@ public static partial class ServiceCollectionExtensions
 
         InfrastructureSettings settings = new();
         configure(settings);
+
+        ConfigureEmailChannel(services);
+        services.AddSingleton<ISmtpClient, TransactionalMailerClient>();
+
         return services
             .AddNpgsqlSlimDataSource(settings.ConnectionString ?? "", serviceKey: nameof(ConnectionProvider))
             .AddScoped<ITransaction, Transaction>()
             .AddScoped<IConnectionProvider, ConnectionProvider>()
             .AddRepositories();
+    }
+
+    private static void ConfigureEmailChannel(IServiceCollection services, int capacity = 100)
+    {
+        var channel = Channel.CreateBounded<Message>(capacity);
+        services.AddSingleton(channel.Reader);
+        services.AddSingleton(channel.Writer);
+        services.AddHostedService<EmailBackgroundService>();
     }
 
     [GenerateServiceRegistrations(

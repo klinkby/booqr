@@ -63,7 +63,18 @@ internal static class CommandExtensions
         return NoContent(command, query with { User = user }, cancellationToken);
     }
 
-    async private static Task<Results<NoContent, BadRequest>> NoContent<TQuery>(
+    public async static Task<Results<NoContent, UnauthorizedHttpResult, BadRequest>> NoContent(
+        this ICommand<ChangePasswordRequest, Task<bool>> command, ChangePasswordRequest query,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken)
+    {
+        var result = await command.Execute(query with { User = user }, cancellationToken);
+        return result
+            ? TypedResults.NoContent()
+            : TypedResults.Unauthorized();
+    }
+
+    public async static Task<Results<NoContent, BadRequest>> NoContent<TQuery>(
         this ICommand<TQuery> command, TQuery query, CancellationToken cancellationToken)
         where TQuery : notnull
     {

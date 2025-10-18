@@ -19,6 +19,22 @@ internal static partial class Routes
             .WithName("login")
             .WithSummary("Sign in");
 
+        group.MapPost("/reset-password",
+                static (ResetPasswordCommand command, [FromBody] ResetPasswordRequest request, CancellationToken cancellation) =>
+                command.NoContent(request, cancellation))
+            .WithName("resetPassword")
+            .WithSummary("Reset password");
+
+        group.MapPost("{id}/change-password",
+                static (ChangePasswordCommand command, [FromBody]
+                        ChangePasswordRequest request,
+                        ClaimsPrincipal user,
+                        CancellationToken cancellation) =>
+                command.NoContent(request, user, cancellation))
+            .RequireAuthorization(UserRole.Customer)
+            .WithName("changePassword")
+            .WithSummary("Change password");
+
         group.MapGet("{id}/my-bookings",
                 static (GetMyBookingsCommand command,
                         [AsParameters] GetMyBookingsRequest request,
