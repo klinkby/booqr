@@ -51,7 +51,7 @@ internal sealed partial class Transaction(IConnectionProvider connectionProvider
         }
         catch (DbException)
         {
-            await Cleanup(false);
+            await Cleanup(false, cancellation);
             throw;
         }
 
@@ -69,10 +69,10 @@ internal sealed partial class Transaction(IConnectionProvider connectionProvider
             throw new InvalidOperationException("No transaction to rollback.");
         }
 
-        return Cleanup(false);
+        return Cleanup(false, cancellation);
     }
 
-    async private ValueTask Cleanup(bool fromDispose)
+    async private ValueTask Cleanup(bool fromDispose, CancellationToken cancellation = default)
     {
         if (_transaction is null)
         {
@@ -85,7 +85,7 @@ internal sealed partial class Transaction(IConnectionProvider connectionProvider
         _loggerScope?.Dispose();
         await using (disposing)
         {
-            await disposing.RollbackAsync();
+            await disposing.RollbackAsync(cancellation);
         }
     }
 

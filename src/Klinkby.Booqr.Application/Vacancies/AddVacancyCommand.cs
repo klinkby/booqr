@@ -135,13 +135,12 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
 
     async internal Task<int> AddVacancyCore(AddVacancyRequest query, int creatorUserId, CancellationToken cancellation)
     {
-        int newId;
         List<CalendarEvent> events = await calendar
             .GetRange(query.StartTime, query.EndTime, new PageQuery(), true, true, cancellation)
             .Where(e => e.EmployeeId == query.EmployeeId)
             .ToListAsync(cancellation);
 
-        newId = await AddCalendarEvent(query, events, creatorUserId, cancellation);
+        var newId = await AddCalendarEvent(query, events, creatorUserId, cancellation);
         return newId;
     }
 
@@ -224,7 +223,7 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
     /// <summary>
     ///     ensure none of the events has bookings
     /// </summary>
-    internal static bool TryGetEventWithBooking(IReadOnlyList<CalendarEvent> events,
+    private static bool TryGetEventWithBooking(IReadOnlyList<CalendarEvent> events,
         [NotNullWhen(true)] out CalendarEvent? bookingConflict)
     {
         bookingConflict = events.FirstOrDefault(x => x.BookingId.HasValue);
@@ -234,7 +233,7 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
     /// <summary>
     ///     combine two existing slots
     /// </summary>
-    internal static bool TryCombineIntersectingEvents(
+    private static bool TryCombineIntersectingEvents(
         (CalendarEvent? EndOf, CalendarEvent? StartOf) intersects,
         out int obsoleteId, [NotNullWhen(true)] out CalendarEvent? extend)
     {

@@ -29,7 +29,7 @@ internal sealed partial class UserRepository(IConnectionProvider connectionProvi
         [EnumeratorCancellation] CancellationToken cancellation)
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
-        IAsyncEnumerable<User> query = connection.QueryUnbufferedAsync<User>($"{GetAllQuery}", pageQuery);
+        IAsyncEnumerable<User> query = connection.QueryUnbufferedAsync<User>(GetAllQuery, pageQuery);
         await foreach (User item in query.WithCancellation(cancellation))
         {
             yield return item;
@@ -40,13 +40,13 @@ internal sealed partial class UserRepository(IConnectionProvider connectionProvi
     public async Task<User?> GetById(int id, CancellationToken cancellation)
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
-        return await connection.QuerySingleOrDefaultAsync<User>($"{GetByIdQuery}", new GetByIdParameters(id));
+        return await connection.QuerySingleOrDefaultAsync<User>(GetByIdQuery, new GetByIdParameters(id));
     }
 
     public async Task<int> Add(User newItem, CancellationToken cancellation)
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
-        var result = await connection.ExecuteScalarAsync($"{InsertQuery}", WithCreated(newItem));
+        var result = await connection.ExecuteScalarAsync(InsertQuery, WithCreated(newItem));
         Debug.Assert(result is int);
         return (int)result;
     }
@@ -54,19 +54,19 @@ internal sealed partial class UserRepository(IConnectionProvider connectionProvi
     public async Task<bool> Update(User item, CancellationToken cancellation)
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
-        return 1 == await connection.ExecuteAsync($"{UpdateQuery}", WithModified(item));
+        return 1 == await connection.ExecuteAsync(UpdateQuery, WithModified(item));
     }
 
     public async Task<bool> Delete(int id, CancellationToken cancellation)
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
-        return 1 == await connection.ExecuteAsync($"{DeleteQuery}", new DeleteParameters(id, Now));
+        return 1 == await connection.ExecuteAsync(DeleteQuery, new DeleteParameters(id, Now));
     }
 
     public async Task<bool> Undelete(int id, CancellationToken cancellation)
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
-        return 1 == await connection.ExecuteAsync($"{UndeleteQuery}", new UndeleteParameters(id));
+        return 1 == await connection.ExecuteAsync(UndeleteQuery, new UndeleteParameters(id));
     }
 
     #endregion

@@ -16,7 +16,7 @@ public sealed partial class GetMyBookingByIdCommand(
         ArgumentNullException.ThrowIfNull(query);
 
         ValidateUserAccess(query);
-        var myBooking = await myBookingRepository.GetById(query.BookingId, cancellation);
+        MyBooking? myBooking = await myBookingRepository.GetById(query.BookingId, cancellation);
         if (myBooking is null) return null;
         ValidateUserAccess(query, myBooking);
 
