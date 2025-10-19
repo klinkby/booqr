@@ -1,5 +1,4 @@
-﻿using Klinkby.Booqr.Application.Calendar;
-using Klinkby.Booqr.Application.Vacancies;
+﻿using Klinkby.Booqr.Application.Vacancies;
 
 namespace Klinkby.Booqr.Api;
 

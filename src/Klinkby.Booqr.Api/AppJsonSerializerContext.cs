@@ -1,6 +1,5 @@
 ﻿using System.Text.Json.Serialization;
 using Klinkby.Booqr.Application.Bookings;
-using Klinkby.Booqr.Application.Calendar;
 using Klinkby.Booqr.Application.Locations;
 using Klinkby.Booqr.Application.Services;
 using Klinkby.Booqr.Application.Users;
