@@ -1,5 +1,4 @@
-﻿using System.Net.Http.Json;
-using System.Text.Json;
+using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -13,11 +12,6 @@ internal sealed partial class EmailLabsMailClient(
     IOptions<InfrastructureSettings> options,
     ILogger<EmailLabsMailClient> logger) : IMailClient
 {
-    private readonly static JsonSerializerOptions SerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        TypeInfoResolver = new MailJsonSerializerContext()
-    };
     private readonly LoggerMessages _log = new(logger);
     private readonly string _smtpAccount = options.Value.MailClientAccount ?? "";
     private readonly string _fromAddress = options.Value.MailClientFromAddress ?? "";
@@ -46,8 +40,8 @@ internal sealed partial class EmailLabsMailClient(
         }
 
         EmailLabsMailClientResponse response =
-            await responseMessage.Content.ReadFromJsonAsync<EmailLabsMailClientResponse>(
-                SerializerOptions,
+            await responseMessage.Content.ReadFromJsonAsync(
+                MailJsonSerializerContext.Default.EmailLabsMailClientResponse,
                 cancellationToken)
             ?? new EmailLabsMailClientResponse((int)responseMessage.StatusCode, "Failed", "General error sending mail");
         try
@@ -71,7 +65,11 @@ internal sealed partial class EmailLabsMailClient(
         public partial void SendEmailSuccess();
     }
 
-    private sealed record EmailLabsMailClientResponse(int Code, string Status, string Message, object? Data = null);
+    private sealed record EmailLabsMailClientResponse(
+        [property: JsonPropertyName("code")]    int Code,
+        [property: JsonPropertyName("status")]  string Status,
+        [property: JsonPropertyName("message")] string Message,
+        [property: JsonPropertyName("data")]    object? Data = null);
 
     [JsonSerializable(typeof(EmailLabsMailClientResponse))]
     private sealed partial class MailJsonSerializerContext : JsonSerializerContext;
