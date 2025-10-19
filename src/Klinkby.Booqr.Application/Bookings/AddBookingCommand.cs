@@ -20,7 +20,7 @@ public record AddBookingRequest(
 {
     [JsonIgnore]
     public DateTime EndTime { get; internal init; }
-};
+}
 
 public partial class AddBookingCommand(
     IBookingRepository bookings,

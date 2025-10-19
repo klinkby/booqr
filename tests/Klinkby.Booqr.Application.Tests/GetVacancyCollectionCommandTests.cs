@@ -1,4 +1,4 @@
-﻿using Klinkby.Booqr.Application.Calendar;
+﻿using Klinkby.Booqr.Application.Vacancies;
 using static Klinkby.Booqr.Application.Tests.TestHelpers;
 
 namespace Klinkby.Booqr.Application.Tests;

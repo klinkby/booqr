@@ -33,6 +33,7 @@ public sealed partial class ResetPasswordCommand(
             var password = GenerateRandomPassword();
             await userRepository.Update(WithPasswordHash(user, password), cancellation);
             Message message = CreateMessage(query.Email, password, "Sign up");
+            _log.Enqueue(message.Id);
             await channelWriter.WriteAsync(message, cancellation);
         }
     }
@@ -58,5 +59,8 @@ public sealed partial class ResetPasswordCommand(
     {
         [LoggerMessage(200, LogLevel.Information, "Reset {Email} user's password")]
         public partial void ResetPassword(string email);
+
+        [LoggerMessage(201, LogLevel.Information, "Enqueue reset password message {MessageId}")]
+        public partial void Enqueue(Guid messageId);
     }
 }

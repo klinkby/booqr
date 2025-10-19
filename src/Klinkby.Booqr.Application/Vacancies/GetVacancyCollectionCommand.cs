@@ -1,4 +1,4 @@
-﻿namespace Klinkby.Booqr.Application.Calendar;
+﻿namespace Klinkby.Booqr.Application.Vacancies;
 
 public sealed record GetVacanciesRequest(
     DateTime? FromTime,

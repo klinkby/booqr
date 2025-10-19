@@ -2,7 +2,7 @@
 
 public class MidAirCollisionException : Exception
 {
-    public MidAirCollisionException() : base()
+    public MidAirCollisionException()
     {
     }
 
