@@ -1,4 +1,5 @@
 ﻿using System.Threading.Channels;
+using Klinkby.Booqr.Infrastructure.MailClient;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -6,7 +7,7 @@ namespace Klinkby.Booqr.Infrastructure;
 
 internal sealed partial class EmailBackgroundService(
     ChannelReader<Message> reader,
-    ISmtpClient smtpClient,
+    IMailClient mailClient,
     ILogger<EmailBackgroundService> logger) : BackgroundService
 {
     private readonly LoggerMessages _log = new(logger);
@@ -18,12 +19,12 @@ internal sealed partial class EmailBackgroundService(
             using IDisposable? loggerScope = logger.BeginScope(new { MessageId = message.Id });
             try
             {
-                await smtpClient.Send(message, stoppingToken);
+                await mailClient.Send(message, stoppingToken);
                 _log.SendSuccess(message.To);
             }
-            catch (InvalidOperationException e) // TODO use specific
+            catch (MailClientException ex)
             {
-                _log.SendFail(e, message.To);
+                _log.SendFailed(ex, message.To, ex.Code, ex.Status, ex.Message);
             }
         }
     }
@@ -35,7 +36,7 @@ internal sealed partial class EmailBackgroundService(
         [LoggerMessage(1010, LogLevel.Information, "Send mail to {ToAddress} succeeded")]
         public partial void SendSuccess(string toAddress);
 
-        [LoggerMessage(1011, LogLevel.Warning, "Send mail to {ToAddress} failed")]
-        public partial void SendFail(Exception e, string toAddress);
+        [LoggerMessage(1011, LogLevel.Warning, "Email send to {ToAddress} {Status} {Code} {Message}")]
+        public partial void SendFailed(Exception ex, string toAddress, int code, string? status, string message);
     }
 }

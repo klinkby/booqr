@@ -1,6 +1,12 @@
-﻿using System.Threading.Channels;
+﻿using System.Net.Http.Headers;
+using System.Net.Mime;
+using System.Text;
+using System.Threading.Channels;
 using Klinkby.Booqr.Infrastructure;
+using Klinkby.Booqr.Infrastructure.MailClient;
+using Microsoft.Extensions.Http.Resilience;
 using ServiceScan.SourceGenerator;
+using EmailLabsMailClient = Klinkby.Booqr.Infrastructure.MailClient.EmailLabsMailClient;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -15,8 +21,9 @@ public static partial class ServiceCollectionExtensions
         InfrastructureSettings settings = new();
         configure(settings);
 
-        ConfigureEmailChannel(services);
-        services.AddSingleton<ISmtpClient, TransactionalMailerClient>();
+        services.ConfigureEmailLabsHttpClient(settings);
+        services.ConfigureEmailChannel();
+        services.AddSingleton<IMailClient, EmailLabsMailClient>();
 
         return services
             .AddNpgsqlSlimDataSource(settings.ConnectionString ?? "", serviceKey: nameof(ConnectionProvider))
@@ -25,7 +32,27 @@ public static partial class ServiceCollectionExtensions
             .AddRepositories();
     }
 
-    private static void ConfigureEmailChannel(IServiceCollection services, int capacity = 100)
+    private static void ConfigureEmailLabsHttpClient(this IServiceCollection services, InfrastructureSettings settings)
+    {
+        // https://learn.microsoft.com/en-us/dotnet/core/resilience/http-resilience?tabs=dotnet-cli
+        services
+            .AddHttpClient(
+                nameof(EmailLabsMailClient),
+                client =>
+                {
+                    client.BaseAddress = new Uri("https://api.emaillabs.net.pl/");
+                    var value = "appKey:" + settings.MailClientApiKey;
+                    var codedValue = Convert.ToBase64String(Encoding.ASCII.GetBytes(value));
+                    var headers = client.DefaultRequestHeaders;
+                    headers.Authorization = new AuthenticationHeaderValue("Basic", codedValue);
+                    headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse(MediaTypeNames.Application.Json));
+                    headers.UserAgent.Add(new ProductInfoHeaderValue("Booqr", "1.0"));
+                })
+            .AddAsKeyed(ServiceLifetime.Singleton)
+            .AddStandardResilienceHandler(options => options.Retry.DisableForUnsafeHttpMethods());
+    }
+
+    private static void ConfigureEmailChannel(this IServiceCollection services, int capacity = 100)
     {
         var channel = Channel.CreateBounded<Message>(capacity);
         services.AddSingleton(channel.Reader);

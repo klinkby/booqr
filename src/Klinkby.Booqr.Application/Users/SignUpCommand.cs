@@ -39,6 +39,7 @@ public sealed partial class SignUpCommand(
         var userId = await userRepository.Add(newUser, cancellation);
 
         Message message = ResetPasswordCommand.CreateMessage(newUser.Email, password, "Thank you for signing up");
+        _log.Enqueue(message.Id);
         await channelWriter.WriteAsync(message, cancellation);
 
         _log.CreatedUser(newUser.Email, userId);
@@ -61,7 +62,11 @@ public sealed partial class SignUpCommand(
         [LoggerMessage(140, LogLevel.Information, "Create new user {Email}")]
         public partial void CreateUser(string email);
 
-        [LoggerMessage(140, LogLevel.Information, "{Email} is user {Id}")]
+        [LoggerMessage(141, LogLevel.Information, "{Email} is user {Id}")]
         public partial void CreatedUser(string email, int id);
+
+        [LoggerMessage(142, LogLevel.Information, "Enqueue sign-up message {MessageId}")]
+        public partial void Enqueue(Guid messageId);
+
     }
 }
