@@ -5,6 +5,7 @@ using System.Threading.Channels;
 using Klinkby.Booqr.Infrastructure;
 using Klinkby.Booqr.Infrastructure.MailClient;
 using Microsoft.Extensions.Http.Resilience;
+using Microsoft.Extensions.Options;
 using ServiceScan.SourceGenerator;
 using EmailLabsMailClient = Klinkby.Booqr.Infrastructure.MailClient.EmailLabsMailClient;
 
@@ -20,8 +21,9 @@ public static partial class ServiceCollectionExtensions
 
         InfrastructureSettings settings = new();
         configure(settings);
+        services.AddSingleton<IOptions<InfrastructureSettings>>(_ => Options.Options.Create(settings));
 
-        services.ConfigureEmailLabsHttpClient(settings);
+        services.ConfigureEmailLabsHttpClient(settings.MailClientApiKey ?? string.Empty);
         services.ConfigureEmailChannel();
         services.AddSingleton<IMailClient, EmailLabsMailClient>();
 
@@ -32,7 +34,7 @@ public static partial class ServiceCollectionExtensions
             .AddRepositories();
     }
 
-    private static void ConfigureEmailLabsHttpClient(this IServiceCollection services, InfrastructureSettings settings)
+    private static void ConfigureEmailLabsHttpClient(this IServiceCollection services, string apiKey)
     {
         // https://learn.microsoft.com/en-us/dotnet/core/resilience/http-resilience?tabs=dotnet-cli
         services
@@ -41,9 +43,7 @@ public static partial class ServiceCollectionExtensions
                 client =>
                 {
                     client.BaseAddress = new Uri("https://api.emaillabs.net.pl/");
-                    var codedValue = Convert.ToBase64String(
-                        Encoding.ASCII.GetBytes(
-                            settings.MailClientApiKey ?? string.Empty));
+                    var codedValue = Convert.ToBase64String(Encoding.ASCII.GetBytes(apiKey));
                     HttpRequestHeaders headers = client.DefaultRequestHeaders;
                     headers.Authorization = new AuthenticationHeaderValue("Basic", codedValue);
                     headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse(MediaTypeNames.Application.Json));

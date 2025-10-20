@@ -144,5 +144,4 @@ networks:
   database-net:
     internal: true
   service-net:
-    internal: true
   dmz-net:
