@@ -41,9 +41,10 @@ public static partial class ServiceCollectionExtensions
                 client =>
                 {
                     client.BaseAddress = new Uri("https://api.emaillabs.net.pl/");
-                    var value = "appKey:" + settings.MailClientApiKey;
-                    var codedValue = Convert.ToBase64String(Encoding.ASCII.GetBytes(value));
-                    var headers = client.DefaultRequestHeaders;
+                    var codedValue = Convert.ToBase64String(
+                        Encoding.ASCII.GetBytes(
+                            settings.MailClientApiKey ?? string.Empty));
+                    HttpRequestHeaders headers = client.DefaultRequestHeaders;
                     headers.Authorization = new AuthenticationHeaderValue("Basic", codedValue);
                     headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse(MediaTypeNames.Application.Json));
                     headers.UserAgent.Add(new ProductInfoHeaderValue("Booqr", "1.0"));
