@@ -1,76 +1,68 @@
-using System.Net.Http.Json;
-using System.Text.Json.Serialization;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using System.Net.Http.Headers;
+using System.Net.Mime;
+using System.Text;
+using System.Threading.Channels;
+using Klinkby.Booqr.Infrastructure;
+using Klinkby.Booqr.Infrastructure.MailClient;
+using Microsoft.Extensions.Http.Resilience;
+using ServiceScan.SourceGenerator;
+using EmailLabsMailClient = Klinkby.Booqr.Infrastructure.MailClient.EmailLabsMailClient;
 
-namespace Klinkby.Booqr.Infrastructure.MailClient;
+// ReSharper disable once CheckNamespace
+namespace Microsoft.Extensions.DependencyInjection;
 
-internal sealed partial class EmailLabsMailClient(
-    [FromKeyedServices(nameof(EmailLabsMailClient))]
-    HttpClient httpClient,
-    IOptions<InfrastructureSettings> options,
-    ILogger<EmailLabsMailClient> logger) : IMailClient
+public static partial class ServiceCollectionExtensions
 {
-    private readonly LoggerMessages _log = new(logger);
-    private readonly string _smtpAccount = options.Value.MailClientAccount ?? "";
-    private readonly string _fromAddress = options.Value.MailClientFromAddress ?? "";
-
-    public async Task Send(Message message, CancellationToken cancellationToken = default)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services,
+        Action<InfrastructureSettings> configure)
     {
-        _log.SendEmail(message.To, message.Subject);
-        using FormUrlEncodedContent form = new(
-            new KeyValuePair<string, string>[]
-            {
-                new($"to[{message.To}]", ""),
-                new("smtp_account", _smtpAccount),
-                new("subject", message.Subject),
-                new("text", message.Body),
-                new("from", _fromAddress)
-            }.AsReadOnly());
-        // https://dev.emaillabs.io/#api-Send-new_sendmail
-        HttpResponseMessage responseMessage = await httpClient.PostAsync(
-            new Uri("api/new_sendmail", UriKind.Relative),
-            form,
-            cancellationToken);
-        if (responseMessage.IsSuccessStatusCode)
-        {
-            _log.SendEmailSuccess();
-            return;
-        }
+        ArgumentNullException.ThrowIfNull(configure);
 
-        EmailLabsMailClientResponse response =
-            await responseMessage.Content.ReadFromJsonAsync(
-                MailJsonSerializerContext.Default.EmailLabsMailClientResponse,
-                cancellationToken)
-            ?? new EmailLabsMailClientResponse((int)responseMessage.StatusCode, "Failed", "General error sending mail");
-        try
-        {
-            responseMessage.EnsureSuccessStatusCode();
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new MailClientException(response.Message, response.Status, response.Code, ex);
-        }
+        InfrastructureSettings settings = new();
+        configure(settings);
+
+        services.ConfigureEmailLabsHttpClient(settings);
+        services.ConfigureEmailChannel();
+        services.AddSingleton<IMailClient, EmailLabsMailClient>();
+
+        return services
+            .AddNpgsqlSlimDataSource(settings.ConnectionString ?? "", serviceKey: nameof(ConnectionProvider))
+            .AddScoped<ITransaction, Transaction>()
+            .AddScoped<IConnectionProvider, ConnectionProvider>()
+            .AddRepositories();
     }
 
-    private sealed partial class LoggerMessages(ILogger<EmailLabsMailClient> logger)
+    private static void ConfigureEmailLabsHttpClient(this IServiceCollection services, InfrastructureSettings settings)
     {
-        private readonly ILogger<EmailLabsMailClient> _logger = logger;
-
-        [LoggerMessage(1020, LogLevel.Information, "Send email to {To}: {Subject}")]
-        public partial void SendEmail(string to, string subject);
-
-        [LoggerMessage(1021, LogLevel.Information, "Email sent successfully")]
-        public partial void SendEmailSuccess();
+        // https://learn.microsoft.com/en-us/dotnet/core/resilience/http-resilience?tabs=dotnet-cli
+        services
+            .AddHttpClient(
+                nameof(EmailLabsMailClient),
+                client =>
+                {
+                    client.BaseAddress = new Uri("https://api.emaillabs.net.pl/");
+                    var codedValue = Convert.ToBase64String(
+                        Encoding.ASCII.GetBytes(
+                            settings.MailClientApiKey ?? string.Empty));
+                    HttpRequestHeaders headers = client.DefaultRequestHeaders;
+                    headers.Authorization = new AuthenticationHeaderValue("Basic", codedValue);
+                    headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse(MediaTypeNames.Application.Json));
+                    headers.UserAgent.Add(new ProductInfoHeaderValue("Booqr", "1.0"));
+                })
+            .AddAsKeyed(ServiceLifetime.Singleton)
+            .AddStandardResilienceHandler(options => options.Retry.DisableForUnsafeHttpMethods());
     }
 
-    private sealed record EmailLabsMailClientResponse(
-        [property: JsonPropertyName("code")]    int Code,
-        [property: JsonPropertyName("status")]  string Status,
-        [property: JsonPropertyName("message")] string Message,
-        [property: JsonPropertyName("data")]    object? Data = null);
+    private static void ConfigureEmailChannel(this IServiceCollection services, int capacity = 100)
+    {
+        var channel = Channel.CreateBounded<Message>(capacity);
+        services.AddSingleton(channel.Reader);
+        services.AddSingleton(channel.Writer);
+        services.AddHostedService<EmailBackgroundService>();
+    }
 
-    [JsonSerializable(typeof(EmailLabsMailClientResponse))]
-    private sealed partial class MailJsonSerializerContext : JsonSerializerContext;
+    [GenerateServiceRegistrations(
+        AssignableTo = typeof(IRepository),
+        AsImplementedInterfaces = true)]
+    private static partial IServiceCollection AddRepositories(this IServiceCollection services);
 }
