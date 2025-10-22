@@ -1,13 +1,13 @@
 ﻿namespace Klinkby.Booqr.Application.Tests;
 
-public sealed class ReplaceHandlebarsTests
+public sealed class HandlebarsTests
 {
     [Theory]
     [AutoData]
     public void GIVEN_TemplateWithSingleToken_THEN_TokenIsReplaced([Frozen] string value)
     {
         var actual = Handlebars.Replace("Hello {{name}}",
-            new Dictionary<string, string> { ["name"] = value });
+            new() { ["name"] = value });
 
         Assert.Equal($"Hello {value}", actual);
     }
@@ -18,7 +18,7 @@ public sealed class ReplaceHandlebarsTests
         string value2)
     {
         var actual = Handlebars.Replace("Start {{first}}-mid-{{second}}-end",
-            new Dictionary<string, string>
+            new()
             {
                 ["first"] = value1,
                 ["second"] = value2
@@ -32,7 +32,7 @@ public sealed class ReplaceHandlebarsTests
     public void GIVEN_TemplateWithRepeatedToken_THEN_AllInstancesAreReplaced(string value)
     {
         var actual = Handlebars.Replace("{{value}},{{value}},{{value}}",
-            new Dictionary<string, string> { ["value"] = value });
+            new() { ["value"] = value });
 
         Assert.Equal($"{value},{value},{value}", actual);
     }
@@ -43,14 +43,14 @@ public sealed class ReplaceHandlebarsTests
     {
         Assert.Throws<ArgumentException>(() =>
             Handlebars.Replace("X-{{present}}-Y-{{missing}}-Z",
-                new Dictionary<string, string> { ["present"] = value }));
+                new() { ["present"] = value }));
     }
 
 
     [Fact]
     public void GIVEN_EmptyTemplate_THEN_ReturnsEmptyString()
     {
-        var actual = Handlebars.Replace(ReadOnlySpan<char>.Empty, new Dictionary<string, string>());
+        var actual = Handlebars.Replace(ReadOnlySpan<char>.Empty, new());
 
         Assert.Equal(string.Empty, actual);
     }
@@ -60,7 +60,7 @@ public sealed class ReplaceHandlebarsTests
     public void GIVEN_TokensAtEdgesAndAdjacent_THEN_AllPositionsHandledCorrectly(string a, string b)
     {
         var actual = Handlebars.Replace("{{a}}--{{b}}{{a}}",
-            new Dictionary<string, string>
+            new()
             {
                 ["a"] = a,
                 ["b"] = b
