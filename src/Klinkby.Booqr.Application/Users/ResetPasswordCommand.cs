@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Threading.Channels;
+using Klinkby.Booqr.Application.Extensions;
 using BCryptNet = BCrypt.Net.BCrypt;
 
 namespace Klinkby.Booqr.Application.Users;
@@ -20,6 +21,17 @@ public sealed partial class ResetPasswordCommand(
     ILogger<ResetPasswordCommand> logger
 ) : ICommand<ResetPasswordRequest>
 {
+    private const string MessageTemplate =
+        """
+        Dear {{email}},
+
+        Your new password is:
+        {{password}}
+
+
+        ---
+        Sent from Booqr
+        """;
     private readonly LoggerMessages _log = new(logger);
 
     public async Task Execute(ResetPasswordRequest query, CancellationToken cancellation = default)
@@ -46,7 +58,7 @@ public sealed partial class ResetPasswordCommand(
         var message = Message.From(
             email,
             subject,
-            $"Your password is {password}.");
+            Handlebars.Replace(MessageTemplate, new() { ["email"] = email,  ["password"] = password }));
         return message;
     }
 
