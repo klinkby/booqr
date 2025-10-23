@@ -14,7 +14,7 @@ internal static partial class Handlebars
 
         var lastIndex = 0;
         var anyMatch = false;
-        var sb = new StringBuilder(template.Length);
+        var sb = new StringBuilder(template.Length + replacements.Count * 20); // add some margin for replacements
 
         // Get alternate lookup to enable span-based lookups
         Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> lookup =
