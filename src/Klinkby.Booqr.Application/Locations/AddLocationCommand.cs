@@ -8,7 +8,7 @@ public record AddLocationRequest(
 public sealed class AddLocationCommand(
     ILocationRepository locations,
     ILogger<AddLocationCommand> logger)
-    : AddCommand<AddLocationRequest, Location>(locations, logger)
+    : Abstractions.AddCommand<AddLocationRequest, Location>(locations, logger)
 {
     protected override Location Map(AddLocationRequest query) =>
         new(query.Name, null, null, null, null);

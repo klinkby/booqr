@@ -1,13 +1,11 @@
 ﻿using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Text;
-using System.Threading.Channels;
 using Klinkby.Booqr.Infrastructure;
-using Klinkby.Booqr.Infrastructure.MailClient;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
 using ServiceScan.SourceGenerator;
-using EmailLabsMailClient = Klinkby.Booqr.Infrastructure.MailClient.EmailLabsMailClient;
+using EmailLabsMailClient = Klinkby.Booqr.Infrastructure.EmailLabsMailClient;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -24,7 +22,6 @@ public static partial class ServiceCollectionExtensions
         services.AddSingleton<IOptions<InfrastructureSettings>>(_ => Options.Options.Create(settings));
 
         services.ConfigureEmailLabsHttpClient(settings.MailClientApiKey ?? string.Empty);
-        services.ConfigureEmailChannel();
         services.AddSingleton<IMailClient, EmailLabsMailClient>();
 
         return services
@@ -53,13 +50,7 @@ public static partial class ServiceCollectionExtensions
             .AddStandardResilienceHandler(options => options.Retry.DisableForUnsafeHttpMethods());
     }
 
-    private static void ConfigureEmailChannel(this IServiceCollection services, int capacity = 100)
-    {
-        var channel = Channel.CreateBounded<Message>(capacity);
-        services.AddSingleton(channel.Reader);
-        services.AddSingleton(channel.Writer);
-        services.AddHostedService<EmailBackgroundService>();
-    }
+
 
     [GenerateServiceRegistrations(
         AssignableTo = typeof(IRepository),

@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace Klinkby.Booqr.Infrastructure.Repositories;
+﻿namespace Klinkby.Booqr.Infrastructure.Repositories;
 
 [QueryFields("starttime", "endtime", "customerid", "serviceid", "locationid", "employeeid", "hasnote")]
 internal sealed partial class MyBookingRepository(IConnectionProvider connectionProvider, TimeProvider timeProvider)

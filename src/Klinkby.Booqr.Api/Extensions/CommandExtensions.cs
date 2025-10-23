@@ -1,5 +1,4 @@
-﻿using Klinkby.Booqr.Application.Users;
-using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Klinkby.Booqr.Api.Extensions;
 

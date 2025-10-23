@@ -1,4 +1,4 @@
-﻿namespace Klinkby.Booqr.Application;
+﻿namespace Klinkby.Booqr.Application.Abstractions;
 
 public abstract partial class AddCommand<TRequest, TItem>(IRepository<TItem, int> repository, ILogger logger)
     : ICommand<TRequest, Task<int>>

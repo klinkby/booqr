@@ -3,7 +3,7 @@
 public sealed partial class DeleteVacancyCommand(
     ICalendarRepository calendar,
     ILogger<DeleteVacancyCommand> logger)
-    : DeleteCommand<CalendarEvent>(calendar, logger)
+    : Abstractions.DeleteCommand<CalendarEvent>(calendar, logger)
 {
     private readonly LoggerMessages _log = new(logger);
 

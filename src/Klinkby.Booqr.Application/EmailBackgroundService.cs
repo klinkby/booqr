@@ -1,9 +1,7 @@
 ﻿using System.Threading.Channels;
-using Klinkby.Booqr.Infrastructure.MailClient;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
-namespace Klinkby.Booqr.Infrastructure;
+namespace Klinkby.Booqr.Application;
 
 internal sealed partial class EmailBackgroundService(
     ChannelReader<Message> reader,
