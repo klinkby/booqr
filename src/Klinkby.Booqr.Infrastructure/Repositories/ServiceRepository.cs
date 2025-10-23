@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-
 namespace Klinkby.Booqr.Infrastructure.Repositories;
 
 [QueryFields("name", "duration")]

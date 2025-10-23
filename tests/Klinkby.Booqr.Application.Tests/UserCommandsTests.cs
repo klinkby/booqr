@@ -1,6 +1,4 @@
 using System.IdentityModel.Tokens.Jwt;
-using Klinkby.Booqr.Application.Users;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace Klinkby.Booqr.Application.Tests;

@@ -1,7 +1,4 @@
-﻿using Klinkby.Booqr.Application.Users;
-using Microsoft.Extensions.Logging.Abstractions;
-
-namespace Klinkby.Booqr.Application.Tests;
+﻿namespace Klinkby.Booqr.Application.Tests;
 
 public class ChangePasswordCommandTests
 {

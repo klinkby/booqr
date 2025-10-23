@@ -1,6 +1,4 @@
-﻿using Klinkby.Booqr.Application.Users;
-
-namespace Klinkby.Booqr.Api;
+﻿namespace Klinkby.Booqr.Api;
 
 internal static partial class Routes
 {

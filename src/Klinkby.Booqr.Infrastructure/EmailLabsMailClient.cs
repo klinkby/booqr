@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Klinkby.Booqr.Infrastructure.MailClient;
+namespace Klinkby.Booqr.Infrastructure;
 
 internal sealed partial class EmailLabsMailClient(
     [FromKeyedServices(nameof(EmailLabsMailClient))]

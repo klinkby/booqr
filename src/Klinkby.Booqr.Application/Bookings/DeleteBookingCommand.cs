@@ -12,7 +12,7 @@ public sealed partial class DeleteBookingCommand(
     ITransaction transaction,
     ILogger<DeleteBookingCommand> logger,
     ILogger<AddVacancyCommand> addVacancyLogger)
-    : DeleteCommand<Booking>(bookings, logger)
+    : Abstractions.DeleteCommand<Booking>(bookings, logger)
 {
     private readonly LoggerMessages _log = new(logger);
 

@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
 
-namespace Klinkby.Booqr.Application;
+namespace Klinkby.Booqr.Application.Abstractions;
 
 /// <summary>
 ///     Base class for authenticated requests with signed-in user information.
@@ -11,8 +11,7 @@ namespace Klinkby.Booqr.Application;
 /// <remarks>User property MUST be set POST validation</remarks>
 public abstract record AuthenticatedRequest
 {
-    [JsonIgnore]
-    public ClaimsPrincipal? User { get; init; }
+    [JsonIgnore] public ClaimsPrincipal? User { get; init; }
 
     [JsonIgnore]
     public int AuthenticatedUserId

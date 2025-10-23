@@ -1,4 +1,4 @@
-﻿namespace Klinkby.Booqr.Application;
+﻿namespace Klinkby.Booqr.Application.Abstractions;
 
 public abstract partial class UpdateCommand<TRequest, TItem>(IRepository<TItem, int> repository, ILogger logger)
     : ICommand<TRequest>
@@ -14,7 +14,10 @@ public abstract partial class UpdateCommand<TRequest, TItem>(IRepository<TItem, 
         TItem item = Map(query);
         _log.UpdateItem(query.AuthenticatedUserId, item.GetType().Name, query.Id);
         var updated = await repository.Update(item, cancellation);
-        if (!updated) throw new MidAirCollisionException($"{item.GetType().Name} {query.Id} was already updated.");
+        if (!updated)
+        {
+            throw new MidAirCollisionException($"{item.GetType().Name} {query.Id} was already updated.");
+        }
     }
 
     protected abstract TItem Map(TRequest query);

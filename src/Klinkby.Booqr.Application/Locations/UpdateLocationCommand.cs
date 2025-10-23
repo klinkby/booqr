@@ -10,7 +10,7 @@ public sealed class UpdateLocationCommand(
     ILocationRepository locations,
     IETagProvider etagProvider,
     ILogger<UpdateLocationCommand> logger)
-    : UpdateCommand<UpdateLocationRequest, Location>(locations, logger)
+    : Abstractions.UpdateCommand<UpdateLocationRequest, Location>(locations, logger)
 {
     protected override Location Map(UpdateLocationRequest query) =>
         new(query.Name, null, null, null, null)

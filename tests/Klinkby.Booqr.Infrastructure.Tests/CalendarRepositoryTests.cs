@@ -1,6 +1,4 @@
-﻿using Klinkby.Booqr.Core;
-using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
+﻿using Npgsql;
 
 namespace Klinkby.Booqr.Infrastructure.Tests;
 

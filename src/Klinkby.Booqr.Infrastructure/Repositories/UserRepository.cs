@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
-
-namespace Klinkby.Booqr.Infrastructure.Repositories;
+﻿namespace Klinkby.Booqr.Infrastructure.Repositories;
 
 [QueryFields("email", "passwordhash", "role", "name", "phone")]
 internal sealed partial class UserRepository(IConnectionProvider connectionProvider, TimeProvider timeProvider)

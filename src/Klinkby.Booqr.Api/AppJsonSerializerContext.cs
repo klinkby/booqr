@@ -2,7 +2,6 @@
 using Klinkby.Booqr.Application.Bookings;
 using Klinkby.Booqr.Application.Locations;
 using Klinkby.Booqr.Application.Services;
-using Klinkby.Booqr.Application.Users;
 using Klinkby.Booqr.Application.Vacancies;
 
 namespace Klinkby.Booqr.Api;

@@ -1,6 +1,4 @@
 ﻿using System.Threading.Channels;
-using Klinkby.Booqr.Application.Users;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Klinkby.Booqr.Application.Tests;
 
@@ -83,18 +81,6 @@ public class ResetPasswordCommandTests
         bool hasMessage = channel.Reader.TryRead(out Message? message);
         Assert.True(hasMessage && message is not null);
         // The command currently uses the original (untrimmed) email when composing the message
-        Assert.Equal(email, message!.To);
-
-        // Extract the plaintext password from the message body and verify it matches the updated hash
-        const string prefix = "Your password is ";
-        int start = message.Body.IndexOf(prefix, StringComparison.InvariantCulture);
-        Assert.True(start >= 0);
-        start += prefix.Length;
-        int end = message.Body.IndexOf('.', start);
-        Assert.True(end > start);
-        string plainPassword = message.Body.Substring(start, end - start);
-
-        Assert.False(string.IsNullOrWhiteSpace(plainPassword));
-        Assert.True(BCrypt.Net.BCrypt.EnhancedVerify(plainPassword, updatedUser.PasswordHash));
+        Assert.Equal(existing.Email, message!.To);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Klinkby.Booqr.Application;
+﻿using System.Threading.Channels;
+using Klinkby.Booqr.Application;
 using ServiceScan.SourceGenerator;
 
 // ReSharper disable once CheckNamespace
@@ -21,8 +22,17 @@ public static partial class ServiceCollectionExtensions
                 options.Key = settings.Jwt.Key;
                 options.Issuer = settings.Jwt.Issuer;
                 options.Audience = settings.Jwt.Audience;
-            });
+            })
+            .ConfigureEmailChannel();
         return services;
+    }
+
+    private static void ConfigureEmailChannel(this IServiceCollection services, int capacity = 100)
+    {
+        var channel = Channel.CreateBounded<Message>(capacity);
+        services.AddSingleton(channel.Reader);
+        services.AddSingleton(channel.Writer);
+        services.AddHostedService<EmailBackgroundService>();
     }
 
     [GenerateServiceRegistrations(

@@ -1,4 +1,4 @@
-﻿namespace Klinkby.Booqr.Infrastructure.MailClient;
+﻿namespace Klinkby.Booqr.Core;
 
 public class MailClientException : Exception
 {

@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Threading.Channels;
+using Klinkby.Booqr.Application.Extensions;
 using BCryptNet = BCrypt.Net.BCrypt;
 
 namespace Klinkby.Booqr.Application.Users;
@@ -32,7 +33,8 @@ public sealed partial class ResetPasswordCommand(
         {
             var password = GenerateRandomPassword();
             await userRepository.Update(WithPasswordHash(user, password), cancellation);
-            Message message = CreateMessage(query.Email, password, "Sign up");
+            Message message = EmbeddedResource.Templates_PasswordReset_handlebars
+                .CreateMessage(query.Email.Trim(), password, "Your password has been reset");
             _log.Enqueue(message.Id);
             await channelWriter.WriteAsync(message, cancellation);
         }
@@ -40,15 +42,6 @@ public sealed partial class ResetPasswordCommand(
 
     internal static User WithPasswordHash(User user, string password) =>
         user with { PasswordHash = BCryptNet.EnhancedHashPassword(password) };
-
-    internal static Message CreateMessage(string email, string password, string subject)
-    {
-        var message = Message.From(
-            email,
-            subject,
-            $"Your password is {password}.");
-        return message;
-    }
 
     internal static string GenerateRandomPassword(int length = 10) =>
         RandomNumberGenerator.GetString(

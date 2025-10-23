@@ -1,4 +1,4 @@
-﻿namespace Klinkby.Booqr.Application;
+﻿namespace Klinkby.Booqr.Application.Abstractions;
 
 public interface IETagProvider
 {

@@ -1,7 +1,4 @@
-﻿using Klinkby.Booqr.Application.Users;
-using static Klinkby.Booqr.Application.Tests.TestHelpers;
-
-namespace Klinkby.Booqr.Application.Tests;
+﻿namespace Klinkby.Booqr.Application.Tests;
 
 public class GetUserCollectionCommandTests
 {
