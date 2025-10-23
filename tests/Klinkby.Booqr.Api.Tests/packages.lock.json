@@ -704,6 +704,7 @@
           "BCrypt.Net-Next": "[4.0.3, )",
           "Klinkby.Booqr.Core": "[1.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[10.0.0-preview.7.25380.108, )",
+          "Microsoft.Extensions.Hosting.Abstractions": "[9.0.10, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.0-preview.7.25380.108, )",
           "Microsoft.Extensions.Options.ConfigurationExtensions": "[10.0.0-preview.7.25380.108, )",
           "System.IdentityModel.Tokens.Jwt": "[8.14.0, )"
@@ -719,7 +720,6 @@
           "Dapper.AOT": "[1.0.48, )",
           "Klinkby.Booqr.Core": "[1.0.0, )",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "[10.0.0-preview.7.25380.108, )",
-          "Microsoft.Extensions.Hosting.Abstractions": "[9.0.10, )",
           "Microsoft.Extensions.Http.Resilience": "[9.10.0, )",
           "Microsoft.Extensions.Options.ConfigurationExtensions": "[10.0.0-preview.7.25380.108, )",
           "Npgsql.DependencyInjection": "[9.0.4, )"

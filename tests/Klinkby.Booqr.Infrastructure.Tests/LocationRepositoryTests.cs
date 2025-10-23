@@ -1,6 +1,3 @@
-using Klinkby.Booqr.Core;
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Klinkby.Booqr.Infrastructure.Tests;
 
 [Collection(nameof(ServiceProviderFixture))]

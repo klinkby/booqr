@@ -1,6 +1,4 @@
-﻿using Klinkby.Booqr.Application.Users;
-
-namespace Klinkby.Booqr.Application.Tests;
+﻿namespace Klinkby.Booqr.Application.Tests;
 
 public class GetUserByIdCommandTests
 {

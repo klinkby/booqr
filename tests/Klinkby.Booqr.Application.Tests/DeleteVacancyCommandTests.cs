@@ -1,6 +1,4 @@
 ﻿using Klinkby.Booqr.Application.Vacancies;
-using Microsoft.Extensions.Logging.Abstractions;
-using static Klinkby.Booqr.Application.Tests.TestHelpers;
 
 namespace Klinkby.Booqr.Application.Tests;
 

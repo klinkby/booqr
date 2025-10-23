@@ -1,9 +1,6 @@
 ﻿using System.Data;
-using System.Security.Claims;
 using Klinkby.Booqr.Application.Bookings;
 using Klinkby.Booqr.Application.Vacancies;
-using Microsoft.Extensions.Logging.Abstractions;
-using static Klinkby.Booqr.Application.Tests.TestHelpers;
 
 namespace Klinkby.Booqr.Application.Tests;
 

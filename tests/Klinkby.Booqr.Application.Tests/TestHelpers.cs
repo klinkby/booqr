@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using Microsoft.Extensions.Time.Testing;
+﻿using Microsoft.Extensions.Time.Testing;
 
 namespace Klinkby.Booqr.Application.Tests;
 

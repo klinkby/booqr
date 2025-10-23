@@ -1,8 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using AutoFixture;
 using AutoFixture.Xunit2;
-using Klinkby.Booqr.Core;
-using Microsoft.Extensions.Time.Testing;
 
 namespace Klinkby.Booqr.Infrastructure.Tests;
 
