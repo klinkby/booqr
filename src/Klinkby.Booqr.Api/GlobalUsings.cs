@@ -1,6 +1,14 @@
 global using System.Security.Claims;
-global using Klinkby.Booqr.Api.Extensions;
+global using Klinkby.Booqr.Api.Filters;
+global using Klinkby.Booqr.Api.Models;
+global using Klinkby.Booqr.Api.Util;
 global using Klinkby.Booqr.Application;
 global using Klinkby.Booqr.Application.Abstractions;
+global using Klinkby.Booqr.Application.Commands.Bookings;
+global using Klinkby.Booqr.Application.Commands.Locations;
+global using Klinkby.Booqr.Application.Commands.Services;
+global using Klinkby.Booqr.Application.Commands.Users;
+global using Klinkby.Booqr.Application.Commands.Vacancies;
 global using Klinkby.Booqr.Core;
+global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.AspNetCore.Mvc;

@@ -2,10 +2,12 @@
 using System.Net.Mime;
 using System.Text;
 using Klinkby.Booqr.Infrastructure;
+using Klinkby.Booqr.Infrastructure.Services;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
 using ServiceScan.SourceGenerator;
-using EmailLabsMailClient = Klinkby.Booqr.Infrastructure.EmailLabsMailClient;
+using EmailLabsMailClient = Klinkby.Booqr.Infrastructure.Services.EmailLabsMailClient;
+using Transaction = Klinkby.Booqr.Infrastructure.Services.Transaction;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;

@@ -12,7 +12,7 @@ public sealed partial class DeleteBookingCommand(
     ITransaction transaction,
     ILogger<DeleteBookingCommand> logger,
     ILogger<AddVacancyCommand> addVacancyLogger)
-    : Abstractions.DeleteCommand<Booking>(bookings, logger)
+    : DeleteCommand<Booking>(bookings, logger)
 {
     private readonly LoggerMessages _log = new(logger);
 
@@ -22,7 +22,6 @@ public sealed partial class DeleteBookingCommand(
         int userId = query.AuthenticatedUserId;
         bool isEmployee = query.User!.IsInRole(UserRole.Employee) || query.User.IsInRole(UserRole.Admin);
         bool deleted;
-        CalendarEvent? calendarEvent;
 
         await transaction.Begin(IsolationLevel.RepeatableRead, cancellation);
         try
@@ -37,7 +36,7 @@ public sealed partial class DeleteBookingCommand(
                 throw new UnauthorizedAccessException("You do not have access to delete this booking");
             }
 
-            calendarEvent = await calendar.GetByBookingId(query.Id, cancellation);
+            CalendarEvent? calendarEvent = await calendar.GetByBookingId(query.Id, cancellation);
             Debug.Assert(calendarEvent is not null);
 
             await calendar.Delete(calendarEvent.Id, cancellation);

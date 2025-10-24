@@ -1,7 +1,6 @@
-﻿using Klinkby.Booqr.Application.Commands.Users;
-using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace Klinkby.Booqr.Api.Extensions;
+namespace Klinkby.Booqr.Api.Util;
 
 internal static class CommandExtensions
 {
@@ -82,5 +81,3 @@ internal static class CommandExtensions
         return TypedResults.NoContent();
     }
 }
-
-internal record struct CreatedResponse(int Id);

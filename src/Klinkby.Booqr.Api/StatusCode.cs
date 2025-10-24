@@ -4,9 +4,9 @@ using Npgsql;
 
 namespace Klinkby.Booqr.Api;
 
-internal static class StatusCodeSelector
+internal static class StatusCode
 {
-    public static int Map(Exception exception)
+    public static int FromException(Exception exception)
     {
         if (exception is AggregateException agg)
         {

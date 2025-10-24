@@ -33,11 +33,6 @@ public abstract record AuthenticatedRequest
         }
 
         var isEmployee = User!.IsInRole(UserRole.Employee) || User.IsInRole(UserRole.Admin);
-        if (isEmployee)
-        {
-            return true; // I am employee
-        }
-
-        return false;
+        return isEmployee; // I am employee
     }
 }

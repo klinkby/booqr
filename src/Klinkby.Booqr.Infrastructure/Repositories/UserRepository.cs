@@ -1,4 +1,6 @@
-﻿namespace Klinkby.Booqr.Infrastructure.Repositories;
+﻿using Klinkby.Booqr.Infrastructure.Services;
+
+namespace Klinkby.Booqr.Infrastructure.Repositories;
 
 [QueryFields("email", "passwordhash", "role", "name", "phone")]
 internal sealed partial class UserRepository(IConnectionProvider connectionProvider, TimeProvider timeProvider)

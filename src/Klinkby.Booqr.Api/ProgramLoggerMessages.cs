@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Klinkby.Booqr.Api;
 
-internal sealed partial class Program_LoggerMessages(ILogger logger)
+internal sealed partial class ProgramLoggerMessages(ILogger logger)
 {
     [SuppressMessage("Performance", "CA1823:Avoid unused private fields", Justification = "Ref by SG")]
     private readonly ILogger _logger = logger;

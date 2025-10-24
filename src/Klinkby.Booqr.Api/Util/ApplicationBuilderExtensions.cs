@@ -1,4 +1,4 @@
-﻿namespace Klinkby.Booqr.Api.Extensions;
+﻿namespace Klinkby.Booqr.Api.Util;
 
 internal static class ApplicationBuilderExtensions
 {

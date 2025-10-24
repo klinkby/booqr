@@ -1,9 +1,10 @@
 ﻿using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Klinkby.Booqr.Application.Models;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Klinkby.Booqr.Api.Extensions;
+// ReSharper disable once CheckNamespace
+namespace Microsoft.Extensions.DependencyInjection;
 
 internal static class ServiceCollectionExtensions
 {
