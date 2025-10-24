@@ -1,5 +1,4 @@
 using Klinkby.Booqr.Application.Abstractions;
-using Klinkby.Booqr.Application.Locations;
 
 namespace Klinkby.Booqr.Application.Tests;
 

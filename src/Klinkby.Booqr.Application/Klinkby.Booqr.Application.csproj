@@ -26,6 +26,7 @@
     </ItemGroup>
 
     <ItemGroup Label="Handlebars templates as embedded resources">
-        <EmbeddedResource Include="Templates\*.handlebars" />
+        <EmbeddedResource Include="Properties\*.handlebars" />
     </ItemGroup>
+
 </Project>

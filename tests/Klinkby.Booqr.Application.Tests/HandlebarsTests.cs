@@ -1,4 +1,6 @@
-﻿namespace Klinkby.Booqr.Application.Tests;
+﻿using Klinkby.Booqr.Application.Util;
+
+namespace Klinkby.Booqr.Application.Tests;
 
 public sealed class HandlebarsTests
 {

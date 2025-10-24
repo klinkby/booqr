@@ -1,4 +1,5 @@
 using System.Net.Sockets;
+using Klinkby.Booqr.Core.Exceptions;
 using Npgsql;
 
 namespace Klinkby.Booqr.Api;

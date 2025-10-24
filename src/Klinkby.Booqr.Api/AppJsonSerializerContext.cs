@@ -1,8 +1,9 @@
 ﻿using System.Text.Json.Serialization;
-using Klinkby.Booqr.Application.Bookings;
-using Klinkby.Booqr.Application.Locations;
-using Klinkby.Booqr.Application.Services;
-using Klinkby.Booqr.Application.Vacancies;
+using Klinkby.Booqr.Application.Commands.Bookings;
+using Klinkby.Booqr.Application.Commands.Locations;
+using Klinkby.Booqr.Application.Commands.Services;
+using Klinkby.Booqr.Application.Commands.Users;
+using Klinkby.Booqr.Application.Commands.Vacancies;
 
 namespace Klinkby.Booqr.Api;
 

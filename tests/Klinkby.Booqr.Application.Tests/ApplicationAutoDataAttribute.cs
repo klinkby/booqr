@@ -1,5 +1,4 @@
 using AutoFixture;
-using Klinkby.Booqr.Application.Bookings;
 
 namespace Klinkby.Booqr.Application.Tests;
 
