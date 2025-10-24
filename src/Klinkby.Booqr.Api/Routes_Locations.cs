@@ -1,4 +1,4 @@
-﻿using Klinkby.Booqr.Application.Locations;
+﻿using Klinkby.Booqr.Application.Commands.Locations;
 
 namespace Klinkby.Booqr.Api;
 

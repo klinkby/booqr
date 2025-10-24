@@ -1,6 +1,4 @@
 ﻿using System.Data;
-using Klinkby.Booqr.Application.Bookings;
-using Klinkby.Booqr.Application.Vacancies;
 
 namespace Klinkby.Booqr.Application.Tests;
 

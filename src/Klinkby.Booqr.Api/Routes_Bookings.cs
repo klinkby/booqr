@@ -1,4 +1,4 @@
-﻿using Klinkby.Booqr.Application.Bookings;
+﻿using Klinkby.Booqr.Application.Commands.Bookings;
 
 namespace Klinkby.Booqr.Api;
 

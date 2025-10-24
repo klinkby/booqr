@@ -1,4 +1,6 @@
-﻿namespace Klinkby.Booqr.Application.Abstractions;
+﻿using Klinkby.Booqr.Core.Exceptions;
+
+namespace Klinkby.Booqr.Application.Abstractions;
 
 public abstract partial class UpdateCommand<TRequest, TItem>(IRepository<TItem, int> repository, ILogger logger)
     : ICommand<TRequest>
