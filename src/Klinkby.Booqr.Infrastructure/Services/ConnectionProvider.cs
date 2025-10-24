@@ -1,7 +1,7 @@
 using System.Data;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Klinkby.Booqr.Infrastructure;
+namespace Klinkby.Booqr.Infrastructure.Services;
 
 internal interface IConnectionProvider
 {

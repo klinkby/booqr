@@ -2,7 +2,7 @@ using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
-namespace Klinkby.Booqr.Infrastructure;
+namespace Klinkby.Booqr.Infrastructure.Services;
 
 internal sealed partial class Transaction(IConnectionProvider connectionProvider, ILogger<Transaction> logger)
     : ITransaction, IAsyncDisposable

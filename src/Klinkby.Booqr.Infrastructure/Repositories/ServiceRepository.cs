@@ -1,3 +1,5 @@
+using Klinkby.Booqr.Infrastructure.Services;
+
 namespace Klinkby.Booqr.Infrastructure.Repositories;
 
 [QueryFields("name", "duration")]

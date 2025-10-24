@@ -77,7 +77,7 @@ public partial class AddBookingCommand(
                 Covers.OnlyBeginning => UpdateVacancyCoversOnlyBeginning(vacancy, newId, query, cancellation),
                 Covers.OnlyEnd => UpdateVacancyCoversOnlyEnd(vacancy, query, newId, cancellation),
                 Covers.SomewhereInTheMiddle => UpdateVacancyInTheMiddle(vacancy, newId, query, cancellation),
-                _ => throw new InvalidEnumArgumentException("Unexpected Covers value"),
+                _ => throw new InvalidEnumArgumentException("Unexpected Covers value")
             };
             await updateStrategy;
         }

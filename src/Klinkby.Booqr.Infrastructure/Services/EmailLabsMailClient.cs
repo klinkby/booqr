@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Klinkby.Booqr.Infrastructure;
+namespace Klinkby.Booqr.Infrastructure.Services;
 
 internal sealed partial class EmailLabsMailClient(
     [FromKeyedServices(nameof(EmailLabsMailClient))]
@@ -58,11 +58,11 @@ internal sealed partial class EmailLabsMailClient(
     async private static Task<EmailLabsMailClientResponse> DeserializeFailureResponse(HttpResponseMessage responseMessage,
         CancellationToken cancellationToken)
     {
-        EmailLabsMailClientResponse response;
-        response = await responseMessage.Content.ReadFromJsonAsync(
-                       MailJsonSerializerContext.Default.EmailLabsMailClientResponse,
-                       cancellationToken)
-                   ?? EmailLabsMailClientResponse.FromGeneralServerError(responseMessage.StatusCode);
+        EmailLabsMailClientResponse response =
+            await responseMessage.Content.ReadFromJsonAsync(
+                   MailJsonSerializerContext.Default.EmailLabsMailClientResponse,
+                   cancellationToken)
+               ?? EmailLabsMailClientResponse.FromGeneralServerError(responseMessage.StatusCode);
         return response;
     }
 

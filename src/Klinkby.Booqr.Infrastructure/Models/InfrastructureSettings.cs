@@ -1,4 +1,4 @@
-﻿namespace Klinkby.Booqr.Infrastructure;
+﻿namespace Klinkby.Booqr.Infrastructure.Models;
 
 public sealed record InfrastructureSettings
 {

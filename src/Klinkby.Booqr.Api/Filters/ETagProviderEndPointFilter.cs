@@ -1,15 +1,7 @@
 ﻿using System.Globalization;
 using Microsoft.Extensions.Primitives;
 
-namespace Klinkby.Booqr.Api;
-
-/// <summary>
-///     Scoped service that provide the If-None-Match header value if its convertible to DateTime.
-/// </summary>
-internal sealed class ETagProvider : IETagProvider
-{
-    public DateTime? Version { get; set; }
-}
+namespace Klinkby.Booqr.Api.Filters;
 
 /// <summary>
 ///     Read If-None-Match header for GET requests, If-Match for PUT, PATCH, MERGE requests

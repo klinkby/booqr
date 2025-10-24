@@ -1,13 +1,12 @@
 using System.Diagnostics;
 using System.Reflection;
 using Klinkby.Booqr.Api;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 using NLog.Web;
 
-Stopwatch timer = Stopwatch.StartNew();
+var timer = Stopwatch.StartNew();
 
 WebApplicationBuilder builder = WebApplication.CreateSlimBuilder(args);
 
@@ -53,7 +52,7 @@ if (!isMockServer)
         app.UseExceptionHandler(new ExceptionHandlerOptions
         {
             AllowStatusCode404Response = true,
-            StatusCodeSelector = StatusCodeSelector.Map
+            StatusCodeSelector = StatusCode.FromException
         });
     }
     app.UseSecurityHeaders();
@@ -68,9 +67,9 @@ app.UseStaticFiles(new StaticFileOptions
             "Cache-Control", $"public, max-age={TimeSpan.FromDays(1).TotalSeconds}");
     }
 });
-Routes.MapApi(app);
+app.MapApiRoutes();
 
-Program_LoggerMessages log = new(app.Services.GetRequiredService<ILogger<Program>>());
+ProgramLoggerMessages log = new(app.Services.GetRequiredService<ILogger<Program>>());
 log.AppLaunch(timer.Elapsed);
 try
 {
