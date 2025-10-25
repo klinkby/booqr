@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using Klinkby.Booqr.Application.Models;
-using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.IdentityModel.Tokens;
 
 // ReSharper disable once CheckNamespace
@@ -8,8 +7,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 internal static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddApi(this IServiceCollection services, Action<JwtSettings> configureJwt,
-        Action<W3CLoggerOptions> configureLogger)
+    public static IServiceCollection AddApi(this IServiceCollection services, Action<JwtSettings> configureJwt)
     {
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -38,7 +36,6 @@ internal static class ServiceCollectionExtensions
         services.AddProblemDetails();
         services.AddHealthChecks();
         services.AddValidation();
-        services.AddW3CLogging(configureLogger);
         services.ConfigureHttpJsonOptions(options =>
         {
             options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
