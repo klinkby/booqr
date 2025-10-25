@@ -25,8 +25,7 @@ builder
     .AddSingleton<TimeProvider>(static _ => TimeProvider.System)
     .AddApplication(options => configuration.GetSection("Application").Bind(options))
     .AddInfrastructure(options => configuration.GetSection("Infrastructure").Bind(options))
-    .AddApi(options => configuration.GetSection("Application:Jwt").Bind(options),
-        options => configuration.GetSection("W3CLogging").Bind(options));
+    .AddApi(options => configuration.GetSection("Application:Jwt").Bind(options));
 
 if (isMockServer)
 {
@@ -42,7 +41,6 @@ if (!isMockServer)
 {
     app.UseAuthorization();
     app.UseHealthChecks("/health");
-    app.UseW3CLogging();
     if (app.Environment.IsDevelopment())
     {
         app.UseDeveloperExceptionPage();
