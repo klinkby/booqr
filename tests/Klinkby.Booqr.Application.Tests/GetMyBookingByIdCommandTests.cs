@@ -4,7 +4,6 @@ public class GetMyBookingByIdCommandTests
 {
     private readonly Mock<IMyBookingRepository> _repo = new();
 
-
     private GetMyBookingByIdCommand CreateSut()
     {
         return new GetMyBookingByIdCommand(

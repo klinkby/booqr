@@ -33,8 +33,16 @@ public sealed partial class ResetPasswordCommand(
         {
             var password = GenerateRandomPassword();
             await userRepository.Update(WithPasswordHash(user, password), cancellation);
-            Message message = EmbeddedResource.Properties_PasswordReset_handlebars
-                .CreateMessage(query.Email.Trim(), password, "Your password has been reset");
+
+            var message = Message.From(
+                user.Email,
+                StringResources.ResetPasswordSubject,
+                Handlebars.Replace(StringResources.ResetPasswordBody,
+                new Dictionary<string, string>
+                {
+                    ["name"] = user.Name ?? user.Email,
+                    ["password"] = password
+                }));
             _log.Enqueue(message.Id);
             await channelWriter.WriteAsync(message, cancellation);
         }
