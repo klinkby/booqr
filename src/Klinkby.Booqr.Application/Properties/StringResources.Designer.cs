@@ -60,24 +60,7 @@ namespace Klinkby.Booqr.Application.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dear {{name}},
-        ///
-        ///Your new password is:
-        ///
-        ///{{password}}
-        ///
-        ///
-        ///---
-        ///Sent from Booqr.
-        /// </summary>
-        internal static string ResetPasswordBody {
-            get {
-                return ResourceManager.GetString("ResetPasswordBody", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your password has been reset.
+        ///   Looks up a localized string similar to Din adgangskode er blevet nulstillet.
         /// </summary>
         internal static string ResetPasswordSubject {
             get {
@@ -86,26 +69,7 @@ namespace Klinkby.Booqr.Application.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dear {{name}},
-        ///
-        ///Thank you for signing up.
-        ///For your initial login use this generated password:
-        ///
-        ///{{password}}
-        ///
-        ///At first change you should change this to a personal password.
-        ///
-        ///---
-        ///Sent from Booqr.
-        /// </summary>
-        internal static string SignUpBody {
-            get {
-                return ResourceManager.GetString("SignUpBody", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Thank you for signing up.
+        ///   Looks up a localized string similar to Tak for din tilmelding.
         /// </summary>
         internal static string SignUpSubject {
             get {

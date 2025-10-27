@@ -34,19 +34,21 @@ public sealed partial class ResetPasswordCommand(
             var password = GenerateRandomPassword();
             await userRepository.Update(WithPasswordHash(user, password), cancellation);
 
-            var message = Message.From(
-                user.Email,
-                StringResources.ResetPasswordSubject,
-                Handlebars.Replace(StringResources.ResetPasswordBody,
-                new Dictionary<string, string>
-                {
-                    ["name"] = user.Name ?? user.Email,
-                    ["password"] = password
-                }));
+            Message message = ComposeMessage(user, password);
             _log.Enqueue(message.Id);
             await channelWriter.WriteAsync(message, cancellation);
         }
     }
+
+    private static Message ComposeMessage(User user, string password) =>
+        EmbeddedResource.Properties_PasswordReset_handlebars.ComposeMessage(
+            user.Email,
+            StringResources.ResetPasswordSubject,
+            new Dictionary<string, string>
+            {
+                ["name"] = user.Name ?? user.Email,
+                ["password"] = password
+            });
 
     internal static User WithPasswordHash(User user, string password) =>
         user with { PasswordHash = BCryptNet.EnhancedHashPassword(password) };

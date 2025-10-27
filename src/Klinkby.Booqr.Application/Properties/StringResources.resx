@@ -19,33 +19,9 @@
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
     <data name="ResetPasswordSubject" xml:space="preserve">
-        <value>Your password has been reset</value>
+        <value>Din adgangskode er blevet nulstillet</value>
     </data>
     <data name="SignUpSubject" xml:space="preserve">
-        <value>Thank you for signing up</value>
-    </data>
-    <data name="SignUpBody" xml:space="preserve">
-        <value>Dear {{name}},
-
-Thank you for signing up.
-For your initial login use this generated password:
-
-{{password}}
-
-At first change you should change this to a personal password.
-
----
-Sent from Booqr</value>
-    </data>
-    <data name="ResetPasswordBody" xml:space="preserve">
-        <value>Dear {{name}},
-
-Your new password is:
-
-{{password}}
-
-
----
-Sent from Booqr</value>
+        <value>Tak for din tilmelding</value>
     </data>
 </root>
