@@ -39,21 +39,23 @@ public sealed partial class SignUpCommand(
         User newUser = Map(query, password);
         var userId = await userRepository.Add(newUser, cancellation);
 
-        var message = Message.From(
-            newUser.Email,
-            StringResources.SignUpSubject,
-            Handlebars.Replace(StringResources.SignUpBody,
-                new Dictionary<string, string>
-                {
-                    ["name"] = newUser.Name ?? newUser.Email,
-                    ["password"] = password
-                }));
+        Message message = ComposeMessage(newUser, password);
         _log.Enqueue(message.Id);
         await channelWriter.WriteAsync(message, cancellation);
 
         _log.CreatedUser(newUser.Email, userId);
         return userId;
     }
+
+    private static Message ComposeMessage(User user, string password) =>
+        EmbeddedResource.Properties_SignUp_handlebars.ComposeMessage(
+            user.Email,
+            StringResources.SignUpSubject,
+            new Dictionary<string, string>
+            {
+                ["name"] = user.Name ?? user.Email,
+                ["password"] = password
+            });
 
     private static User Map(SignUpRequest query, string password)
     {
