@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Reflection;
 using Klinkby.Booqr.Api;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +18,7 @@ if (!isMockServer)
 {
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
+    CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.CreateSpecificCulture("da"); // HACK
 }
 
 ConfigurationManager configuration = builder.Configuration;
@@ -62,7 +64,7 @@ app.UseStaticFiles(new StaticFileOptions
     OnPrepareResponse = static ctx =>
     {
         ctx.Context.Response.Headers.Append(
-            "Cache-Control", $"public, max-age={TimeSpan.FromDays(1).TotalSeconds}");
+            "Cache-Control", $"public, max-age=86400");
     }
 });
 app.MapApiRoutes();

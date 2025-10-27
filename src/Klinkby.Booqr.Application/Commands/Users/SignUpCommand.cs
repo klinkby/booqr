@@ -39,8 +39,15 @@ public sealed partial class SignUpCommand(
         User newUser = Map(query, password);
         var userId = await userRepository.Add(newUser, cancellation);
 
-        Message message = EmbeddedResource.Properties_SignUp_handlebars
-            .CreateMessage(newUser.Email, password, "Thank you for signing up");
+        var message = Message.From(
+            newUser.Email,
+            StringResources.SignUpSubject,
+            Handlebars.Replace(StringResources.SignUpBody,
+                new Dictionary<string, string>
+                {
+                    ["name"] = newUser.Name ?? newUser.Email,
+                    ["password"] = password
+                }));
         _log.Enqueue(message.Id);
         await channelWriter.WriteAsync(message, cancellation);
 
