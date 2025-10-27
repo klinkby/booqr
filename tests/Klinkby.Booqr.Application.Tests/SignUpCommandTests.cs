@@ -58,6 +58,6 @@ public class SignUpCommandTests
         Assert.True(hasMessage && message is not null);
 
         Assert.Equal(expectedEmail, message.To);
-        Assert.Contains("password",  message.Body, StringComparison.InvariantCulture);
+        Assert.Contains(expectedName,  message.Body, StringComparison.InvariantCulture);
     }
 }
