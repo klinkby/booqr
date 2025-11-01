@@ -1,5 +1,6 @@
 ﻿using System.Threading.Channels;
 using Klinkby.Booqr.Application;
+using Klinkby.Booqr.Application.Services;
 using ServiceScan.SourceGenerator;
 using EmailBackgroundService = Klinkby.Booqr.Application.Services.EmailBackgroundService;
 
@@ -18,6 +19,10 @@ public static partial class ServiceCollectionExtensions
         services
             .AddCommands()
             .Configure(configure)
+            .Configure<ReminderMailSettings>(options =>
+            {
+                options.TimeOfDay = settings.ReminderMail.TimeOfDay;
+            })
             .Configure<JwtSettings>(options =>
             {
                 options.Key = settings.Jwt.Key;
@@ -34,6 +39,7 @@ public static partial class ServiceCollectionExtensions
         services.AddSingleton(channel.Reader);
         services.AddSingleton(channel.Writer);
         services.AddHostedService<EmailBackgroundService>();
+        services.AddHostedService<ReminderMailService>();
     }
 
     [GenerateServiceRegistrations(

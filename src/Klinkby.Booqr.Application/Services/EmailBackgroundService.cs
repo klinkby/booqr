@@ -16,15 +16,19 @@ internal sealed partial class EmailBackgroundService(
         await foreach (Message message in reader.ReadAllAsync(stoppingToken))
         {
             using IDisposable? loggerScope = logger.BeginScope(new { MessageId = message.Id });
-            try
-            {
-                await mailClient.Send(message, stoppingToken);
-                _log.SendSuccess(message.To);
-            }
-            catch (MailClientException ex)
-            {
-                _log.SendFailed(ex, message.To, ex.Code, ex.Status, ex.Message);
-            }
+            await TrySendEmail(message, stoppingToken);
+        }
+    }
+
+    async private Task TrySendEmail(Message message, CancellationToken stoppingToken)
+    {
+        try
+        {
+            await mailClient.Send(message, stoppingToken);
+        }
+        catch (MailClientException ex)
+        {
+            _log.SendFailed(ex, message.To, ex.Code, ex.Status, ex.Message);
         }
     }
 
@@ -32,10 +36,7 @@ internal sealed partial class EmailBackgroundService(
     {
         private readonly ILogger<EmailBackgroundService> _logger = logger;
 
-        [LoggerMessage(1010, LogLevel.Information, "Send mail to {ToAddress} succeeded")]
-        public partial void SendSuccess(string toAddress);
-
-        [LoggerMessage(1011, LogLevel.Warning, "Email send to {ToAddress} {Status} {Code} {Message}")]
+        [LoggerMessage(1010, LogLevel.Warning, "Email send to {ToAddress} {Status} {Code} {Message}")]
         public partial void SendFailed(Exception ex, string toAddress, int code, string? status, string message);
     }
 }
