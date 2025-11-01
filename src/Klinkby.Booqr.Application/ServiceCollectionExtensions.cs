@@ -1,6 +1,6 @@
 ﻿using System.Threading.Channels;
-using Klinkby.Booqr.Application;
 using Klinkby.Booqr.Application.Services;
+using Microsoft.Extensions.Configuration;
 using ServiceScan.SourceGenerator;
 using EmailBackgroundService = Klinkby.Booqr.Application.Services.EmailBackgroundService;
 
@@ -10,26 +10,16 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static partial class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services,
-        Action<ApplicationSettings> configure)
+        IConfiguration configuration)
     {
-        ArgumentNullException.ThrowIfNull(configure);
+        ArgumentNullException.ThrowIfNull(configuration);
 
-        ApplicationSettings settings = new();
-        configure(settings);
         services
             .AddCommands()
-            .Configure(configure)
-            .Configure<ReminderMailSettings>(options =>
-            {
-                options.TimeOfDay = settings.ReminderMail.TimeOfDay;
-            })
-            .Configure<JwtSettings>(options =>
-            {
-                options.Key = settings.Jwt.Key;
-                options.Issuer = settings.Jwt.Issuer;
-                options.Audience = settings.Jwt.Audience;
-            })
+            .Configure<ReminderMailSettings>(configuration.GetSection("ReminderMail"))
+            .Configure<JwtSettings>(configuration.GetSection("Jwt"))
             .ConfigureEmailChannel();
+
         return services;
     }
 

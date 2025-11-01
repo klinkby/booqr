@@ -7,13 +7,14 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 internal static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddApi(this IServiceCollection services, Action<JwtSettings> configureJwt)
+    public static IServiceCollection AddApi(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
                 JwtSettings jwt = new();
-                configureJwt(jwt);
+                configuration.Bind(jwt);
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,

@@ -1,10 +1,9 @@
 ﻿using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Text;
-using Klinkby.Booqr.Infrastructure;
 using Klinkby.Booqr.Infrastructure.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Http.Resilience;
-using Microsoft.Extensions.Options;
 using ServiceScan.SourceGenerator;
 using EmailLabsMailClient = Klinkby.Booqr.Infrastructure.Services.EmailLabsMailClient;
 using Transaction = Klinkby.Booqr.Infrastructure.Services.Transaction;
@@ -15,22 +14,20 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static partial class ServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services,
-        Action<InfrastructureSettings> configure)
+        IConfiguration configuration)
     {
-        ArgumentNullException.ThrowIfNull(configure);
+        ArgumentNullException.ThrowIfNull(configuration);
 
         InfrastructureSettings settings = new();
-        configure(settings);
-        services.AddSingleton<IOptions<InfrastructureSettings>>(_ => Options.Options.Create(settings));
-
+        configuration.Bind(settings);
+        services.Configure<InfrastructureSettings>(configuration);
         services.ConfigureEmailLabsHttpClient(settings.MailClientApiKey ?? string.Empty);
+        services.AddNpgsqlSlimDataSource(settings.ConnectionString ?? "", serviceKey: nameof(ConnectionProvider));
         services.AddSingleton<IMailClient, EmailLabsMailClient>();
-
-        return services
-            .AddNpgsqlSlimDataSource(settings.ConnectionString ?? "", serviceKey: nameof(ConnectionProvider))
-            .AddScoped<ITransaction, Transaction>()
-            .AddScoped<IConnectionProvider, ConnectionProvider>()
-            .AddRepositories();
+        services.AddScoped<ITransaction, Transaction>();
+        services.AddScoped<IConnectionProvider, ConnectionProvider>();
+        services.AddRepositories();
+        return services;
     }
 
     private static void ConfigureEmailLabsHttpClient(this IServiceCollection services, string apiKey)
@@ -51,8 +48,6 @@ public static partial class ServiceCollectionExtensions
             .AddAsKeyed(ServiceLifetime.Singleton)
             .AddStandardResilienceHandler(options => options.Retry.DisableForUnsafeHttpMethods());
     }
-
-
 
     [GenerateServiceRegistrations(
         AssignableTo = typeof(IRepository),
