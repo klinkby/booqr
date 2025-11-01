@@ -60,6 +60,15 @@ namespace Klinkby.Booqr.Application.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Husk din tid i morgen.
+        /// </summary>
+        internal static string ReminderSubject {
+            get {
+                return ResourceManager.GetString("ReminderSubject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Din adgangskode er blevet nulstillet.
         /// </summary>
         internal static string ResetPasswordSubject {

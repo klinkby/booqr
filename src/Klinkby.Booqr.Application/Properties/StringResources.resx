@@ -24,4 +24,7 @@
     <data name="SignUpSubject" xml:space="preserve">
         <value>Tak for din tilmelding</value>
     </data>
+    <data name="ReminderSubject" xml:space="preserve">
+        <value>Husk din tid i morgen</value>
+    </data>
 </root>

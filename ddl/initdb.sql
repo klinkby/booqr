@@ -126,3 +126,25 @@ SELECT b.id,
 FROM bookings b
          JOIN calendar c ON b.id = c.bookingid
 ORDER BY c.starttime;
+
+create view public.bookingdetails
+            (id, starttime, service, duration, location, employee, customername, customeremail, created, modified,
+             deleted) as
+SELECT b.id,
+       v.starttime,
+       s.name  AS service,
+       s.duration,
+       l.name  AS location,
+       e.name  AS employee,
+       c.name  AS customername,
+       c.email AS customeremail,
+       b.created,
+       b.modified,
+       b.deleted
+FROM bookings b
+         JOIN calendar v ON b.id = v.bookingid
+         JOIN locations l ON v.locationid = l.id
+         JOIN services s ON b.serviceid = s.id
+         LEFT JOIN users e ON v.employeeid = e.id
+         LEFT JOIN users c ON b.customerid = c.id
+ORDER BY v.starttime;
