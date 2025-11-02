@@ -2,8 +2,8 @@
 
 public sealed record InfrastructureSettings
 {
-    public string? ConnectionString { get; set; }
-    public string? MailClientApiKey { get; set; }
-    public string? MailClientAccount { get; set; }
-    public string? MailClientFromAddress { get; set; }
+    public required string ConnectionString { get; init; }
+    public required string MailClientApiKey { get; init; }
+    public required string MailClientAccount { get; init; }
+    public required string MailClientFromAddress { get; init; }
 }

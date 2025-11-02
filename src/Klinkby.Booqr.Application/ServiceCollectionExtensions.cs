@@ -14,11 +14,15 @@ public static partial class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
+        services.AddCommands();
+        services.ConfigureEmailChannel();
+        services.AddOptions<ReminderMailSettings>()
+            .Bind(configuration.GetSection("ReminderMail"))
+            .ValidateOnStart();
         services
-            .AddCommands()
-            .Configure<ReminderMailSettings>(configuration.GetSection("ReminderMail"))
-            .Configure<JwtSettings>(configuration.GetSection("Jwt"))
-            .ConfigureEmailChannel();
+            .AddOptions<JwtSettings>()
+            .Bind(configuration.GetSection("Jwt"))
+            .ValidateOnStart();
 
         return services;
     }

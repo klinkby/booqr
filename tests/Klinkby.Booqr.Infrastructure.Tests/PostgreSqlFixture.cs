@@ -1,7 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Data.Common;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Dapper;
+using Klinkby.Booqr.Infrastructure.Models;
 using Klinkby.Booqr.Infrastructure.Services;
+using Microsoft.Extensions.Configuration;
 using Testcontainers.PostgreSql;
 
 [module: DapperAot]
@@ -22,10 +25,16 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
     async Task IAsyncLifetime.InitializeAsync()
     {
         await SqlContainer.StartAsync();
+        IConfigurationRoot config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                { nameof(InfrastructureSettings.ConnectionString), SqlContainer.GetConnectionString() }
+            })
+            .Build();
         _services = new ServiceCollection()
             .AddSingleton<TimeProvider, FakeTimeProvider>()
             .AddSingleton(typeof(ILogger<>), typeof(NullLogger<>))
-            .AddInfrastructure(options => options.ConnectionString = SqlContainer.GetConnectionString())
+            .AddInfrastructure(config)
             .BuildServiceProvider();
         await InitializeDatabase();
     }
@@ -38,8 +47,8 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
 
     async private Task InitializeDatabase(CancellationToken cancellationToken = default)
     {
-        var connectionProvider = Services.GetRequiredService<IConnectionProvider>();
-        var connection = await connectionProvider.GetConnection(cancellationToken);
+        IConnectionProvider connectionProvider = Services.GetRequiredService<IConnectionProvider>();
+        DbConnection connection = await connectionProvider.GetConnection(cancellationToken);
         using StreamReader sr = new(
             typeof(ServiceProviderFixture)
                 .Assembly

@@ -2,8 +2,9 @@
 
     <PropertyGroup>
         <NeutralLanguage>da</NeutralLanguage>
+        <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
     </PropertyGroup>
-    
+
     <ItemGroup>
         <ProjectReference Include="..\..\src\Klinkby.Booqr.Core\Klinkby.Booqr.Core.csproj"/>
     </ItemGroup>
