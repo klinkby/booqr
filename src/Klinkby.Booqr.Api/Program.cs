@@ -23,7 +23,7 @@ ConfigurationManager configuration = builder.Configuration;
 builder
     .Services
     .AddSingleton<TimeProvider>(static _ => TimeProvider.System)
-    .AddApplication(configuration.GetSection("Application"))
+    .AddApplication(configuration.GetSection("Application"), isMockServer)
     .AddInfrastructure(configuration.GetSection("Infrastructure"))
     .AddApi(configuration.GetSection("Application:Jwt"));
 

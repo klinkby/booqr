@@ -10,7 +10,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static partial class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration, bool inhibitServices)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
@@ -24,6 +24,12 @@ public static partial class ServiceCollectionExtensions
             .Bind(configuration.GetSection("Jwt"))
             .ValidateOnStart();
 
+        if (!inhibitServices)
+        {
+            services.AddHostedService<EmailBackgroundService>();
+            services.AddHostedService<ReminderMailService>();
+        }
+
         return services;
     }
 
@@ -32,8 +38,6 @@ public static partial class ServiceCollectionExtensions
         var channel = Channel.CreateBounded<Message>(capacity);
         services.AddSingleton(channel.Reader);
         services.AddSingleton(channel.Writer);
-        services.AddHostedService<EmailBackgroundService>();
-        services.AddHostedService<ReminderMailService>();
     }
 
     [GenerateServiceRegistrations(
