@@ -2,7 +2,7 @@ namespace Klinkby.Booqr.Application.Models;
 
 public sealed record ApplicationSettings
 {
-    [Required] public JwtSettings Jwt { get; set; } = new();
+    public required JwtSettings Jwt { get; init; }
 
-    [Required] public ReminderMailSettings ReminderMail { get; set; } = new();
+    public required ReminderMailSettings ReminderMail { get; init; }
 }

@@ -13,16 +13,14 @@ internal static class ServiceCollectionExtensions
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                JwtSettings jwt = new();
-                configuration.Bind(jwt);
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwt.Key!)),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(configuration.GetValue<string>(nameof(JwtSettings.Key))!)),
                     ValidateIssuer = true,
-                    ValidIssuer = jwt.Issuer,
+                    ValidIssuer = configuration.GetValue<string>(nameof(JwtSettings.Issuer)),
                     ValidateAudience = true,
-                    ValidAudience = jwt.Audience,
+                    ValidAudience = configuration.GetValue<string>(nameof(JwtSettings.Audience)),
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
                 };

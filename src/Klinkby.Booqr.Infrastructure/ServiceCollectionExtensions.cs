@@ -18,11 +18,13 @@ public static partial class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
-        InfrastructureSettings settings = new();
-        configuration.Bind(settings);
-        services.Configure<InfrastructureSettings>(configuration);
-        services.ConfigureEmailLabsHttpClient(settings.MailClientApiKey ?? string.Empty);
-        services.AddNpgsqlSlimDataSource(settings.ConnectionString ?? "", serviceKey: nameof(ConnectionProvider));
+        services.AddOptions<InfrastructureSettings>()
+            .Bind(configuration)
+            .ValidateOnStart();
+        services.ConfigureEmailLabsHttpClient(configuration.GetValue<string>(nameof(InfrastructureSettings.MailClientApiKey)) ?? string.Empty);
+        services.AddNpgsqlSlimDataSource(
+            configuration.GetValue<string>(nameof(InfrastructureSettings.ConnectionString)) ?? string.Empty,
+            serviceKey: nameof(ConnectionProvider));
         services.AddSingleton<IMailClient, EmailLabsMailClient>();
         services.AddScoped<ITransaction, Transaction>();
         services.AddScoped<IConnectionProvider, ConnectionProvider>();
@@ -34,19 +36,19 @@ public static partial class ServiceCollectionExtensions
     {
         // https://learn.microsoft.com/en-us/dotnet/core/resilience/http-resilience?tabs=dotnet-cli
         services
-            .AddHttpClient(
-                nameof(EmailLabsMailClient),
-                client =>
-                {
-                    client.BaseAddress = new Uri("https://api.emaillabs.net.pl/");
-                    var codedValue = Convert.ToBase64String(Encoding.ASCII.GetBytes(apiKey));
-                    HttpRequestHeaders headers = client.DefaultRequestHeaders;
-                    headers.Authorization = new AuthenticationHeaderValue("Basic", codedValue);
-                    headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse(MediaTypeNames.Application.Json));
-                    headers.UserAgent.Add(new ProductInfoHeaderValue("Booqr", "1.0"));
-                })
+            .AddHttpClient(nameof(EmailLabsMailClient), client => ConfigureHttpClient(client, apiKey))
             .AddAsKeyed(ServiceLifetime.Singleton)
             .AddStandardResilienceHandler(options => options.Retry.DisableForUnsafeHttpMethods());
+    }
+
+    private static void ConfigureHttpClient(HttpClient client, string apiKey)
+    {
+        client.BaseAddress = new Uri("https://api.emaillabs.net.pl/", UriKind.Absolute);
+        var codedValue = Convert.ToBase64String(Encoding.ASCII.GetBytes(apiKey));
+        HttpRequestHeaders headers = client.DefaultRequestHeaders;
+        headers.Authorization = new AuthenticationHeaderValue("Basic", codedValue);
+        headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse(MediaTypeNames.Application.Json));
+        headers.UserAgent.Add(new ProductInfoHeaderValue("Booqr", "1.0"));
     }
 
     [GenerateServiceRegistrations(
