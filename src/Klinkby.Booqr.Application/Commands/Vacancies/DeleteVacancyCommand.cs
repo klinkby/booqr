@@ -2,8 +2,9 @@
 
 public sealed partial class DeleteVacancyCommand(
     ICalendarRepository calendar,
+    IActivityRecorder activityRecorder,
     ILogger<DeleteVacancyCommand> logger)
-    : DeleteCommand<CalendarEvent>(calendar, logger)
+    : DeleteCommand<CalendarEvent>(calendar, activityRecorder, logger)
 {
     private readonly LoggerMessages _log = new(logger);
 

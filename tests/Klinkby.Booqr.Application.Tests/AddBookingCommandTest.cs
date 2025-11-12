@@ -7,6 +7,7 @@ public class AddBookingCommandTest
     private readonly Mock<ICalendarRepository> _mockCalendarRepository;
     private readonly Mock<IServiceRepository> _mockServiceRepository;
     private readonly Mock<ITransaction> _mockTransaction;
+    private readonly Mock<IActivityRecorder> _activityRecorder = new();
 
     public AddBookingCommandTest()
     {
@@ -20,6 +21,7 @@ public class AddBookingCommandTest
             _mockCalendarRepository.Object,
             _mockServiceRepository.Object,
             _mockTransaction.Object,
+            _activityRecorder.Object,
             NullLogger<AddBookingCommand>.Instance);
     }
 

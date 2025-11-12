@@ -1,10 +1,12 @@
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Time.Testing;
 
 namespace Klinkby.Booqr.Application.Tests;
 
 public class UserCommandsTests
 {
+    private readonly static TimeProvider TimeProvider = new FakeTimeProvider();
     private readonly JwtSettings _jwt = new()
     {
         Key = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
@@ -20,7 +22,7 @@ public class UserCommandsTests
     {
         Mock<IUserRepository> repo = CreateUserRepositoryMock(null);
 
-        var command = new LoginCommand(repo.Object, Options.Create(_jwt), NullLogger<LoginCommand>.Instance);
+        var command = new LoginCommand(repo.Object, Options.Create(_jwt), TimeProvider, NullLogger<LoginCommand>.Instance);
         var request = new LoginRequest(email, password);
 
         LoginResponse? result = await command.Execute(request);
@@ -39,7 +41,7 @@ public class UserCommandsTests
         User userWithHashedPassword =
             user with { PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(correctPassword) };
         Mock<IUserRepository> repo = CreateUserRepositoryMock(userWithHashedPassword);
-        var command = new LoginCommand(repo.Object, Options.Create(_jwt), NullLogger<LoginCommand>.Instance);
+        var command = new LoginCommand(repo.Object, Options.Create(_jwt), TimeProvider, NullLogger<LoginCommand>.Instance);
         var request = new LoginRequest(user.Email, wrongPassword);
 
         LoginResponse? result = await command.Execute(request);
@@ -57,7 +59,7 @@ public class UserCommandsTests
         User userWithHashedPassword = user with { PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(password) };
         Mock<IUserRepository> repo = CreateUserRepositoryMock(userWithHashedPassword);
 
-        var command = new LoginCommand(repo.Object, Options.Create(_jwt), NullLogger<LoginCommand>.Instance);
+        var command = new LoginCommand(repo.Object, Options.Create(_jwt), TimeProvider, NullLogger<LoginCommand>.Instance);
         var request = new LoginRequest(userWithHashedPassword.Email, password);
 
         // Act

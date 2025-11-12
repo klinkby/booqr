@@ -1,4 +1,5 @@
 ﻿using System.Threading.Channels;
+using Klinkby.Booqr.Application;
 using Klinkby.Booqr.Application.Services;
 using Microsoft.Extensions.Configuration;
 using ServiceScan.SourceGenerator;
@@ -15,7 +16,6 @@ public static partial class ServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configuration);
 
         services.AddCommands();
-        services.ConfigureEmailChannel();
         services.AddOptions<ReminderMailSettings>()
             .Bind(configuration.GetSection("ReminderMail"))
             .ValidateOnStart();
@@ -26,16 +26,29 @@ public static partial class ServiceCollectionExtensions
 
         if (!inhibitServices)
         {
+            BoundedChannelOptions options = new(100)
+            {
+                SingleReader = true,
+                SingleWriter = false,
+                AllowSynchronousContinuations = true,
+            };
+
+            services.AddBoundedChannel<Message>(options);
             services.AddHostedService<EmailBackgroundService>();
+
+            services.AddBoundedChannel<Activity>(options);
+            services.AddHostedService<ActivityBackgroundService>();
+            services.AddScoped<IActivityRecorder, ActivityRecorder>();
+
             services.AddHostedService<ReminderMailService>();
         }
 
         return services;
     }
 
-    private static void ConfigureEmailChannel(this IServiceCollection services, int capacity = 100)
+    private static void AddBoundedChannel<T>(this IServiceCollection services, BoundedChannelOptions options)
     {
-        var channel = Channel.CreateBounded<Message>(capacity);
+        var channel = Channel.CreateBounded<T>(options);
         services.AddSingleton(channel.Reader);
         services.AddSingleton(channel.Writer);
     }

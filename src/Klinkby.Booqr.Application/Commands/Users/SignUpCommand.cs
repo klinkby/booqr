@@ -25,6 +25,7 @@ public sealed record SignUpRequest(
 public sealed partial class SignUpCommand(
     IUserRepository userRepository,
     ChannelWriter<Message> channelWriter,
+    IActivityRecorder activityRecorder,
     ILogger<SignUpCommand> logger
 ) : ICommand<SignUpRequest, Task<int>>
 {
@@ -44,6 +45,7 @@ public sealed partial class SignUpCommand(
         await channelWriter.WriteAsync(message, cancellation);
 
         _log.CreatedUser(newUser.Email, userId);
+        activityRecorder.Add<User>(new(userId, userId));
         return userId;
     }
 

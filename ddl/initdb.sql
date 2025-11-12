@@ -1,6 +1,8 @@
 create extension btree_gist
     schema public;
 
+-------------------------------------------------------------
+
 create table public.users
 (
     id           integer generated always as identity
@@ -109,6 +111,19 @@ create table public.employeeservices
         primary key (serviceid, employeeid)
 );
 
+create table public.activities
+(
+    id        bigint generated always as identity,
+    timestamp timestamp with time zone not null,
+    requestid varchar(23),
+    userid    integer                                                                       not null,
+    entity    varchar(25)                                                                   not null,
+    action    varchar(100)                                                                  not null,
+    primary key (timestamp, id)
+);
+
+-------------------------------------------------------------
+
 create view public.mybookings
             (id, starttime, endtime, customerid, serviceid, locationid, employeeid, hasnote, created, modified,
              deleted) as
@@ -128,14 +143,16 @@ FROM bookings b
 ORDER BY c.starttime;
 
 create view public.bookingdetails
-            (id, starttime, service, duration, location, employee, customername, customeremail, created, modified,
-             deleted) as
+            (id, starttime, service, duration, location, employee, customerid, customername, customeremail, created,
+             modified, deleted)
+as
 SELECT b.id,
        v.starttime,
        s.name  AS service,
        s.duration,
        l.name  AS location,
        e.name  AS employee,
+       c.id    AS customerid,
        c.name  AS customername,
        c.email AS customeremail,
        b.created,

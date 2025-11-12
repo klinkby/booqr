@@ -2,5 +2,5 @@
 
 public sealed record ReminderMailSettings
 {
-    public required TimeSpan TimeOfDay { get; init; } = new(16, 00, 00);
+    public TimeSpan TimeOfDay { get; set; } = new(16, 00, 00);
 }

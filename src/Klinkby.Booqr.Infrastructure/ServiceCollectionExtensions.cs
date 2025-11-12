@@ -21,7 +21,9 @@ public static partial class ServiceCollectionExtensions
         services.AddOptions<InfrastructureSettings>()
             .Bind(configuration)
             .ValidateOnStart();
-        services.ConfigureEmailLabsHttpClient(configuration.GetValue<string>(nameof(InfrastructureSettings.MailClientApiKey)) ?? string.Empty);
+        services.ConfigureEmailLabsHttpClient(
+            configuration.GetValue<Uri>(nameof(InfrastructureSettings.MailClientBaseAddress)),
+            configuration.GetValue<string>(nameof(InfrastructureSettings.MailClientApiKey)));
         services.AddNpgsqlSlimDataSource(
             configuration.GetValue<string>(nameof(InfrastructureSettings.ConnectionString)) ?? string.Empty,
             serviceKey: nameof(ConnectionProvider));
@@ -32,19 +34,20 @@ public static partial class ServiceCollectionExtensions
         return services;
     }
 
-    private static void ConfigureEmailLabsHttpClient(this IServiceCollection services, string apiKey)
+    private static void ConfigureEmailLabsHttpClient(this IServiceCollection services, Uri? baseAddress, string? apiKey)
     {
         // https://learn.microsoft.com/en-us/dotnet/core/resilience/http-resilience?tabs=dotnet-cli
         services
-            .AddHttpClient(nameof(EmailLabsMailClient), client => ConfigureHttpClient(client, apiKey))
+            .AddHttpClient(nameof(EmailLabsMailClient), client =>
+                ConfigureHttpClient(client, baseAddress, apiKey))
             .AddAsKeyed(ServiceLifetime.Singleton)
             .AddStandardResilienceHandler(options => options.Retry.DisableForUnsafeHttpMethods());
     }
 
-    private static void ConfigureHttpClient(HttpClient client, string apiKey)
+    private static void ConfigureHttpClient(HttpClient client, Uri? baseAddress, string? apiKey)
     {
-        client.BaseAddress = new Uri("https://api.emaillabs.net.pl/", UriKind.Absolute);
-        var codedValue = Convert.ToBase64String(Encoding.ASCII.GetBytes(apiKey));
+        client.BaseAddress = baseAddress;
+        var codedValue = Convert.ToBase64String(Encoding.ASCII.GetBytes(apiKey ?? string.Empty));
         HttpRequestHeaders headers = client.DefaultRequestHeaders;
         headers.Authorization = new AuthenticationHeaderValue("Basic", codedValue);
         headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse(MediaTypeNames.Application.Json));

@@ -1,6 +1,6 @@
 ﻿using Klinkby.Booqr.Application.Models;
 
-namespace Klinkby.Booqr.Api.Util;
+namespace Klinkby.Booqr.Api;
 
 internal static class Routing
 {
@@ -8,7 +8,9 @@ internal static class Routing
 
     public static void MapApiRoutes(this IEndpointRouteBuilder app)
     {
-        RouteGroupBuilder baseRoute = app.MapGroup(BaseUrl);
+        RouteGroupBuilder baseRoute = app
+            .MapGroup(BaseUrl)
+            .AddEndpointFilter<RequestMetadataEndPointFilter>();
         MapBookings(baseRoute);
         MapLocations(baseRoute);
         MapServices(baseRoute);
@@ -93,7 +95,7 @@ internal static class Routing
                         [AsParameters] ByIdRequest request,
                         CancellationToken cancellation) =>
                     command.Execute(request, cancellation))
-            .AddEndpointFilter<ETagProviderEndPointFilter>()
+//            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .WithName("getLocationById")
             .WithSummary("Get a single location");
 
@@ -112,7 +114,7 @@ internal static class Routing
                         [FromBody] UpdateLocationRequest request,
                         ClaimsPrincipal user, CancellationToken cancellation) =>
                     command.NoContent(request with { Id = id }, user, cancellation))
-            .AddEndpointFilter<ETagProviderEndPointFilter>()
+//            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .RequireAuthorization(UserRole.Admin)
             .WithName("updateLocation")
             .WithSummary("Update a location");
@@ -150,7 +152,7 @@ internal static class Routing
                         [AsParameters] ByIdRequest request,
                         CancellationToken cancellation) =>
                     command.Execute(request, cancellation))
-            .AddEndpointFilter<ETagProviderEndPointFilter>()
+//            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .WithName("getServiceById")
             .WithSummary("Get a single service");
 
@@ -169,7 +171,7 @@ internal static class Routing
                         [FromBody] UpdateServiceRequest request,
                         ClaimsPrincipal user, CancellationToken cancellation) =>
                     command.NoContent(request with { Id = id }, user, cancellation))
-            .AddEndpointFilter<ETagProviderEndPointFilter>()
+//            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .RequireAuthorization(UserRole.Admin)
             .WithName("updateService")
             .WithSummary("Update a service");
@@ -232,7 +234,7 @@ internal static class Routing
                         CancellationToken cancellation) =>
                     command.Execute(request with { User = user }, cancellation))
             .RequireAuthorization(UserRole.Customer)
-            .AddEndpointFilter<ETagProviderEndPointFilter>()
+//            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .WithName("getMyBookingById")
             .WithSummary("Get a single my booking item");
 
@@ -250,7 +252,7 @@ internal static class Routing
                         [AsParameters] ByIdRequest request,
                         CancellationToken cancellation) =>
                     command.Execute(request, cancellation))
-            .AddEndpointFilter<ETagProviderEndPointFilter>()
+//            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .RequireAuthorization(UserRole.Employee)
             .WithName("getUserById")
             .WithSummary("Get a single user");
@@ -306,7 +308,7 @@ internal static class Routing
                         [AsParameters] ByIdRequest request,
                         CancellationToken cancellation) =>
                     command.Execute(request, cancellation))
-            .AddEndpointFilter<ETagProviderEndPointFilter>()
+//            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .WithName("getVacancyById")
             .WithSummary("Get a single vacancy");
 

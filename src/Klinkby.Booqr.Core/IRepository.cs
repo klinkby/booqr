@@ -7,16 +7,13 @@ public interface IRepository
 {
 }
 
-/// <Inheritdoc />
-public interface IRepository<T> : IRepository<T, int>;
-
 /// <summary>
-///     Represents the base repository interface for managing entities of type <typeparamref name="T" />
-///     with a unique identifier of type <typeparamref name="TKey" />.
+/// Represents an immutable repository that provides read-only access to items of type <typeparamref name="T" />
+/// identified by keys of type <typeparamref name="TKey" />.
 /// </summary>
-/// <typeparam name="T">The type of the entities managed by the repository.</typeparam>
-/// <typeparam name="TKey">The type of the unique identifier for entities.</typeparam>
-public interface IRepository<T, TKey> : IRepository
+/// <typeparam name="T">The type of items stored in the repository.</typeparam>
+/// <typeparam name="TKey">The type of the key used to identify items in the repository.</typeparam>
+public interface IImmutableRepository<T, TKey> : IRepository
 {
     /// <summary>
     ///     Retrieves all items of type <typeparamref name="T" /> from the repository based on the given paging parameters.
@@ -48,7 +45,16 @@ public interface IRepository<T, TKey> : IRepository
     ///     added item.
     /// </returns>
     Task<TKey> Add(T newItem, CancellationToken cancellation = default);
+}
 
+///<inheritdoc />
+public interface IRepository<T> : IRepository<T, int>;
+
+/// <summary>
+/// Represents a repository as a marker interface to unify and identify repository types.
+/// </summary>
+public interface IRepository<T, TKey> : IImmutableRepository<T, TKey>
+{
     /// <summary>
     ///     Updates an existing item of type <typeparamref name="T" /> in the repository. Sets the Modified field.
     /// </summary>

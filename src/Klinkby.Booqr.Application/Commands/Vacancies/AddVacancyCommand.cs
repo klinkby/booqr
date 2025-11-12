@@ -103,7 +103,7 @@ public sealed record AddVacancyRequest(
     }
 }
 
-public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITransaction transaction, ILogger<AddVacancyCommand> logger)
+public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITransaction transaction, IActivityRecorder activityRecorder, ILogger<AddVacancyCommand> logger)
     : ICommand<AddVacancyRequest, Task<int>>
 {
     private readonly LoggerMessages _log = new(logger);
@@ -130,6 +130,7 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
             throw;
         }
         await transaction.Commit(cancellation);
+        activityRecorder.Add<CalendarEvent>(new(query.AuthenticatedUserId, newId));
         return newId;
     }
 

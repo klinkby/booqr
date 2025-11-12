@@ -1,22 +1,25 @@
 ﻿namespace Klinkby.Booqr.Application.Abstractions;
 
-public abstract partial class DeleteCommand<TItem>(IRepository<TItem, int> repository, ILogger logger)
+public abstract partial class DeleteCommand<TItem>(
+    IRepository<TItem, int> repository,
+    IActivityRecorder activityRecorder,
+    ILogger logger)
     : ICommand<AuthenticatedByIdRequest>
 {
     private readonly LoggerMessages _log = new(logger);
 
-    public Task Execute(AuthenticatedByIdRequest query, CancellationToken cancellation = default)
+    public async Task Execute(AuthenticatedByIdRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
-        return Delete(query, cancellation);
+        var deleted = await Delete(query, cancellation);
+        if (deleted) activityRecorder.Delete<TItem>(new (query.AuthenticatedUserId, query.Id));
     }
 
     internal virtual Task<bool> Delete(AuthenticatedByIdRequest query, CancellationToken cancellation)
     {
-        _log.DeleteItem(query.AuthenticatedUserId, nameof(Location), query.Id);
+        _log.DeleteItem(query.AuthenticatedUserId, typeof(TItem).Name, query.Id);
         return repository.Delete(query.Id, cancellation);
     }
-
 
     private sealed partial class LoggerMessages(ILogger logger)
     {

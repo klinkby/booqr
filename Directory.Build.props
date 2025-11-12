@@ -1,6 +1,5 @@
 ﻿<Project>
-    <!-- https://github.com/dotnet/reproducible-builds/issues/61 -->
-    <!-- <Sdk Name="DotNet.ReproducibleBuilds.Isolated" Version="1.2.25"/>-->
+    <Sdk Name="DotNet.ReproducibleBuilds.Isolated" Version="1.2.39"/>
 
     <PropertyGroup Label="Project settings">
         <TargetFramework>net10.0</TargetFramework>

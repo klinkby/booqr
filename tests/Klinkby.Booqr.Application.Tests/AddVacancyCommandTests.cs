@@ -12,6 +12,7 @@ public class AddVacancyCommandTests
 
     private readonly Mock<ICalendarRepository> _repoMock = new();
     private readonly Mock<ITransaction> _transactionMock = new();
+    private readonly Mock<IActivityRecorder> _activityRecorder = new();
 
     [Theory]
     [ApplicationAutoData]
@@ -24,7 +25,7 @@ public class AddVacancyCommandTests
             e1 with { EmployeeId = _query.EmployeeId ?? 0, LocationId = _query.LocationId, BookingId = null, StartTime = _query.StartTime, EndTime = _query.EndTime },
             e2 with { EmployeeId = _query.EmployeeId ?? 0, LocationId = locationId, BookingId = bookingId, StartTime = _query.StartTime, EndTime = _query.EndTime }
         ];
-        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object,
+        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, _activityRecorder.Object,
             NullLogger<AddVacancyCommand>.Instance);
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             sut.AddCalendarEvent(_query, events, 0, CancellationToken.None));
@@ -41,7 +42,7 @@ public class AddVacancyCommandTests
             e1 with { EmployeeId = _query.EmployeeId ?? 0, LocationId = _query.LocationId, BookingId = null, StartTime = _query.StartTime, EndTime = _query.EndTime },
             e2 with { EmployeeId = _query.EmployeeId ?? 0, LocationId = locationId, BookingId = bookingId, StartTime = _query.StartTime, EndTime = _query.EndTime }
         ];
-        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object,
+        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, _activityRecorder.Object,
             NullLogger<AddVacancyCommand>.Instance);
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             sut.AddCalendarEvent(_query, events, 0, CancellationToken.None));
@@ -63,7 +64,7 @@ public class AddVacancyCommandTests
         };
         List<CalendarEvent> events = [coveringEvent];
 
-        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object,
+        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, _activityRecorder.Object,
             NullLogger<AddVacancyCommand>.Instance);
 
         // Act
@@ -88,7 +89,7 @@ public class AddVacancyCommandTests
         _repoMock.Setup(x => x.Add(It.IsAny<CalendarEvent>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(999);
 
-        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object,
+        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, _activityRecorder.Object,
             NullLogger<AddVacancyCommand>.Instance);
 
         // Act
@@ -110,7 +111,7 @@ public class AddVacancyCommandTests
         startOfEvent = startOfEvent with { Id = 202, EmployeeId = _query.EmployeeId ?? 0, LocationId = _query.LocationId, BookingId = null, StartTime = _query.EndTime, EndTime = _query.EndTime.AddHours(1) };
         List<CalendarEvent> events = [endOfEvent, startOfEvent];
 
-        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object,
+        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, _activityRecorder.Object,
             NullLogger<AddVacancyCommand>.Instance);
 
         // Act
@@ -133,7 +134,7 @@ public class AddVacancyCommandTests
         endOfEvent = endOfEvent with { Id = 301, EmployeeId = _query.EmployeeId ?? 0, LocationId = _query.LocationId, BookingId = null, StartTime = _query.StartTime.AddHours(-1), EndTime = _query.StartTime };
         List<CalendarEvent> events = [endOfEvent];
 
-        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object,
+        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, _activityRecorder.Object,
             NullLogger<AddVacancyCommand>.Instance);
 
         // Act
@@ -155,7 +156,7 @@ public class AddVacancyCommandTests
         startOfEvent = startOfEvent with { Id = 401, EmployeeId = _query.EmployeeId ?? 0, LocationId = _query.LocationId, BookingId = null, StartTime = _query.EndTime, EndTime = _query.EndTime.AddHours(1) };
         List<CalendarEvent> events = [startOfEvent];
 
-        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object,
+        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, _activityRecorder.Object,
             NullLogger<AddVacancyCommand>.Instance);
 
         // Act
@@ -178,7 +179,7 @@ public class AddVacancyCommandTests
         _repoMock.Setup(x => x.Add(It.IsAny<CalendarEvent>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(555);
 
-        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object,
+        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, _activityRecorder.Object,
             NullLogger<AddVacancyCommand>.Instance);
 
         // Act
