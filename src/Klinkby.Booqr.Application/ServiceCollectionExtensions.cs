@@ -1,4 +1,5 @@
 ﻿using System.Threading.Channels;
+using Klinkby.Booqr.Application;
 using Klinkby.Booqr.Application.Services;
 using Microsoft.Extensions.Configuration;
 using ServiceScan.SourceGenerator;

@@ -39,8 +39,8 @@ internal static class ServiceCollectionExtensions
         {
             options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
         });
-        services.AddScoped<IETagProvider, ETagProvider>();
-        services.AddSingleton<ETagProviderEndPointFilter>();
+        services.AddScoped<IRequestMetadata, RequestMetadata>();
+        services.AddSingleton<RequestMetadataEndPointFilter>();
         return services;
     }
 }

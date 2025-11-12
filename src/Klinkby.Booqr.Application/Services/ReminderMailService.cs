@@ -9,6 +9,18 @@ using Microsoft.Extensions.Options;
 
 namespace Klinkby.Booqr.Application.Services;
 
+/// <summary>
+/// ReminderMailService is a background service that orchestrates the sending of reminder emails
+/// based on a configured schedule (CRON).
+/// </summary>
+/// <remarks>
+/// This service calculates the next scheduled time for sending reminder emails and ensures
+/// scheduled tasks continue executing until explicitly stopped.
+/// </remarks>
+/// <param name="timeProvider">Provides the current time, used to determine the next scheduled execution.</param>
+/// <param name="serviceProvider">Provides access to registered application services.</param>
+/// <param name="reminderMailSettings">Settings that define the time of day for sending reminders.</param>
+/// <param name="logger">Logger instance for logging service activity and errors.</param>
 internal sealed partial class ReminderMailService(
     TimeProvider timeProvider,
     IServiceProvider serviceProvider,

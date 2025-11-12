@@ -8,7 +8,7 @@ namespace Klinkby.Booqr.Api.Filters;
 ///     and store in IETagProvider scoped service.
 ///     Checks controller response for ETag and respond Not-Modified if there's a match.
 /// </summary>
-internal sealed class ETagProviderEndPointFilter : IEndpointFilter
+internal sealed class RequestMetadataEndPointFilter : IEndpointFilter
 {
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
@@ -35,18 +35,14 @@ internal sealed class ETagProviderEndPointFilter : IEndpointFilter
             _ => default
         };
 
+        // https://ercanerdogan.medium.com/using-scoped-services-in-middleware-pitfalls-solutions-and-testing-in-asp-net-core-b79871ea0999
+        var etagProvider = (RequestMetadata)httpContext.RequestServices.GetRequiredService<IRequestMetadata>();
+        etagProvider.TraceId = httpContext.TraceIdentifier;
+
         DateTime? version = long.TryParse(headerValue, CultureInfo.InvariantCulture, out var ticks)
             ? new DateTime(ticks, DateTimeKind.Utc)
             : null;
-        if (version is null)
-        {
-            return null;
-        }
-
-        // https://ercanerdogan.medium.com/using-scoped-services-in-middleware-pitfalls-solutions-and-testing-in-asp-net-core-b79871ea0999
-        var etagProvider = (ETagProvider)httpContext.RequestServices.GetRequiredService<IETagProvider>();
         etagProvider.Version = version;
-
         return version;
     }
 

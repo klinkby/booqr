@@ -1,6 +1,7 @@
 ﻿namespace Klinkby.Booqr.Application.Abstractions;
 
-public interface IETagProvider
+public interface IRequestMetadata
 {
     DateTime? Version { get; }
+    string? TraceId { get; }
 }
