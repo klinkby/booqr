@@ -8,9 +8,10 @@ public sealed record UpdateLocationRequest(
 
 public sealed class UpdateLocationCommand(
     ILocationRepository locations,
-    IETagProvider etagProvider,
+    IRequestMetadata etagProvider,
+    IActivityRecorder activityRecorder,
     ILogger<UpdateLocationCommand> logger)
-    : UpdateCommand<UpdateLocationRequest, Location>(locations, logger)
+    : UpdateCommand<UpdateLocationRequest, Location>(locations, activityRecorder, logger)
 {
     protected override Location Map(UpdateLocationRequest query) =>
         new(query.Name, null, null, null, null)

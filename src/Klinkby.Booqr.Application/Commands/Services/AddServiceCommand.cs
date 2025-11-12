@@ -9,8 +9,9 @@ public record AddServiceRequest(
 
 public sealed class AddServiceCommand(
     IServiceRepository services,
+    IActivityRecorder activityRecorder,
     ILogger<AddServiceCommand> logger)
-    : AddCommand<AddServiceRequest, Service>(services, logger)
+    : AddCommand<AddServiceRequest, Service>(services, activityRecorder, logger)
 {
     protected override Service Map(AddServiceRequest query) =>
         new(query.Name, query.Duration);

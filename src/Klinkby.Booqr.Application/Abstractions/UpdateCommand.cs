@@ -2,7 +2,10 @@
 
 namespace Klinkby.Booqr.Application.Abstractions;
 
-public abstract partial class UpdateCommand<TRequest, TItem>(IRepository<TItem, int> repository, ILogger logger)
+public abstract partial class UpdateCommand<TRequest, TItem>(
+    IRepository<TItem, int> repository,
+    IActivityRecorder activityRecorder,
+    ILogger logger)
     : ICommand<TRequest>
     where TRequest : AuthenticatedRequest, IId
     where TItem : notnull
@@ -20,6 +23,8 @@ public abstract partial class UpdateCommand<TRequest, TItem>(IRepository<TItem, 
         {
             throw new MidAirCollisionException($"{item.GetType().Name} {query.Id} was already updated.");
         }
+
+        activityRecorder.Update<TItem>(new(query.AuthenticatedUserId, query.Id));
     }
 
     protected abstract TItem Map(TRequest query);

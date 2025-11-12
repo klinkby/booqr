@@ -6,8 +6,9 @@ namespace Klinkby.Booqr.Application.Tests;
 public class ServiceCommandsTests
 {
     private const int ExpectedId = 42;
-    private readonly Mock<IETagProvider> _mockEtag = new();
+    private readonly Mock<IRequestMetadata> _mockEtag = new();
     private readonly Mock<IServiceRepository> _mockRepo = CreateMockServiceRepository();
+    private readonly Mock<IActivityRecorder> _activityRecorder = new();
 
     [Theory]
     [ApplicationAutoData]
@@ -15,7 +16,7 @@ public class ServiceCommandsTests
         Service service,
         ClaimsPrincipal user)
     {
-        AddServiceCommand command = new(_mockRepo.Object, NullLogger<AddServiceCommand>.Instance);
+        AddServiceCommand command = new(_mockRepo.Object, _activityRecorder.Object, NullLogger<AddServiceCommand>.Instance);
         AddServiceRequest request = new(service.Name, service.Duration) { User = user };
 
         var newId = await command.Execute(request);
@@ -32,7 +33,7 @@ public class ServiceCommandsTests
     {
         _mockRepo.Setup(x => x.Update(It.IsAny<Service>(), CancellationToken.None)).ReturnsAsync(true);
 
-        UpdateServiceCommand command = new(_mockRepo.Object, _mockEtag.Object,
+        UpdateServiceCommand command = new(_mockRepo.Object, _mockEtag.Object, _activityRecorder.Object,
             NullLogger<UpdateServiceCommand>.Instance);
         UpdateServiceRequest request = new(ExpectedId, service.Name, service.Duration) { User = user };
 
@@ -50,7 +51,7 @@ public class ServiceCommandsTests
     {
         _mockRepo.Setup(x => x.Delete(ExpectedId, CancellationToken.None)).ReturnsAsync(true);
 
-        DeleteServiceCommand command = new(_mockRepo.Object, NullLogger<DeleteServiceCommand>.Instance);
+        DeleteServiceCommand command = new(_mockRepo.Object, _activityRecorder.Object, NullLogger<DeleteServiceCommand>.Instance);
         AuthenticatedByIdRequest request = new(ExpectedId) { User = user };
 
         await command.Execute(request);

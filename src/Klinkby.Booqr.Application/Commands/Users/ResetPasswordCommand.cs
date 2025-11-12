@@ -13,7 +13,8 @@ public sealed record ResetPasswordRequest(
         ^(?(")(".+?(?<!\\)"@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-\w]*[0-9a-z]*\.)+[a-z0-9][\-a-z0-9]{0,22}[a-z0-9]))$
         """, ErrorMessage = "Email is not valid"
     )]
-    string Email);
+    string Email
+    );
 
 public sealed partial class ResetPasswordCommand(
     IUserRepository userRepository,
@@ -32,11 +33,15 @@ public sealed partial class ResetPasswordCommand(
         if (user != null)
         {
             var password = GenerateRandomPassword();
-            await userRepository.Update(WithPasswordHash(user, password), cancellation);
+            await userRepository.Update(WithPasswordHash(user, password), cancellation); // TODO challenge/response
 
             Message message = ComposeMessage(user, password);
             _log.Enqueue(message.Id);
             await channelWriter.WriteAsync(message, cancellation);
+        }
+        else
+        {
+            _log.UnknownUser(query.Email);
         }
     }
 
@@ -65,5 +70,9 @@ public sealed partial class ResetPasswordCommand(
 
         [LoggerMessage(201, LogLevel.Information, "Enqueue reset password message {MessageId}")]
         public partial void Enqueue(Guid messageId);
+
+        [LoggerMessage(202, LogLevel.Warning, "Unknown email {Email}")]
+        public partial void UnknownUser(string email);
+
     }
 }

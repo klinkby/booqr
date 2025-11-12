@@ -10,11 +10,13 @@ public sealed partial class DeleteBookingCommand(
     IBookingRepository bookings,
     ICalendarRepository calendar,
     ITransaction transaction,
+    IActivityRecorder activityRecorder,
     ILogger<DeleteBookingCommand> logger,
     ILogger<AddVacancyCommand> addVacancyLogger)
-    : DeleteCommand<Booking>(bookings, logger)
+    : DeleteCommand<Booking>(bookings, activityRecorder, logger)
 {
     private readonly LoggerMessages _log = new(logger);
+    private readonly IActivityRecorder _activityRecorder = activityRecorder;
 
     [SuppressMessage("Exceptions usages", "EX006:Do not write logic driven by exceptions.", Justification = "Unauthorized is an exceptional case")]
     async internal override Task<bool> Delete(AuthenticatedByIdRequest query, CancellationToken cancellation)
@@ -43,7 +45,7 @@ public sealed partial class DeleteBookingCommand(
             deleted = await base.Delete(query, cancellation);
 
             // reopen the vacancy, joining any adjacent vacancies
-            AddVacancyCommand addVacancyCommand = new(calendar, transaction, addVacancyLogger);
+            AddVacancyCommand addVacancyCommand = new(calendar, transaction, _activityRecorder, addVacancyLogger);
             await addVacancyCommand.AddVacancyCore(Map(calendarEvent, query.User), calendarEvent.EmployeeId, cancellation);
         }
         catch

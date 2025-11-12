@@ -16,6 +16,7 @@ public sealed record ChangePasswordRequest(
 
 public partial class ChangePasswordCommand(
     IUserRepository userRepository,
+    IActivityRecorder activityRecorder,
     ILogger<ChangePasswordCommand> logger
 ) : ICommand<ChangePasswordRequest, Task<bool>>
 {
@@ -35,6 +36,7 @@ public partial class ChangePasswordCommand(
 
         await userRepository.Update(ResetPasswordCommand.WithPasswordHash(user, query.NewPassword.Trim()), cancellation);
         _log.Changed(user.Email);
+        activityRecorder.Update<User>(new(query.AuthenticatedUserId, user.Id));
         return true;
     }
 
