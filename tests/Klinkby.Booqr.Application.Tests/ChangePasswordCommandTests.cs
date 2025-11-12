@@ -2,8 +2,10 @@
 
 public class ChangePasswordCommandTests
 {
+    private readonly static Mock<IActivityRecorder> _activityRecorder = new();
+
     private static ChangePasswordCommand CreateSut(IUserRepository users)
-        => new(users, NullLogger<ChangePasswordCommand>.Instance);
+        => new(users, _activityRecorder.Object, NullLogger<ChangePasswordCommand>.Instance);
 
     [Fact]
     public async Task GIVEN_NullRequest_WHEN_Execute_THEN_ThrowsArgumentNullException()

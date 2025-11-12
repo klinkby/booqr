@@ -27,6 +27,7 @@ public partial class AddBookingCommand(
     ICalendarRepository calendar,
     IServiceRepository services,
     ITransaction transaction,
+    IActivityRecorder activityRecorder,
     ILogger<AddBookingCommand> logger)
     : ICommand<AddBookingRequest, Task<int>>
 {
@@ -80,6 +81,7 @@ public partial class AddBookingCommand(
                 _ => throw new InvalidEnumArgumentException("Unexpected Covers value")
             };
             await updateStrategy;
+            activityRecorder.Add<Booking>(new(query.AuthenticatedUserId, newId));
         }
         catch
         {
@@ -87,7 +89,6 @@ public partial class AddBookingCommand(
             throw;
         }
         await transaction.Commit(cancellation);
-
         _log.CreateBooking(userId, nameof(Booking), newId);
         return newId;
     }

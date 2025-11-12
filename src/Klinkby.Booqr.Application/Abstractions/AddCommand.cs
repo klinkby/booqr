@@ -1,6 +1,9 @@
 ﻿namespace Klinkby.Booqr.Application.Abstractions;
 
-public abstract partial class AddCommand<TRequest, TItem>(IRepository<TItem, int> repository, ILogger logger)
+public abstract partial class AddCommand<TRequest, TItem>(
+    IRepository<TItem, int> repository,
+    IActivityRecorder activityRecorder,
+    ILogger logger)
     : ICommand<TRequest, Task<int>>
     where TRequest : AuthenticatedRequest
     where TItem : notnull
@@ -14,7 +17,7 @@ public abstract partial class AddCommand<TRequest, TItem>(IRepository<TItem, int
         TItem item = Map(query);
         var newId = await repository.Add(item, cancellation);
         _log.UserCreateItem(query.AuthenticatedUserId, item.GetType().Name, newId);
-
+        activityRecorder.Add<TItem>(new(query.AuthenticatedUserId, newId));
         return newId;
     }
 

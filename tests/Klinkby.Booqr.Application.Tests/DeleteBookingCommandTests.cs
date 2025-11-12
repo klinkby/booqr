@@ -7,7 +7,7 @@ public class DeleteBookingCommandTests
     private readonly Mock<IBookingRepository> _bookings = new();
     private readonly Mock<ICalendarRepository> _calendar = new();
     private readonly Mock<ITransaction> _transaction = new();
-
+    private readonly Mock<IActivityRecorder> _activityRecorder = new();
 
     private DeleteBookingCommand CreateSut()
     {
@@ -15,6 +15,7 @@ public class DeleteBookingCommandTests
             _bookings.Object,
             _calendar.Object,
             _transaction.Object,
+            _activityRecorder.Object,
             NullLogger<DeleteBookingCommand>.Instance,
             NullLogger<AddVacancyCommand>.Instance);
     }

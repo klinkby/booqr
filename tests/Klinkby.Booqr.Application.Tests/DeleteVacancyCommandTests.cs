@@ -3,12 +3,13 @@
 public class DeleteVacancyCommandTests
 {
     private readonly Mock<ICalendarRepository> _calendar = new();
-
+    private readonly Mock<IActivityRecorder> _activityRecorder = new();
 
     private DeleteVacancyCommand CreateSut()
     {
         return new DeleteVacancyCommand(
             _calendar.Object,
+            _activityRecorder.Object,
             NullLogger<DeleteVacancyCommand>.Instance);
     }
 

@@ -10,9 +10,10 @@ public sealed record UpdateServiceRequest(
 
 public sealed class UpdateServiceCommand(
     IServiceRepository services,
-    IETagProvider etagProvider,
+    IRequestMetadata etagProvider,
+    IActivityRecorder activityRecorder,
     ILogger<UpdateServiceCommand> logger)
-    : UpdateCommand<UpdateServiceRequest, Service>(services, logger)
+    : UpdateCommand<UpdateServiceRequest, Service>(services, activityRecorder, logger)
 {
     protected override Service Map(UpdateServiceRequest query) =>
         new(query.Name, query.Duration)

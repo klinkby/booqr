@@ -29,9 +29,11 @@ public sealed record LoginResponse(
 public sealed partial class LoginCommand(
     IUserRepository userRepository,
     IOptions<JwtSettings> jwtSettings,
+    TimeProvider timeProvider,
     ILogger<LoginCommand> logger) : ICommand<LoginRequest, Task<LoginResponse?>>
 {
     private readonly LoggerMessages _log = new(logger);
+    private readonly JwtSettings _jwt = jwtSettings.Value;
 
     public async Task<LoginResponse?> Execute(LoginRequest query, CancellationToken cancellation = default)
     {
@@ -52,15 +54,15 @@ public sealed partial class LoginCommand(
             return null;
         }
 
-        var expires = TimeSpan.FromHours(8);
+        var expires = _jwt.Expires;
+        var response = new LoginResponse(GenerateToken(user, expires), "Bearer", (int)expires.TotalSeconds);
         _log.LoggedIn(user.Id);
-        return new LoginResponse(GenerateToken(user, expires), "Bearer", (int)expires.TotalSeconds);
+        return response;
     }
 
     private string GenerateToken(User user, TimeSpan expires)
     {
-        JwtSettings jwt = jwtSettings.Value;
-        var key = Encoding.ASCII.GetBytes(jwt.Key!);
+        var key = Encoding.ASCII.GetBytes(_jwt.Key!);
         JwtSecurityTokenHandler tokenHandler = new();
         IEnumerable<Claim> claims =
         [
@@ -71,11 +73,12 @@ public sealed partial class LoginCommand(
         SecurityTokenDescriptor tokenDescriptor = new()
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow + expires,
+            Expires = timeProvider.GetUtcNow().UtcDateTime + expires,
             SigningCredentials =
                 new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-            Issuer = jwt.Issuer,
-            Audience = jwt.Audience
+            Issuer = _jwt.Issuer,
+            Audience = _jwt.Audience,
+            NotBefore = timeProvider.GetUtcNow().UtcDateTime,
         };
 
         SecurityToken? token = tokenHandler.CreateToken(tokenDescriptor);

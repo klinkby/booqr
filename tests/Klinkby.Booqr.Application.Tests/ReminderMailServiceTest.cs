@@ -31,7 +31,7 @@ public class ReminderMailServiceTest
         repoMock
             .Setup(m => m.GetRange(It.Is<DateTime>(x => x == date), It.Is<DateTime>(x => x == date.AddDays(1)),
                 It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()))
-            .Returns(bookingDetails.ToAsyncEnumerable())
+            .Returns(() => bookingDetails.ToAsyncEnumerable())
             .Verifiable(Times.Once);
         services.AddSingleton(repoMock.Object);
         await using ServiceProvider serviceProvider = services.BuildServiceProvider();

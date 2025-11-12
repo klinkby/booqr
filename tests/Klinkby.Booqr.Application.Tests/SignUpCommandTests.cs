@@ -5,6 +5,7 @@ namespace Klinkby.Booqr.Application.Tests;
 public class SignUpCommandTests
 {
     private readonly Mock<IUserRepository> _users = new();
+    private readonly static Mock<IActivityRecorder> _activityRecorder = new();
     private readonly Channel<Message> _channel = Channel.CreateBounded<Message>(100);
 
     private SignUpCommand CreateSut()
@@ -12,6 +13,7 @@ public class SignUpCommandTests
         return new SignUpCommand(
             _users.Object,
             _channel.Writer,
+            _activityRecorder.Object,
             NullLogger<SignUpCommand>.Instance);
     }
 

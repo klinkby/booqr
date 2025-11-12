@@ -5,8 +5,9 @@ namespace Klinkby.Booqr.Application.Tests;
 public class LocationCommandsTests
 {
     private const int ExpectedId = 42;
-    private readonly Mock<IETagProvider> _mockEtag = new();
+    private readonly Mock<IRequestMetadata> _mockEtag = new();
     private readonly Mock<ILocationRepository> _mockRepo = CreateMockLocationRepository();
+    private readonly Mock<IActivityRecorder> _activityRecorder = new();
 
     [Theory]
     [ApplicationAutoData]
@@ -14,7 +15,7 @@ public class LocationCommandsTests
         Location location,
         ClaimsPrincipal user)
     {
-        AddLocationCommand command = new(_mockRepo.Object, NullLogger<AddLocationCommand>.Instance);
+        AddLocationCommand command = new(_mockRepo.Object, _activityRecorder.Object, NullLogger<AddLocationCommand>.Instance);
         AddLocationRequest request = new(location.Name) { User = user };
 
         var newId = await command.Execute(request);
@@ -31,7 +32,7 @@ public class LocationCommandsTests
     {
         _mockRepo.Setup(x => x.Update(It.IsAny<Location>(), CancellationToken.None)).ReturnsAsync(true);
 
-        UpdateLocationCommand command = new(_mockRepo.Object, _mockEtag.Object,
+        UpdateLocationCommand command = new(_mockRepo.Object, _mockEtag.Object, _activityRecorder.Object,
             NullLogger<UpdateLocationCommand>.Instance);
         UpdateLocationRequest request = new(ExpectedId, location.Name) { User = user };
 
@@ -49,7 +50,7 @@ public class LocationCommandsTests
     {
         _mockRepo.Setup(x => x.Delete(ExpectedId, CancellationToken.None)).ReturnsAsync(true);
 
-        DeleteLocationCommand command = new(_mockRepo.Object, NullLogger<DeleteLocationCommand>.Instance);
+        DeleteLocationCommand command = new(_mockRepo.Object, _activityRecorder.Object, NullLogger<DeleteLocationCommand>.Instance);
         AuthenticatedByIdRequest request = new(ExpectedId) { User = user };
 
         await command.Execute(request);
