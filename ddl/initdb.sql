@@ -1,6 +1,8 @@
 create extension btree_gist
     schema public;
 
+-------------------------------------------------------------
+
 create table public.users
 (
     id           integer generated always as identity
@@ -136,6 +138,7 @@ SELECT b.id,
        s.duration,
        l.name  AS location,
        e.name  AS employee,
+       c.id    AS customerid,
        c.name  AS customername,
        c.email AS customeremail,
        b.created,

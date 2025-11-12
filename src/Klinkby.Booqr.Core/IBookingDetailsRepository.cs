@@ -1,5 +1,10 @@
 ﻿namespace Klinkby.Booqr.Core;
 
+/// <summary>
+/// Represents the details of a booking including information about the
+/// booking identifier, start time, service, duration, location, employee,
+/// customer name, and customer email.
+/// </summary>
 public sealed record BookingDetails(
     int Id,
     DateTime StartTime,
@@ -7,6 +12,7 @@ public sealed record BookingDetails(
     TimeSpan Duration,
     string Location,
     string? Employee,
+    int CustomerId,
     string? CustomerName,
     string CustomerEmail);
 

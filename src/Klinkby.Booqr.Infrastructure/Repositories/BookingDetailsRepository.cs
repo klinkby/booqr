@@ -2,7 +2,7 @@
 
 namespace Klinkby.Booqr.Infrastructure.Repositories;
 
-[QueryFields("id, starttime", "service", "duration", "location", "employee", "customername", "customeremail")]
+[QueryFields("id, starttime", "service", "duration", "location", "employee", "customerid", "customername", "customeremail")]
 internal sealed partial class BookingDetailsRepository(
     IConnectionProvider connectionProvider)
     : IBookingDetailsRepository
