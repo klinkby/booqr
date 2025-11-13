@@ -8,8 +8,18 @@ using EmailBackgroundService = Klinkby.Booqr.Application.Services.EmailBackgroun
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+/// Provides extension methods for configuring application services in the dependency injection container.
+/// </summary>
 public static partial class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Adds application-layer services to the dependency injection container, including commands, background services, and configuration.
+    /// </summary>
+    /// <param name="services">The service collection to configure.</param>
+    /// <param name="configuration">The application configuration containing settings for JWT and reminder emails.</param>
+    /// <param name="inhibitServices">If <c>true</c>, background services (email, activity, reminders) will not be registered.</param>
+    /// <returns>The configured service collection for method chaining.</returns>
     public static IServiceCollection AddApplication(this IServiceCollection services,
         IConfiguration configuration, bool inhibitServices)
     {
