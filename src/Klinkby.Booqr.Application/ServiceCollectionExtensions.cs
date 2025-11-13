@@ -26,6 +26,12 @@ public static partial class ServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configuration);
 
         services.AddCommands();
+
+        if (inhibitServices)
+        {
+            return services;
+        }
+
         services.AddOptions<ReminderMailSettings>()
             .Bind(configuration.GetSection("ReminderMail"))
             .ValidateOnStart();
@@ -34,25 +40,22 @@ public static partial class ServiceCollectionExtensions
             .Bind(configuration.GetSection("Jwt"))
             .ValidateOnStart();
 
-        if (!inhibitServices)
+        BoundedChannelOptions options = new(100)
         {
-            BoundedChannelOptions options = new(100)
-            {
-                SingleReader = true,
-                SingleWriter = false,
-                AllowSynchronousContinuations = true,
-            };
+            SingleReader = true,
+            SingleWriter = false,
+            AllowSynchronousContinuations = true,
+        };
 
-            services.AddBoundedChannel<Message>(options);
-            services.AddHostedService<EmailBackgroundService>();
+        services.AddBoundedChannel<Message>(options);
+        services.AddHostedService<EmailBackgroundService>();
 
-            services.AddBoundedChannel<Activity>(options);
-            services.AddHostedService<ActivityBackgroundService>();
+        services.AddBoundedChannel<Activity>(options);
+        services.AddHostedService<ActivityBackgroundService>();
 
-            services.AddScoped<IActivityRecorder, ActivityRecorder>();
+        services.AddScoped<IActivityRecorder, ActivityRecorder>();
 
-            services.AddHostedService<ReminderMailService>();
-        }
+        services.AddHostedService<ReminderMailService>();
 
         return services;
     }

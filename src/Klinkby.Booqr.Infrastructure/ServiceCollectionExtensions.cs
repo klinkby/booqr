@@ -47,7 +47,8 @@ public static partial class ServiceCollectionExtensions
             ?? throw new InvalidOperationException($"Configuration value '{nameof(InfrastructureSettings.ConnectionString)}' is required.");
         string apiKey = configuration[nameof(InfrastructureSettings.MailClientApiKey)]
             ?? throw new InvalidOperationException($"Configuration value '{nameof(InfrastructureSettings.MailClientApiKey)}' is required.");
-        Uri? baseAddress = configuration.GetValue<Uri>(nameof(InfrastructureSettings.MailClientBaseAddress));
+        Uri baseAddress = configuration.GetValue<Uri>(nameof(InfrastructureSettings.MailClientBaseAddress))
+            ?? new InfrastructureSettings().MailClientBaseAddress;
 
         services.ConfigureEmailLabsHttpClient(baseAddress, apiKey);
         services.AddNpgsqlSlimDataSource(connectionString, serviceKey: nameof(ConnectionProvider));
@@ -58,7 +59,7 @@ public static partial class ServiceCollectionExtensions
         return services;
     }
 
-    private static void ConfigureEmailLabsHttpClient(this IServiceCollection services, Uri? baseAddress, string? apiKey)
+    private static void ConfigureEmailLabsHttpClient(this IServiceCollection services, Uri baseAddress, string apiKey)
     {
         // https://learn.microsoft.com/en-us/dotnet/core/resilience/http-resilience?tabs=dotnet-cli
         services
@@ -68,7 +69,7 @@ public static partial class ServiceCollectionExtensions
             .AddStandardResilienceHandler(static options => options.Retry.DisableForUnsafeHttpMethods());
     }
 
-    private static void ConfigureHttpClient(HttpClient client, Uri? baseAddress, string? apiKey)
+    private static void ConfigureHttpClient(HttpClient client, Uri baseAddress, string apiKey)
     {
         client.BaseAddress = baseAddress;
         var codedValue = Convert.ToBase64String(Encoding.ASCII.GetBytes(apiKey ?? string.Empty));
