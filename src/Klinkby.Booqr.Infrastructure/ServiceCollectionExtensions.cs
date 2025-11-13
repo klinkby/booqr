@@ -11,8 +11,29 @@ using Transaction = Klinkby.Booqr.Infrastructure.Services.Transaction;
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+///     Provides extension methods for configuring infrastructure services in an <see cref="IServiceCollection"/>.
+/// </summary>
 public static partial class ServiceCollectionExtensions
 {
+    /// <summary>
+    ///     Adds infrastructure services including database connectivity, repositories, and email services to the service collection.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configuration">The configuration containing infrastructure settings.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="configuration"/> is <c>null</c>.</exception>
+    /// <remarks>
+    ///     This method configures:
+    ///     <list type="bullet">
+    ///         <item><description>PostgreSQL data source using Npgsql</description></item>
+    ///         <item><description>EmailLabs HTTP client with resilience policies</description></item>
+    ///         <item><description>Mail client service (<see cref="IMailClient"/>)</description></item>
+    ///         <item><description>Unit-of-work management (<see cref="ITransaction"/>)</description></item>
+    ///         <item><description>Database connection provider (<see cref="IConnectionProvider"/>)</description></item>
+    ///         <item><description>All repository implementations</description></item>
+    ///     </list>
+    /// </remarks>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services,
         IConfiguration configuration)
     {
@@ -21,12 +42,15 @@ public static partial class ServiceCollectionExtensions
         services.AddOptions<InfrastructureSettings>()
             .Bind(configuration)
             .ValidateOnStart();
-        services.ConfigureEmailLabsHttpClient(
-            configuration.GetValue<Uri>(nameof(InfrastructureSettings.MailClientBaseAddress)),
-            configuration.GetValue<string>(nameof(InfrastructureSettings.MailClientApiKey)));
-        services.AddNpgsqlSlimDataSource(
-            configuration.GetValue<string>(nameof(InfrastructureSettings.ConnectionString)) ?? string.Empty,
-            serviceKey: nameof(ConnectionProvider));
+
+        string connectionString = configuration[nameof(InfrastructureSettings.ConnectionString)]
+            ?? throw new InvalidOperationException($"Configuration value '{nameof(InfrastructureSettings.ConnectionString)}' is required.");
+        string apiKey = configuration[nameof(InfrastructureSettings.MailClientApiKey)]
+            ?? throw new InvalidOperationException($"Configuration value '{nameof(InfrastructureSettings.MailClientApiKey)}' is required.");
+        Uri? baseAddress = configuration.GetValue<Uri>(nameof(InfrastructureSettings.MailClientBaseAddress));
+
+        services.ConfigureEmailLabsHttpClient(baseAddress, apiKey);
+        services.AddNpgsqlSlimDataSource(connectionString, serviceKey: nameof(ConnectionProvider));
         services.AddSingleton<IMailClient, EmailLabsMailClient>();
         services.AddScoped<ITransaction, Transaction>();
         services.AddScoped<IConnectionProvider, ConnectionProvider>();
@@ -41,7 +65,7 @@ public static partial class ServiceCollectionExtensions
             .AddHttpClient(nameof(EmailLabsMailClient), client =>
                 ConfigureHttpClient(client, baseAddress, apiKey))
             .AddAsKeyed(ServiceLifetime.Singleton)
-            .AddStandardResilienceHandler(options => options.Retry.DisableForUnsafeHttpMethods());
+            .AddStandardResilienceHandler(static options => options.Retry.DisableForUnsafeHttpMethods());
     }
 
     private static void ConfigureHttpClient(HttpClient client, Uri? baseAddress, string? apiKey)

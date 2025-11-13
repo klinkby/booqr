@@ -2,6 +2,13 @@
 
 namespace Klinkby.Booqr.Core;
 
+/// <summary>
+///     Marker interface for all repository types in the system.
+/// </summary>
+/// <remarks>
+///     This interface serves as a base marker to identify and unify all repository implementations,
+///     enabling generic repository registration and discovery patterns.
+/// </remarks>
 [SuppressMessage("Design", "CA1040:Avoid empty interfaces", Justification = "Marks all repositories")]
 public interface IRepository
 {
@@ -47,7 +54,10 @@ public interface IImmutableRepository<T, TKey> : IRepository
     Task<TKey> Add(T newItem, CancellationToken cancellation = default);
 }
 
-///<inheritdoc />
+/// <summary>
+///     Represents a repository for entities of type <typeparamref name="T"/> identified by integer keys.
+/// </summary>
+/// <typeparam name="T">The type of items stored in the repository.</typeparam>
 public interface IRepository<T> : IRepository<T, int>;
 
 /// <summary>
@@ -72,5 +82,14 @@ public interface IRepository<T, TKey> : IImmutableRepository<T, TKey>
     /// <returns>A task that represents the asynchronous operation.</returns>
     Task<bool> Delete(TKey id, CancellationToken cancellation = default);
 
+    /// <summary>
+    ///     Restores a soft-deleted item of type <typeparamref name="T" /> by clearing the Deleted field.
+    /// </summary>
+    /// <param name="id">The unique identifier of the item to restore.</param>
+    /// <param name="cancellation">The token used to propagate notification that the operation should be canceled.</param>
+    /// <returns>
+    ///     A task that represents the asynchronous operation. The task result is <c>true</c> if the item was
+    ///     successfully restored, otherwise <c>false</c>.
+    /// </returns>
     Task<bool> Undelete(TKey id, CancellationToken cancellation = default);
 }

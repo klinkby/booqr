@@ -4,15 +4,15 @@ namespace Klinkby.Booqr.Api;
 
 internal sealed partial class ProgramLoggerMessages(ILogger logger)
 {
-    [SuppressMessage("Performance", "CA1823:Avoid unused private fields", Justification = "Ref by SG")]
+    [SuppressMessage("Performance", "CA1823:Avoid unused private fields", Justification = "Referenced by source generator")]
     private readonly ILogger _logger = logger;
 
     [LoggerMessage(1, LogLevel.Information, "App initialized in {TimeSpan}")]
-    public partial void AppLaunch(TimeSpan timeSpan);
+    internal partial void AppLaunch(TimeSpan timeSpan);
 
     [LoggerMessage(2, LogLevel.Information, "App shutdown ran for {TimeSpan}")]
-    public partial void AppShutdown(TimeSpan timeSpan);
+    internal partial void AppShutdown(TimeSpan timeSpan);
 
     [LoggerMessage(3, LogLevel.Error, "App crash after {TimeSpan}")]
-    public partial void AppCrash(Exception exception, TimeSpan timeSpan);
+    internal partial void AppCrash(Exception exception, TimeSpan timeSpan);
 }

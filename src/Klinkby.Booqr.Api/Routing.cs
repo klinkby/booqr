@@ -5,12 +5,15 @@ namespace Klinkby.Booqr.Api;
 internal static class Routing
 {
     private const string BaseUrl = "/api";
+    private const string IdRoutePattern = "{id:int}";
+    private const string BookingIdRoutePattern = "{bookingId:int}";
 
-    public static void MapApiRoutes(this IEndpointRouteBuilder app)
+    internal static void MapApiRoutes(this IEndpointRouteBuilder app)
     {
         RouteGroupBuilder baseRoute = app
             .MapGroup(BaseUrl)
             .AddEndpointFilter<RequestMetadataEndPointFilter>();
+
         MapBookings(baseRoute);
         MapLocations(baseRoute);
         MapServices(baseRoute);
@@ -24,19 +27,10 @@ internal static class Routing
 
         RouteGroupBuilder group = app
             .MapGroup(resourceName)
-            .WithTags("Booking")
-            .WithDescription("Operations related to bookings");
+            .WithTags(nameof(Booking))
+            .WithDescription(nameof(Booking));
 
-        // group.MapGet("",
-        //         static (GetBookingCollectionCommand command,
-        //                 [AsParameters] GetBookingsRequest request,
-        //                 CancellationToken cancellation) =>
-        //             command.GetCollection(request, cancellation))
-        //     .RequireAuthorization(UserRole.Customer)
-
-        //                 .WithName("").WithSummary("List bookings");
-        //
-        group.MapGet("{id:int}", static ([AsParameters] AuthenticatedByIdRequest request, ClaimsPrincipal user) =>
+        group.MapGet(IdRoutePattern, static ([AsParameters] AuthenticatedByIdRequest request, ClaimsPrincipal user) =>
             TypedResults.LocalRedirect($"/api/users/{(request with { User = user }).AuthenticatedUserId}/my-bookings/{request.Id}"))
             .RequireAuthorization(UserRole.Customer)
             .WithName("getBookingById")
@@ -51,18 +45,16 @@ internal static class Routing
             .WithName("addBooking")
             .WithSummary("Add a booking");
 
-        // group.MapPut("{id:int}",
+        // group.MapPut(IdRoutePattern,
         //         static (UpdateLocationCommand command,
         //                 int id,
         //                 [FromBody] UpdateLocationRequest request,
         //                 ClaimsPrincipal user, CancellationToken cancellation) =>
         //             command.NoContent(request with { Id = id }, user, cancellation))
-        //     .AddEndpointFilter<ETagProviderEndPointFilter>()
         //     .RequireAuthorization(UserRole.Admin)
-        //     .AddEndpointFilter<ETagProviderEndPointFilter>()
         //     .WithName("").WithSummary("Update a location");
 
-        group.MapDelete("{id:int}",
+        group.MapDelete(IdRoutePattern,
                 static (DeleteBookingCommand command,
                         [AsParameters] AuthenticatedByIdRequest request,
                         ClaimsPrincipal user,
@@ -79,8 +71,8 @@ internal static class Routing
 
         RouteGroupBuilder group = app
             .MapGroup(resourceName)
-            .WithTags("Location")
-            .WithDescription("Operations related to locations");
+            .WithTags(nameof(Location))
+            .WithDescription(nameof(Location));
 
         group.MapGet("",
                 static (GetLocationCollectionCommand command,
@@ -90,12 +82,11 @@ internal static class Routing
             .WithName("getLocations")
             .WithSummary("List locations");
 
-        group.MapGet("{id:int}",
+        group.MapGet(IdRoutePattern,
                 static (GetLocationByIdCommand command,
                         [AsParameters] ByIdRequest request,
                         CancellationToken cancellation) =>
                     command.Execute(request, cancellation))
-//            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .WithName("getLocationById")
             .WithSummary("Get a single location");
 
@@ -108,18 +99,17 @@ internal static class Routing
             .WithName("addLocation")
             .WithSummary("Add a location");
 
-        group.MapPut("{id:int}",
+        group.MapPut(IdRoutePattern,
                 static (UpdateLocationCommand command,
                         int id,
                         [FromBody] UpdateLocationRequest request,
                         ClaimsPrincipal user, CancellationToken cancellation) =>
                     command.NoContent(request with { Id = id }, user, cancellation))
-//            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .RequireAuthorization(UserRole.Admin)
             .WithName("updateLocation")
             .WithSummary("Update a location");
 
-        group.MapDelete("{id:int}",
+        group.MapDelete(IdRoutePattern,
                 static (DeleteLocationCommand command,
                         [AsParameters] AuthenticatedByIdRequest request,
                         ClaimsPrincipal user,
@@ -136,8 +126,8 @@ internal static class Routing
 
         RouteGroupBuilder group = app
             .MapGroup(resourceName)
-            .WithTags("Service")
-            .WithDescription("Operations related to services");
+            .WithTags(nameof(Service))
+            .WithDescription(nameof(Service));
 
         group.MapGet("",
                 static (GetServiceCollectionCommand command,
@@ -147,12 +137,11 @@ internal static class Routing
             .WithName("getServices")
             .WithSummary("List services");
 
-        group.MapGet("{id:int}",
+        group.MapGet(IdRoutePattern,
                 static (GetServiceByIdCommand command,
                         [AsParameters] ByIdRequest request,
                         CancellationToken cancellation) =>
                     command.Execute(request, cancellation))
-//            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .WithName("getServiceById")
             .WithSummary("Get a single service");
 
@@ -165,18 +154,17 @@ internal static class Routing
             .WithName("addService")
             .WithSummary("Add a service");
 
-        group.MapPut("{id:int}",
+        group.MapPut(IdRoutePattern,
                 static (UpdateServiceCommand command,
                         int id,
                         [FromBody] UpdateServiceRequest request,
                         ClaimsPrincipal user, CancellationToken cancellation) =>
                     command.NoContent(request with { Id = id }, user, cancellation))
-//            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .RequireAuthorization(UserRole.Admin)
             .WithName("updateService")
             .WithSummary("Update a service");
 
-        group.MapDelete("{id:int}",
+        group.MapDelete(IdRoutePattern,
                 static (DeleteServiceCommand command,
                         [AsParameters] AuthenticatedByIdRequest request,
                         ClaimsPrincipal user, CancellationToken cancellation) =>
@@ -192,8 +180,8 @@ internal static class Routing
 
         RouteGroupBuilder group = app
             .MapGroup(resourceName)
-            .WithTags("User")
-            .WithDescription("Operations related to users");
+            .WithTags(nameof(User))
+            .WithDescription(nameof(User));
 
         group.MapPost("/login",
                 static (LoginCommand command, [FromBody] LoginRequest request, CancellationToken cancellation) =>
@@ -217,7 +205,7 @@ internal static class Routing
             .WithName("changePassword")
             .WithSummary("Change password");
 
-        group.MapGet("{id:int}/my-bookings",
+        group.MapGet($"{IdRoutePattern}/my-bookings",
                 static (GetMyBookingsCommand command,
                         [AsParameters] GetMyBookingsRequest request,
                         ClaimsPrincipal user,
@@ -227,14 +215,13 @@ internal static class Routing
             .WithName("getMyBookings")
             .WithSummary("List my bookings");
 
-        group.MapGet("{id:int}/my-bookings/{bookingId:int}",
+        group.MapGet($"{IdRoutePattern}/my-bookings/{BookingIdRoutePattern}",
                 static (GetMyBookingByIdCommand command,
                         [AsParameters] GetMyBookingByIdRequest request,
                         ClaimsPrincipal user,
                         CancellationToken cancellation) =>
                     command.Execute(request with { User = user }, cancellation))
             .RequireAuthorization(UserRole.Customer)
-//            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .WithName("getMyBookingById")
             .WithSummary("Get a single my booking item");
 
@@ -247,12 +234,11 @@ internal static class Routing
             .WithName("getUsers")
             .WithSummary("List users");
 
-        group.MapGet("{id:int}",
+        group.MapGet(IdRoutePattern,
                 static (GetUserByIdCommand command,
                         [AsParameters] ByIdRequest request,
                         CancellationToken cancellation) =>
                     command.Execute(request, cancellation))
-//            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .RequireAuthorization(UserRole.Employee)
             .WithName("getUserById")
             .WithSummary("Get a single user");
@@ -265,7 +251,7 @@ internal static class Routing
             .WithName("addUser")
             .WithSummary("Sign up for a user account");
 
-        // group.MapPut("{id:int}",
+        // group.MapPut(IdRoutePattern,
         //         static (UpdateUserCommand command,
         //                 int id,
         //                 [FromBody] UpdateUserRequest request,
@@ -276,7 +262,7 @@ internal static class Routing
         //     .WithName("updateUser")
         //     .WithSummary("Update a user");
         //
-        // group.MapDelete("{id:int}",
+        // group.MapDelete(IdRoutePattern,
         //         static (DeleteUserCommand command,
         //                 [AsParameters] AuthenticatedByIdRequest request,
         //                 ClaimsPrincipal user, CancellationToken cancellation) =>
@@ -293,7 +279,7 @@ internal static class Routing
         RouteGroupBuilder group = app
             .MapGroup(resourceName)
             .WithTags("Vacancy")
-            .WithDescription("Operations related to vacancies");
+            .WithDescription("Vacancy");
 
         group.MapGet("",
                 static (GetVacancyCollectionCommand command,
@@ -303,12 +289,11 @@ internal static class Routing
             .WithName("getVacancies")
             .WithSummary("List vacancies");
 
-        group.MapGet("{id:int}",
+        group.MapGet(IdRoutePattern,
                 static (GetVacancyByIdCommand command,
                         [AsParameters] ByIdRequest request,
                         CancellationToken cancellation) =>
                     command.Execute(request, cancellation))
-//            .AddEndpointFilter<ETagProviderEndPointFilter>()
             .WithName("getVacancyById")
             .WithSummary("Get a single vacancy");
 
@@ -330,7 +315,7 @@ internal static class Routing
         //     .RequireAuthorization(UserRole.Employee)
         //     .WithName().WithSummary("Update a vacancy");
         //
-        group.MapDelete("{id:int}",
+        group.MapDelete(IdRoutePattern,
                 static (DeleteVacancyCommand command,
                         [AsParameters] AuthenticatedByIdRequest request,
                         ClaimsPrincipal user, CancellationToken cancellation) =>

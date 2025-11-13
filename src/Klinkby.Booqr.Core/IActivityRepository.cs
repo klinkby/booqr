@@ -25,8 +25,19 @@ public sealed record Activity(
     string Action
 );
 
+/// <summary>
+///     Provides data access operations for <see cref="Activity"/> log entries.
+/// </summary>
 public interface IActivityRepository : IImmutableRepository<Activity, long>
 {
+    /// <summary>
+    ///     Retrieves activity log entries within the specified time range.
+    /// </summary>
+    /// <param name="fromTime">The start of the time range.</param>
+    /// <param name="toTime">The end of the time range.</param>
+    /// <param name="pageQuery">The pagination parameters.</param>
+    /// <param name="cancellation">A token to cancel the operation.</param>
+    /// <returns>An asynchronous stream of <see cref="Activity"/> instances.</returns>
     IAsyncEnumerable<Activity> GetRange(DateTime fromTime, DateTime toTime, IPageQuery pageQuery,
         CancellationToken cancellation = default);
 }

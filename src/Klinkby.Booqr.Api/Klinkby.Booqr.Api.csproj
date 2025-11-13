@@ -2,20 +2,34 @@
 
     <PropertyGroup>
         <OutputType>exe</OutputType>
-        <InvariantGlobalization>true</InvariantGlobalization>
-        <PublishAot>true</PublishAot>
         <UserSecretsId>dcde7d5b-2077-4409-b78a-c1253e20c40f</UserSecretsId>
         <InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.Http.Validation.Generated</InterceptorsNamespaces>
+        <ServerGarbageCollection>true</ServerGarbageCollection>
+        <PublishAot>true</PublishAot>
     </PropertyGroup>
 
-    <ItemGroup>
+    <PropertyGroup Label="Agressive AOT trimming">
+        <DebuggerSupport>false</DebuggerSupport>
+        <EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
+        <EnableUnsafeUTF7Encoding>false</EnableUnsafeUTF7Encoding>
+        <EventSourceSupport>false</EventSourceSupport>
+        <Http3Support>false</Http3Support>
+        <InvariantGlobalization>true</InvariantGlobalization>
+        <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
+        <MetricsSupport>false</MetricsSupport>
+        <OptimizationPreference>Speed</OptimizationPreference>
+        <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
+        <XmlResolverIsNetworkingEnabledByDefault>false</XmlResolverIsNetworkingEnabledByDefault>
+    </PropertyGroup>
+
+    <ItemGroup Label="Project references">
         <ProjectReference Include="..\Klinkby.Booqr.Application\Klinkby.Booqr.Application.csproj"/>
         <ProjectReference Include="..\Klinkby.Booqr.Infrastructure\Klinkby.Booqr.Infrastructure.csproj"/>
     </ItemGroup>
 
-    <ItemGroup>
+    <ItemGroup Label="Nuget references">
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0-preview.7.25380.108" /> <!-- RTM not supported by Microsoft.OpenApi 2.3.9 --> 
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0-preview.7.25380.108" /> <!-- RTM not supported by Microsoft.OpenApi 2.3.9 -->
         <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -29,16 +43,16 @@
         <PackageReference Include="NLog.Web.AspNetCore" Version="6.0.6" />
     </ItemGroup>
 
-    <PropertyGroup>
+    <PropertyGroup Label="OpenApi generator">
         <OpenApiDocumentsDirectory>./wwwroot/openapi</OpenApiDocumentsDirectory>
         <OpenApiGenerateDocumentsOptions>--file-name v1</OpenApiGenerateDocumentsOptions>
     </PropertyGroup>
 
-    <ItemGroup>
+    <ItemGroup Label="Friend test proj">
         <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
     </ItemGroup>
 
-    <ItemGroup>
+    <ItemGroup Label="wwwroot">
         <Content Update="wwwroot\**">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>

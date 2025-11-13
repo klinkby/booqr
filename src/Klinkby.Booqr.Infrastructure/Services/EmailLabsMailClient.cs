@@ -15,8 +15,8 @@ internal sealed partial class EmailLabsMailClient(
     ILogger<EmailLabsMailClient> logger) : IMailClient
 {
     private readonly LoggerMessages _log = new(logger);
-    private readonly string _smtpAccount = options.Value.MailClientAccount ?? "";
-    private readonly string _fromAddress = options.Value.MailClientFromAddress ?? "";
+    private readonly string _smtpAccount = options.Value.MailClientAccount;
+    private readonly string _fromAddress = options.Value.MailClientFromAddress;
 
     public async Task Send(Message message, CancellationToken cancellationToken = default)
     {
@@ -55,7 +55,7 @@ internal sealed partial class EmailLabsMailClient(
         }
     }
 
-    async private static Task<EmailLabsMailClientResponse> DeserializeFailureResponse(HttpResponseMessage responseMessage,
+    private static async Task<EmailLabsMailClientResponse> DeserializeFailureResponse(HttpResponseMessage responseMessage,
         CancellationToken cancellationToken)
     {
         EmailLabsMailClientResponse response =

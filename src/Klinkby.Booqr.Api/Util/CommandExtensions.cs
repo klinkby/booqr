@@ -4,7 +4,7 @@ namespace Klinkby.Booqr.Api.Util;
 
 internal static class CommandExtensions
 {
-    public async static Task<Results<Ok<TResult>, BadRequest, NotFound>> GetSingle<TQuery, TResult>(
+    internal static async Task<Results<Ok<TResult>, BadRequest, NotFound>> GetSingle<TQuery, TResult>(
         this ICommand<TQuery, Task<TResult?>> command, TQuery query, CancellationToken cancellationToken)
         where TQuery : notnull
     {
@@ -14,7 +14,7 @@ internal static class CommandExtensions
             : TypedResults.NotFound();
     }
 
-    public static Task<Results<Ok<CollectionResponse<TResult>>, BadRequest>> GetCollection<TQuery, TResult>(
+    internal static Task<Results<Ok<CollectionResponse<TResult>>, BadRequest>> GetCollection<TQuery, TResult>(
         this ICommand<TQuery, IAsyncEnumerable<TResult>> command, TQuery query, CancellationToken cancellationToken)
         where TQuery : IPageQuery
     {
@@ -23,7 +23,7 @@ internal static class CommandExtensions
         return Task.FromResult<Results<Ok<CollectionResponse<TResult>>, BadRequest>>(TypedResults.Ok(response));
     }
 
-    public async static Task<Results<Ok<LoginResponse>, UnauthorizedHttpResult, BadRequest>> GetAuthenticationToken(
+    internal static async Task<Results<Ok<LoginResponse>, UnauthorizedHttpResult, BadRequest>> GetAuthenticationToken(
         this ICommand<LoginRequest, Task<LoginResponse?>> command, LoginRequest query,
         CancellationToken cancellationToken)
     {
@@ -33,7 +33,7 @@ internal static class CommandExtensions
             : TypedResults.Unauthorized();
     }
 
-    public async static Task<Results<Created<CreatedResponse>, BadRequest>> Created<TQuery>(
+    internal static async Task<Results<Created<CreatedResponse>, BadRequest>> Created<TQuery>(
         this ICommand<TQuery, Task<int>> command, TQuery query, ClaimsPrincipal user, string resourceName,
         CancellationToken cancellationToken)
         where TQuery : AuthenticatedRequest
@@ -44,7 +44,7 @@ internal static class CommandExtensions
             new CreatedResponse(newId));
     }
 
-    public async static Task<Results<Created<CreatedResponse>, BadRequest>> CreatedAnonymous<TQuery>(
+    internal static async Task<Results<Created<CreatedResponse>, BadRequest>> CreatedAnonymous<TQuery>(
         this ICommand<TQuery, Task<int>> command, TQuery query, string resourceName,
         CancellationToken cancellationToken)
         where TQuery : notnull
@@ -55,14 +55,14 @@ internal static class CommandExtensions
             new CreatedResponse(newId));
     }
 
-    public static Task<Results<NoContent, BadRequest>> NoContent<TQuery>(
+    internal static Task<Results<NoContent, BadRequest>> NoContent<TQuery>(
         this ICommand<TQuery> command, TQuery query, ClaimsPrincipal user, CancellationToken cancellationToken)
         where TQuery : AuthenticatedRequest
     {
         return NoContent(command, query with { User = user }, cancellationToken);
     }
 
-    public async static Task<Results<NoContent, UnauthorizedHttpResult, BadRequest>> NoContent(
+    internal static async Task<Results<NoContent, UnauthorizedHttpResult, BadRequest>> NoContent(
         this ICommand<ChangePasswordRequest, Task<bool>> command, ChangePasswordRequest query,
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
@@ -73,7 +73,7 @@ internal static class CommandExtensions
             : TypedResults.Unauthorized();
     }
 
-    public async static Task<Results<NoContent, BadRequest>> NoContent<TQuery>(
+    internal static async Task<Results<NoContent, BadRequest>> NoContent<TQuery>(
         this ICommand<TQuery> command, TQuery query, CancellationToken cancellationToken)
         where TQuery : notnull
     {

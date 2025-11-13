@@ -1,5 +1,12 @@
 ﻿namespace Klinkby.Booqr.Application.Abstractions;
 
+/// <summary>
+/// Abstract base class for commands that delete entities from the repository.
+/// </summary>
+/// <typeparam name="TItem">The type of the entity to delete from the repository.</typeparam>
+/// <param name="repository">The repository for persisting entities.</param>
+/// <param name="activityRecorder">The activity recorder for tracking user actions.</param>
+/// <param name="logger">The logger for recording operations.</param>
 public abstract partial class DeleteCommand<TItem>(
     IRepository<TItem, int> repository,
     IActivityRecorder activityRecorder,
@@ -8,6 +15,12 @@ public abstract partial class DeleteCommand<TItem>(
 {
     private readonly LoggerMessages _log = new(logger);
 
+    /// <summary>
+    /// Executes the delete command, removing an entity from the repository.
+    /// </summary>
+    /// <param name="query">The authenticated request containing the ID of the entity to delete.</param>
+    /// <param name="cancellation">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task Execute(AuthenticatedByIdRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
