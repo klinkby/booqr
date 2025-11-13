@@ -4,11 +4,11 @@
         <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
     </PropertyGroup>
 
-    <ItemGroup>
+    <ItemGroup Label="Project references">
         <ProjectReference Include="..\..\src\Klinkby.Booqr.Core\Klinkby.Booqr.Core.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
+    <ItemGroup Label="Nuget references">
         <PackageReference Include="Dapper" Version="2.1.66" />
         <PackageReference Include="Dapper.AOT" Version="1.0.48" />
         <PackageReference Include="Klinkby.Booqr.Infrastructure.Generators" Version="1.0.1">
@@ -30,10 +30,11 @@
     </PropertyGroup>
 
     <PropertyGroup>
+        <!-- CA1812: Avoid uninstantiated internal classes -->
         <NoWarn>$(NoWarn);CA1812</NoWarn>
     </PropertyGroup>
 
-    <ItemGroup>
+    <ItemGroup Label="Friend test proj">
         <InternalsVisibleTo Include="$(AssemblyName).Tests" />
     </ItemGroup>
 

@@ -4,14 +4,12 @@
         <UserSecretsId>7244181b-c33f-4451-9c2a-93bc7550b9bb</UserSecretsId>
     </PropertyGroup>
 
-    <ItemGroup>
+    <ItemGroup Label="Nuget references">
         <PackageReference Include="AutoFixture" Version="4.18.1"/>
         <PackageReference Include="AutoFixture.Xunit2" Version="4.18.1"/>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0"/>
         <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.0.0" />
         <PackageReference Include="Moq" Version="4.20.72"/>
-        <PackageReference Include="System.Net.Http" Version="4.3.4" />
-        <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
         <PackageReference Include="Testcontainers.PostgreSql" Version="4.8.1" />
         <PackageReference Include="Testcontainers.Xunit" Version="4.8.1" />
         <PackageReference Update="Microsoft.NET.Test.Sdk" Version="18.0.1" />
@@ -19,6 +17,11 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup Label="Pin vulnerable transient dependencies">
+        <PackageReference Include="System.Net.Http" Version="4.3.4" NoWarn="NU1510" />
+        <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" NoWarn="NU1510" />
     </ItemGroup>
 
     <ItemGroup>
