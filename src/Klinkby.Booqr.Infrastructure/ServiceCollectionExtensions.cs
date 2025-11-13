@@ -41,7 +41,7 @@ public static partial class ServiceCollectionExtensions
             .AddHttpClient(nameof(EmailLabsMailClient), client =>
                 ConfigureHttpClient(client, baseAddress, apiKey))
             .AddAsKeyed(ServiceLifetime.Singleton)
-            .AddStandardResilienceHandler(options => options.Retry.DisableForUnsafeHttpMethods());
+            .AddStandardResilienceHandler(static options => options.Retry.DisableForUnsafeHttpMethods());
     }
 
     private static void ConfigureHttpClient(HttpClient client, Uri? baseAddress, string? apiKey)

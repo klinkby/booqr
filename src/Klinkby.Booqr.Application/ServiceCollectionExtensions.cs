@@ -38,6 +38,7 @@ public static partial class ServiceCollectionExtensions
 
             services.AddBoundedChannel<Activity>(options);
             services.AddHostedService<ActivityBackgroundService>();
+
             services.AddScoped<IActivityRecorder, ActivityRecorder>();
 
             services.AddHostedService<ReminderMailService>();
