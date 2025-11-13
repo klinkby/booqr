@@ -2,7 +2,10 @@
 
 internal static class ApplicationBuilderExtensions
 {
-    public static IApplicationBuilder UseSecurityHeaders(this IApplicationBuilder app) =>
+    private const string ContentSecurityPolicyValue = "default-src 'none'; frame-ancestors 'none'";
+    private const string XContentTypeOptionsValue = "nosniff";
+
+    internal static IApplicationBuilder UseSecurityHeaders(this IApplicationBuilder app) =>
         app.Use(async (context, next) =>
         {
             HttpResponse res = context.Response;
@@ -10,9 +13,8 @@ internal static class ApplicationBuilderExtensions
                 {
                     IHeaderDictionary headers = res.Headers;
                     headers.Append("X-Request-Id", context.TraceIdentifier);
-                    // https://developer.mozilla.org/en-US/observatory/docs/faq#can_i_scan_non-websites_such_as_api_endpoints
-                    headers.Append("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'");
-                    headers.Append("X-Content-Type-Options", "nosniff");
+                    headers.Append("Content-Security-Policy", ContentSecurityPolicyValue);
+                    headers.Append("X-Content-Type-Options", XContentTypeOptionsValue);
                     return Task.CompletedTask;
                 },
                 context);
