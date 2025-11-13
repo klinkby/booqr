@@ -25,20 +25,18 @@ internal static class ServiceCollectionExtensions
                     ClockSkew = TimeSpan.Zero
                 };
             });
-
         services.AddAuthorizationBuilder()
             .AddPolicy(UserRole.Admin, policy => policy.RequireRole(UserRole.Admin))
             .AddPolicy(UserRole.Employee, policy => policy.RequireRole(UserRole.Admin, UserRole.Employee))
             .AddPolicy(UserRole.Customer,
                 policy => policy.RequireRole(UserRole.Admin, UserRole.Employee, UserRole.Customer));
-
-        services.AddProblemDetails();
+        services.AddProblemDetails(static options =>
+            options.CustomizeProblemDetails = static context =>
+                context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier); // also logged and responded in x-request-id header
         services.AddHealthChecks();
         services.AddValidation();
-        services.ConfigureHttpJsonOptions(options =>
-        {
-            options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
-        });
+        services.ConfigureHttpJsonOptions(static options =>
+            options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default));
         services.AddScoped<IRequestMetadata, RequestMetadata>();
         services.AddSingleton<RequestMetadataEndPointFilter>();
         return services;
