@@ -41,9 +41,10 @@ public static partial class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
-        services.AddOptions<InfrastructureSettings>()
+        services
+            .AddSingleton<IValidateOptions<InfrastructureSettings>, ValidateInfrastructureSettings>()
+            .AddOptions<InfrastructureSettings>()
             .Bind(configuration)
-            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         services.ConfigureEmailLabsHttpClient();

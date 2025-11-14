@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.Options;
 
 namespace Klinkby.Booqr.Infrastructure.Models;
 
@@ -48,3 +49,6 @@ internal sealed record InfrastructureSettings
     [Required]
     public required string MailClientFromAddress { get; set; }
 }
+
+[OptionsValidator]
+internal sealed partial class ValidateInfrastructureSettings : IValidateOptions<InfrastructureSettings>;
