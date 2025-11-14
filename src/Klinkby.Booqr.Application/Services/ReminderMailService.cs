@@ -42,6 +42,7 @@ internal sealed partial class ReminderMailService(
 
     async protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        _log.ReminderMailServiceStart(_timeOfDay);
         while (!stoppingToken.IsCancellationRequested)
         {
             DateTime now = Now;
@@ -144,5 +145,8 @@ internal sealed partial class ReminderMailService(
 
         [LoggerMessage(1113, LogLevel.Information, "Sleep for {Duration} until {Next}")]
         public partial void Sleep(TimeSpan duration, DateTime next);
+
+        [LoggerMessage(1114, LogLevel.Information, "Reminder emails is sent at {TimeOfDay}")]
+        public partial void ReminderMailServiceStart(TimeSpan timeOfDay);
     }
 }

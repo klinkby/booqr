@@ -41,8 +41,8 @@ static void ConfigureServices(WebApplicationBuilder builder, bool isMockServer)
 {
     ConfigurationManager configuration = builder.Configuration;
     builder.Services
-        .AddApplication(configuration.GetSection("Application"), isMockServer)
-        .AddApi(configuration.GetSection("Application:Jwt"));
+        .AddApplication(configuration.GetRequiredSection("Application"), isMockServer)
+        .AddApi(configuration.GetRequiredSection("Application:Jwt"));
 
     if (isMockServer)
     {
@@ -52,7 +52,7 @@ static void ConfigureServices(WebApplicationBuilder builder, bool isMockServer)
     {
         builder.Services
             .AddSingleton<TimeProvider>(static _ => TimeProvider.System)
-            .AddInfrastructure(configuration.GetSection("Infrastructure"));
+            .AddInfrastructure(configuration.GetRequiredSection("Infrastructure"));
         builder.WebHost.UseKestrelCore();
     }
 }

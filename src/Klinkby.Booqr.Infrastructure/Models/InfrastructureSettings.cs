@@ -1,4 +1,6 @@
-﻿namespace Klinkby.Booqr.Infrastructure.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Klinkby.Booqr.Infrastructure.Models;
 
 /// <summary>
 ///     Provides configuration settings for the infrastructure layer.
@@ -13,7 +15,8 @@ internal sealed record InfrastructureSettings
     ///     Gets or initializes the PostgreSQL database connection string.
     /// </summary>
     /// <value>The connection string used to connect to the database.</value>
-    public string ConnectionString { get; init; } = string.Empty;
+    [Required]
+    public required string ConnectionString { get; set; }
 
     /// <summary>
     ///     Gets or initializes the base address for the EmailLabs API.
@@ -21,23 +24,27 @@ internal sealed record InfrastructureSettings
     /// <value>
     ///     The base URI for the mail client API. Defaults to <c>https://api.emaillabs.net.pl/</c>.
     /// </value>
-    public Uri MailClientBaseAddress { get; init; } = new("https://api.emaillabs.net.pl/", UriKind.Absolute);
+    [Required]
+    public Uri MailClientBaseAddress { get; set; } = new("https://api.emaillabs.net.pl/", UriKind.Absolute);
 
     /// <summary>
     ///     Gets or initializes the API key for authenticating with the EmailLabs service.
     /// </summary>
     /// <value>The API key used for Basic authentication.</value>
-    public string MailClientApiKey { get; init; } = string.Empty;
+    [Required]
+    public required string MailClientApiKey { get; set; }
 
     /// <summary>
     ///     Gets or initializes the account identifier for the EmailLabs service.
     /// </summary>
     /// <value>The account name or identifier for the mail service.</value>
-    public string MailClientAccount { get; init; } = string.Empty;
+    [Required]
+    public required string MailClientAccount { get; set; }
 
     /// <summary>
     ///     Gets or initializes the sender email address for outgoing emails.
     /// </summary>
     /// <value>The email address that appears in the "From" field of sent emails.</value>
-    public string MailClientFromAddress { get; init; } = string.Empty;
+    [Required]
+    public required string MailClientFromAddress { get; set; }
 }

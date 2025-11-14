@@ -34,10 +34,13 @@ public static partial class ServiceCollectionExtensions
 
         services.AddOptions<ReminderMailSettings>()
             .Bind(configuration.GetSection("ReminderMail"))
+            .ValidateDataAnnotations()
             .ValidateOnStart();
+
         services
             .AddOptions<JwtSettings>()
-            .Bind(configuration.GetSection("Jwt"))
+            .Bind(configuration.GetRequiredSection("Jwt"))
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         BoundedChannelOptions options = new(100)
@@ -52,7 +55,6 @@ public static partial class ServiceCollectionExtensions
 
         services.AddBoundedChannel<Activity>(options);
         services.AddHostedService<ActivityBackgroundService>();
-
         services.AddScoped<IActivityRecorder, ActivityRecorder>();
 
         services.AddHostedService<ReminderMailService>();
