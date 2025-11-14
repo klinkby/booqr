@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+    </PropertyGroup>
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\..\src\Klinkby.Booqr.Core\Klinkby.Booqr.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup Label="Nuget references">
+        <PackageReference Include="Dapper" Version="2.1.66" />
+        <PackageReference Include="Dapper.AOT" Version="1.0.48" />
+        <PackageReference Include="Klinkby.Booqr.Infrastructure.Generators" Version="1.0.1">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.0" />
+        <PackageReference Include="Npgsql.DependencyInjection" Version="9.0.4" />
+        <PackageReference Include="ServiceScan.SourceGenerator" Version="2.4.1">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <PropertyGroup Label="Dapper.AOT">
+        <InterceptorsNamespaces>$(InterceptorsNamespaces);Dapper.AOT;Microsoft.Extensions.Configuration.Binder.SourceGeneration</InterceptorsNamespaces>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <!-- CA1812: Avoid uninstantiated internal classes -->
+        <!-- CS1591: Missing XML comment for publicly visible type or member (for source-generated code) -->
+        <NoWarn>$(NoWarn);CA1812;CS1591</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup Label="Friend test proj">
+        <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+    </ItemGroup>
+
+</Project>

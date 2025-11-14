@@ -1,0 +1,10 @@
+﻿*.sln.DotSettings.user
+appsettings.Development.json
+bin/
+obj/
+.idea/
+/src/Klinkby.Booqr.Api/wwwroot/openapi/*
+NLog.xsd
+certs/
+dpkeys/
+w3clog/

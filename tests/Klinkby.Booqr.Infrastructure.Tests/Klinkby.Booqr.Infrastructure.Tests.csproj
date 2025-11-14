@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <UserSecretsId>7244181b-c33f-4451-9c2a-93bc7550b9bb</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup Label="Nuget references">
+        <PackageReference Include="AutoFixture" Version="4.18.1"/>
+        <PackageReference Include="AutoFixture.Xunit2" Version="4.18.1"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0"/>
+        <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.0.0" />
+        <PackageReference Include="Moq" Version="4.20.72"/>
+        <PackageReference Include="Testcontainers.PostgreSql" Version="4.8.1" />
+        <PackageReference Include="Testcontainers.Xunit" Version="4.8.1" />
+        <PackageReference Update="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+        <PackageReference Update="xunit.runner.visualstudio" Version="3.1.5">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup Label="Pin vulnerable transient dependencies">
+        <PackageReference Include="System.Net.Http" Version="4.3.4" NoWarn="NU1510" />
+        <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" NoWarn="NU1510" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Klinkby.Booqr.Infrastructure\Klinkby.Booqr.Infrastructure.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="Xunit.AssemblyTraitAttribute">
+            <_Parameter1>Category</_Parameter1>
+            <_Parameter2>Integration</_Parameter2>
+        </AssemblyAttribute>
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="..\..\ddl\initdb.sql">
+        <Link>initdb.sql</Link>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <PropertyGroup Label="Dapper.AOT">
+        <InterceptorsNamespaces>$(InterceptorsNamespaces);Dapper.AOT</InterceptorsNamespaces>
+    </PropertyGroup>
+
+</Project>

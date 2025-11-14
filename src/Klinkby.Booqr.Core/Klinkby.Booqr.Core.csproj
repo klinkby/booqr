@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk" InitialTargets="CopyrightNotice">
+
+    <Target Name="CopyrightNotice" BeforeTargets="BeforeBuild">
+        <Message Importance="High" Text="(c) 2025, Mads Klinkby. Licensed under AGPL-3.0." />
+    </Target>
+
+</Project>
