@@ -44,4 +44,5 @@
     <PropertyGroup Label="Dapper.AOT">
         <InterceptorsNamespaces>$(InterceptorsNamespaces);Dapper.AOT</InterceptorsNamespaces>
     </PropertyGroup>
+
 </Project>

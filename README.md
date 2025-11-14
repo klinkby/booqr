@@ -1,9 +1,11 @@
 ﻿# Klinkby.Booqr
 
+## Overview
+
 [![Build and Push Docker image](https://github.com/klinkby/booqr/actions/workflows/docker-publish.yml/badge.svg?branch=main)](https://github.com/klinkby/booqr/actions/workflows/docker-publish.yml)
 
 This repository contains an AOT (Ahead-of-Time) enabled ASP.NET Core 10 Web API, designed to serve as a robust backend
-for applications requiring efficient and secure data management with a PostgreSQL database.
+for an application requiring efficient and secure booking management with a PostgreSQL database.
 
 ## Features
 
@@ -29,3 +31,20 @@ Includes `Klinkby.Booqr.Infrastructure.Generators` for code generation.
 *   [Api](src/Klinkby.Booqr.Api): The entry point of the application, containing middleware configuration and all things HTTP.
 *   [Tests](tests): Contains unit and integration tests for various components of the solution, including
 `Klinkby.Booqr.Api.Tests`, `Klinkby.Booqr.Application.Tests`, and `Klinkby.Booqr.Infrastructure.Tests`.
+
+## Licensed under AGPL-3.0
+
+Copyright (C) 2025 Mads Klinkby
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a [copy of the GNU Affero General Public License
+along with this program](LICENSE).  If not, see <http://www.gnu.org/licenses/>.

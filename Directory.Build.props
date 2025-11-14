@@ -9,6 +9,7 @@
         <Configurations>Debug;Release</Configurations>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <Deterministic>true</Deterministic>
+        <Copyright>(c) 2025, Mads Klinkby. Licensed under AGPL-3.0.</Copyright>
     </PropertyGroup>
 
     <PropertyGroup Label="Analyzer settings">
@@ -33,4 +34,12 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
+
+    <ItemGroup Label="AGPL3 licensed">
+        <Content Include="..\..\LICENSE">
+            <Link>LICENSE</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
 </Project>
