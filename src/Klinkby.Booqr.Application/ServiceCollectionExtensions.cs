@@ -2,6 +2,7 @@
 using Klinkby.Booqr.Application;
 using Klinkby.Booqr.Application.Services;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using ServiceScan.SourceGenerator;
 using EmailBackgroundService = Klinkby.Booqr.Application.Services.EmailBackgroundService;
 
@@ -32,15 +33,15 @@ public static partial class ServiceCollectionExtensions
             return services;
         }
 
-        services.AddOptions<ReminderMailSettings>()
+        services
+            .AddOptions<ReminderMailSettings>()
             .Bind(configuration.GetSection("ReminderMail"))
-            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         services
+            .AddSingleton<IValidateOptions<JwtSettings>, ValidateJwtSettings>()
             .AddOptions<JwtSettings>()
             .Bind(configuration.GetRequiredSection("Jwt"))
-            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         BoundedChannelOptions options = new(100)

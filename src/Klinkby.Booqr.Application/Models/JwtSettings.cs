@@ -1,4 +1,6 @@
-﻿namespace Klinkby.Booqr.Application.Models;
+﻿using Microsoft.Extensions.Options;
+
+namespace Klinkby.Booqr.Application.Models;
 
 /// <summary>
 /// Represents the configuration settings for JSON Web Token (JWT) authentication.
@@ -29,3 +31,6 @@ public sealed record JwtSettings
     [Required]
     public TimeSpan Expires { get; set; } = TimeSpan.FromHours(8);
 }
+
+[OptionsValidator]
+internal sealed partial class ValidateJwtSettings : IValidateOptions<JwtSettings>;
