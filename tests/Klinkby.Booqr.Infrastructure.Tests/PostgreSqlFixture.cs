@@ -1,4 +1,5 @@
 ﻿using System.Data.Common;
+using AutoFixture;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Dapper;
@@ -24,11 +25,17 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
 
     async Task IAsyncLifetime.InitializeAsync()
     {
+        Fixture fixture = new();
         await SqlContainer.StartAsync();
+        InfrastructureSettings? settings = fixture.Create<InfrastructureSettings>();
         IConfigurationRoot config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                { nameof(InfrastructureSettings.ConnectionString), SqlContainer.GetConnectionString() }
+                { nameof(InfrastructureSettings.ConnectionString), SqlContainer.GetConnectionString() },
+                { nameof(InfrastructureSettings.MailClientApiKey), settings.MailClientApiKey },
+                { nameof(InfrastructureSettings.MailClientAccount), settings.MailClientAccount },
+                { nameof(InfrastructureSettings.MailClientFromAddress), settings.MailClientFromAddress },
+                { nameof(InfrastructureSettings.MailClientBaseAddress), settings.MailClientBaseAddress.ToString() },
             })
             .Build();
         _services = new ServiceCollection()
