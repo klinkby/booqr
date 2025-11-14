@@ -8,15 +8,25 @@ using Microsoft.Extensions.Options;
 
 namespace Klinkby.Booqr.Infrastructure.Services;
 
-internal sealed partial class EmailLabsMailClient(
-    [FromKeyedServices(nameof(EmailLabsMailClient))]
-    HttpClient httpClient,
-    IOptions<InfrastructureSettings> options,
-    ILogger<EmailLabsMailClient> logger) : IMailClient
+internal sealed partial class EmailLabsMailClient : IMailClient
 {
-    private readonly LoggerMessages _log = new(logger);
-    private readonly string _smtpAccount = options.Value.MailClientAccount;
-    private readonly string _fromAddress = options.Value.MailClientFromAddress;
+    private readonly LoggerMessages _log;
+    private readonly string _smtpAccount;
+    private readonly string _fromAddress;
+    private readonly HttpClient _httpClient;
+
+    public EmailLabsMailClient([FromKeyedServices(nameof(EmailLabsMailClient))]
+        HttpClient httpClient,
+        IOptions<InfrastructureSettings> options,
+        ILogger<EmailLabsMailClient> logger)
+    {
+        InfrastructureSettings optionsValue = options.Value;
+        _httpClient = httpClient;
+        _log = new LoggerMessages(logger);
+        _smtpAccount = optionsValue.MailClientAccount;
+        _fromAddress = optionsValue.MailClientFromAddress;
+        _log.EmailLabsClient(_smtpAccount, _fromAddress);
+    }
 
     public async Task Send(Message message, CancellationToken cancellationToken = default)
     {
@@ -34,7 +44,7 @@ internal sealed partial class EmailLabsMailClient(
         try
         {
             // https://dev.emaillabs.io/#api-Send-new_sendmail
-            HttpResponseMessage responseMessage = await httpClient.PostAsync(
+            HttpResponseMessage responseMessage = await _httpClient.PostAsync(
                 new Uri("api/new_sendmail", UriKind.Relative),
                 form,
                 cancellationToken); // throws if there's no connection
@@ -75,6 +85,9 @@ internal sealed partial class EmailLabsMailClient(
 
         [LoggerMessage(1021, LogLevel.Information, "Email sent successfully")]
         public partial void SendEmailSuccess();
+
+        [LoggerMessage(1022, LogLevel.Information, "EmailLabs sending through {SmtpAccount} from {FromAddress}")]
+        public partial void EmailLabsClient(string smtpAccount, string fromAddress);
     }
 
     private sealed record EmailLabsMailClientResponse(
@@ -84,10 +97,10 @@ internal sealed partial class EmailLabsMailClient(
         string Message,
         [property: JsonPropertyName("data")] object? Data = null)
     {
-        public static EmailLabsMailClientResponse FromGeneralNetworkError() =>
+        internal static EmailLabsMailClientResponse FromGeneralNetworkError() =>
             new(0, "NetworkError", "General network error");
 
-        public static EmailLabsMailClientResponse FromGeneralServerError(HttpStatusCode statusCode) =>
+        internal static EmailLabsMailClientResponse FromGeneralServerError(HttpStatusCode statusCode) =>
             new((int)statusCode, "ServerError", $"General server error: {statusCode}");
     }
 

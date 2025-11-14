@@ -4,6 +4,8 @@ using System.Text;
 using Klinkby.Booqr.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Http.Resilience;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using ServiceScan.SourceGenerator;
 using EmailLabsMailClient = Klinkby.Booqr.Infrastructure.Services.EmailLabsMailClient;
 using Transaction = Klinkby.Booqr.Infrastructure.Services.Transaction;
@@ -41,30 +43,42 @@ public static partial class ServiceCollectionExtensions
 
         services.AddOptions<InfrastructureSettings>()
             .Bind(configuration)
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        string connectionString = configuration[nameof(InfrastructureSettings.ConnectionString)]
-            ?? throw new InvalidOperationException($"Configuration value '{nameof(InfrastructureSettings.ConnectionString)}' is required.");
-        string apiKey = configuration[nameof(InfrastructureSettings.MailClientApiKey)]
-            ?? throw new InvalidOperationException($"Configuration value '{nameof(InfrastructureSettings.MailClientApiKey)}' is required.");
-        Uri baseAddress = configuration.GetValue<Uri>(nameof(InfrastructureSettings.MailClientBaseAddress))
-            ?? new InfrastructureSettings().MailClientBaseAddress;
-
-        services.ConfigureEmailLabsHttpClient(baseAddress, apiKey);
-        services.AddNpgsqlSlimDataSource(connectionString, serviceKey: nameof(ConnectionProvider));
+        services.ConfigureEmailLabsHttpClient();
+        services.AddNpgsqlSlimDataSource(
+            "",
+            (serviceProvider, builder) =>
+            {
+                InfrastructureSettings settings =
+                    serviceProvider.GetRequiredService<IOptions<InfrastructureSettings>>().Value;
+                builder.ConnectionStringBuilder.ConnectionString = settings.ConnectionString;
+                PostgreSql(
+                    serviceProvider.GetRequiredService<ILogger<InfrastructureSettings>>(),
+                    builder.ConnectionStringBuilder.Host);
+            }, serviceKey: nameof(ConnectionProvider));
         services.AddSingleton<IMailClient, EmailLabsMailClient>();
         services.AddScoped<ITransaction, Transaction>();
         services.AddScoped<IConnectionProvider, ConnectionProvider>();
         services.AddRepositories();
+
         return services;
     }
 
-    private static void ConfigureEmailLabsHttpClient(this IServiceCollection services, Uri baseAddress, string apiKey)
+    private static void ConfigureEmailLabsHttpClient(this IServiceCollection services)
     {
         // https://learn.microsoft.com/en-us/dotnet/core/resilience/http-resilience?tabs=dotnet-cli
         services
-            .AddHttpClient(nameof(EmailLabsMailClient), client =>
-                ConfigureHttpClient(client, baseAddress, apiKey))
+            .AddHttpClient(nameof(EmailLabsMailClient),
+                static (serviceProvider, client) =>
+                {
+                    InfrastructureSettings settings = serviceProvider.GetRequiredService<IOptions<InfrastructureSettings>>().Value;
+                    EmailLabs(
+                        serviceProvider.GetRequiredService<ILogger<InfrastructureSettings>>(),
+                        settings.MailClientBaseAddress);
+                    ConfigureHttpClient(client, settings.MailClientBaseAddress, settings.MailClientApiKey);
+                })
             .AddAsKeyed(ServiceLifetime.Singleton)
             .AddStandardResilienceHandler(static options => options.Retry.DisableForUnsafeHttpMethods());
     }
@@ -83,4 +97,10 @@ public static partial class ServiceCollectionExtensions
         AssignableTo = typeof(IRepository),
         AsImplementedInterfaces = true)]
     private static partial IServiceCollection AddRepositories(this IServiceCollection services);
+
+    [LoggerMessage(1040, LogLevel.Information, "PostgreSQL is at {Host}")]
+    private static partial void PostgreSql(ILogger logger, string? host);
+
+    [LoggerMessage(1041, LogLevel.Information, "EmailLabs is at {Host}")]
+    private static partial void EmailLabs(ILogger logger, Uri host);
 }
