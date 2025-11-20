@@ -39,7 +39,7 @@ public interface IActivityRecorder
     void Delete<TItem>(ActivityQuery<TItem> query);
 }
 
-internal class ActivityRecorder(
+internal sealed class ActivityRecorder(
     ChannelWriter<Activity> writer,
     TimeProvider timeProvider,
     IRequestMetadata? etagProvider = null

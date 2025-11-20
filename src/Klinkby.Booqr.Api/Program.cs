@@ -8,13 +8,13 @@ using NLog.Web;
 
 const string StaticCacheControlValue = "public, max-age=86400";
 
-Stopwatch timer = Stopwatch.StartNew();
+var timer = Stopwatch.StartNew();
 
 WebApplicationBuilder builder = WebApplication.CreateSlimBuilder(args);
 
 // Detect if running in OpenAPI document generation mode
 // https://learn.microsoft.com/aspnet/core/fundamentals/openapi/aspnetcore-openapi
-bool isMockServer = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+var isMockServer = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
 
 ConfigureLogging(builder, isMockServer);
 ConfigureServices(builder, isMockServer);

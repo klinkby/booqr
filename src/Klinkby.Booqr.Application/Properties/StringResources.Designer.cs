@@ -69,7 +69,7 @@ namespace Klinkby.Booqr.Application.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Din adgangskode er blevet nulstillet.
+        ///   Looks up a localized string similar to Du kan skifte din adgangskode.
         /// </summary>
         internal static string ResetPasswordSubject {
             get {

@@ -1,4 +1,5 @@
 ﻿using System.Threading.Channels;
+using Microsoft.Extensions.Options;
 
 namespace Klinkby.Booqr.Application.Tests;
 
@@ -10,10 +11,13 @@ public class SignUpCommandTests
 
     private SignUpCommand CreateSut()
     {
+
         return new SignUpCommand(
             _users.Object,
+            CreateExpiringQueryString(),
             _channel.Writer,
             _activityRecorder.Object,
+            Options.Create(new PasswordSettings { HmacKey = "" }),
             NullLogger<SignUpCommand>.Instance);
     }
 
@@ -28,9 +32,9 @@ public class SignUpCommandTests
     }
 
     [Theory]
-    [InlineData("  Jane Doe  ", 12345678, "  user@example.com  ")]
-    [InlineData("John", 87654321, "USER@EXAMPLE.COM")]
-    public async Task GIVEN_ValidRequest_WHEN_Execute_THEN_MapsAndCallsRepository(string name, long phone, string email)
+    [InlineData("  user@example.com  ")]
+    [InlineData("USER@EXAMPLE.COM")]
+    public async Task GIVEN_ValidRequest_WHEN_Execute_THEN_MapsAndCallsRepository(string email)
     {
         // Arrange
         const int newUserId = 987;
@@ -39,9 +43,8 @@ public class SignUpCommandTests
             .Callback<User, CancellationToken>((u, _) => capturedUser = u)
             .ReturnsAsync(newUserId);
 
-        var request = new SignUpRequest(name, email, phone);
+        var request = new SignUpRequest(email, new Uri("https://localhost"));
         var expectedEmail = email.Trim();
-        var expectedName = name.Trim();
 
         SignUpCommand sut = CreateSut();
 
@@ -52,14 +55,12 @@ public class SignUpCommandTests
         Assert.Equal(newUserId, result);
         Assert.NotNull(capturedUser);
         Assert.Equal(expectedEmail, capturedUser!.Email);
-        Assert.Equal(expectedName, capturedUser.Name);
-        Assert.Equal(phone, capturedUser.Phone);
         Assert.Equal(UserRole.Customer, capturedUser.Role);
 
         bool hasMessage = _channel.Reader.TryRead(out Message? message);
         Assert.True(hasMessage && message is not null);
 
         Assert.Equal(expectedEmail, message.To);
-        Assert.Contains(expectedName,  message.Body, StringComparison.InvariantCulture);
+        Assert.Contains(expectedEmail,  message.Body, StringComparison.InvariantCulture);
     }
 }

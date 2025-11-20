@@ -86,7 +86,7 @@ internal static class Routing
                 static (GetLocationByIdCommand command,
                         [AsParameters] ByIdRequest request,
                         CancellationToken cancellation) =>
-                    command.Execute(request, cancellation))
+                    command.GetSingle(request, cancellation))
             .WithName("getLocationById")
             .WithSummary("Get a single location");
 
@@ -141,7 +141,7 @@ internal static class Routing
                 static (GetServiceByIdCommand command,
                         [AsParameters] ByIdRequest request,
                         CancellationToken cancellation) =>
-                    command.Execute(request, cancellation))
+                    command.GetSingle(request, cancellation))
             .WithName("getServiceById")
             .WithSummary("Get a single service");
 
@@ -190,18 +190,17 @@ internal static class Routing
             .WithSummary("Sign in");
 
         group.MapPost("/reset-password",
-                static (ResetPasswordCommand command, [FromBody] ResetPasswordRequest request, CancellationToken cancellation) =>
-                command.NoContent(request, cancellation))
+                static (ResetPasswordCommand command, [FromBody] ResetPasswordRequest request, HttpContext context, CancellationToken cancellation) =>
+                command.NoContent(request with { Authority = context.ContextAuthority }, cancellation))
             .WithName("resetPassword")
             .WithSummary("Reset password");
 
         group.MapPost("/change-password",
                 static (ChangePasswordCommand command,
                         [FromBody] ChangePasswordRequest request,
-                        ClaimsPrincipal user,
+                        HttpContext context,
                         CancellationToken cancellation) =>
-                command.NoContent(request, user, cancellation))
-            .RequireAuthorization(UserRole.Customer)
+                command.NoContent(request with { QueryString = context.Request.QueryString.Value ?? "" }, cancellation))
             .WithName("changePassword")
             .WithSummary("Change password");
 
@@ -220,7 +219,7 @@ internal static class Routing
                         [AsParameters] GetMyBookingByIdRequest request,
                         ClaimsPrincipal user,
                         CancellationToken cancellation) =>
-                    command.Execute(request with { User = user }, cancellation))
+                    command.GetSingle(request with { User = user }, cancellation))
             .RequireAuthorization(UserRole.Customer)
             .WithName("getMyBookingById")
             .WithSummary("Get a single my booking item");
@@ -238,7 +237,7 @@ internal static class Routing
                 static (GetUserByIdCommand command,
                         [AsParameters] ByIdRequest request,
                         CancellationToken cancellation) =>
-                    command.Execute(request, cancellation))
+                    command.GetSingle(request, cancellation))
             .RequireAuthorization(UserRole.Employee)
             .WithName("getUserById")
             .WithSummary("Get a single user");
@@ -246,8 +245,9 @@ internal static class Routing
         group.MapPost("",
                 static (SignUpCommand command,
                         [FromBody] SignUpRequest request,
+                        HttpContext context,
                         CancellationToken cancellation) =>
-                    command.CreatedAnonymous(request, $"{BaseUrl}/{resourceName}", cancellation))
+                    command.CreatedAnonymous(request with { Authority = context.ContextAuthority }, $"{BaseUrl}/{resourceName}", cancellation))
             .WithName("addUser")
             .WithSummary("Sign up for a user account");
 
@@ -293,7 +293,7 @@ internal static class Routing
                 static (GetVacancyByIdCommand command,
                         [AsParameters] ByIdRequest request,
                         CancellationToken cancellation) =>
-                    command.Execute(request, cancellation))
+                    command.GetSingle(request, cancellation))
             .WithName("getVacancyById")
             .WithSummary("Get a single vacancy");
 
@@ -324,5 +324,4 @@ internal static class Routing
             .WithName("deleteVacancy")
             .WithSummary("Delete a vacancy");
     }
-
 }

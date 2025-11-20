@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
-using Klinkby.Booqr.Application.Util;
 
 namespace Klinkby.Booqr.Application.Commands.Bookings;
 

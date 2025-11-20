@@ -47,6 +47,12 @@ public sealed partial class LoginCommand(
             return null;
         }
 
+        if (user.PasswordHash is null)
+        {
+            _log.NotConfirmed(user.Id);
+            return null;
+        }
+
         var isPasswordValid = BCryptNet.EnhancedVerify(query.Password, user.PasswordHash);
         if (!isPasswordValid)
         {
@@ -98,5 +104,8 @@ public sealed partial class LoginCommand(
 
         [LoggerMessage(132, LogLevel.Warning, "User {Email} typed the wrong password")]
         public partial void WrongPassword(string email);
+
+        [LoggerMessage(133, LogLevel.Warning, "User {Id} has not confirmed sign up")]
+        public partial void NotConfirmed(int id);
     }
 }

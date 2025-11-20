@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
 using Klinkby.Booqr.Application.Commands.Bookings;
-using Klinkby.Booqr.Application.Util;
 using Klinkby.Booqr.Core.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

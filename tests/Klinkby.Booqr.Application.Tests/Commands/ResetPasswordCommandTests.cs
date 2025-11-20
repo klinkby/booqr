@@ -1,11 +1,12 @@
 ﻿using System.Threading.Channels;
+using Microsoft.Extensions.Options;
 
 namespace Klinkby.Booqr.Application.Tests;
 
 public class ResetPasswordCommandTests
 {
     private static ResetPasswordCommand CreateSut(IUserRepository users, ChannelWriter<Message> writer)
-        => new(users, writer, NullLogger<ResetPasswordCommand>.Instance);
+        => new(users, CreateExpiringQueryString(), writer, Options.Create(new PasswordSettings { HmacKey = "" }), NullLogger<ResetPasswordCommand>.Instance);
 
     [Fact]
     public async Task GIVEN_NullRequest_WHEN_Execute_THEN_ThrowsArgumentNullException()
@@ -32,7 +33,7 @@ public class ResetPasswordCommandTests
         var channel = Channel.CreateBounded<Message>(100);
         var sut = CreateSut(users.Object, channel.Writer);
 
-        var request = new ResetPasswordRequest(email);
+        var request = new ResetPasswordRequest(email, new Uri("https://localhost"));
         var expectedEmail = email.Trim();
 
         // Act
@@ -57,15 +58,10 @@ public class ResetPasswordCommandTests
         users.Setup(x => x.GetByEmail(It.IsAny<string>(), CancellationToken.None))
             .ReturnsAsync(existing);
 
-        User? updatedUser = null;
-        users.Setup(x => x.Update(It.IsAny<User>(), CancellationToken.None))
-            .Callback<User, CancellationToken>((u, _) => updatedUser = u)
-            .ReturnsAsync(true);
-
         var channel = Channel.CreateBounded<Message>(100);
         var sut = CreateSut(users.Object, channel.Writer);
 
-        var request = new ResetPasswordRequest(email);
+        var request = new ResetPasswordRequest(email, new Uri("https://localhost"));
         var expectedEmail = email.Trim();
 
         // Act
@@ -73,9 +69,7 @@ public class ResetPasswordCommandTests
 
         // Assert repository interactions
         users.Verify(x => x.GetByEmail(expectedEmail, CancellationToken.None), Times.Once);
-        users.Verify(x => x.Update(It.IsAny<User>(), CancellationToken.None), Times.Once);
-        Assert.NotNull(updatedUser);
-        Assert.Equal(existing.Email, updatedUser!.Email); // Email must remain unchanged
+        users.Verify(x => x.Update(It.IsAny<User>(), CancellationToken.None), Times.Never);
 
         // Assert message was sent
         bool hasMessage = channel.Reader.TryRead(out Message? message);

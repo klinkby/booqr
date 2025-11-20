@@ -1,21 +1,23 @@
-﻿using BCryptNet = BCrypt.Net.BCrypt;
+﻿using System.Collections.Specialized;
+using System.Globalization;
+using System.Text.Json.Serialization;
 
 namespace Klinkby.Booqr.Application.Commands.Users;
 
 public sealed record ChangePasswordRequest(
     [Required]
     [StringLength(0x7f)]
-    string OldPassword,
-    [Required]
-    [StringLength(0x7f)]
     [RegularExpression(
         """
         ^(?=(.*[0-9]))(?=.*[\!@#$%^&*()\\[\]{}\-_+=~`|:;"'<>,./?])(?=.*[a-z])(?=(.*[A-Z])).{8,}$
         """, ErrorMessage = "Password is too simple")]
-    string NewPassword) : AuthenticatedRequest;
+    string Password,
+    [property: JsonIgnore]
+    string QueryString);
 
 public partial class ChangePasswordCommand(
     IUserRepository userRepository,
+    IExpiringQueryString expiringQueryString,
     IActivityRecorder activityRecorder,
     ILogger<ChangePasswordCommand> logger
 ) : ICommand<ChangePasswordRequest, Task<bool>>
@@ -26,17 +28,32 @@ public partial class ChangePasswordCommand(
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        _log.ChangePassword(query.AuthenticatedUserId);
-        User? user = await userRepository.GetById(query.AuthenticatedUserId, cancellation);
-        if (user is null || !BCryptNet.EnhancedVerify(query.OldPassword.Trim(), user.PasswordHash))
+        if (!expiringQueryString.TryParse(query.QueryString, out NameValueCollection? parameters)
+            || !int.TryParse(parameters[Query.Id], CultureInfo.InvariantCulture, out var userId)
+            || parameters[Query.Action] != Query.ResetPasswordAction)
         {
-            _log.WrongPassword(query.AuthenticatedUserId);
+            _log.InvalidQueryString();
             return false;
         }
 
-        await userRepository.Update(ResetPasswordCommand.WithPasswordHash(user, query.NewPassword.Trim()), cancellation);
+        User? user = await userRepository.GetById(userId, cancellation);
+        if (user is null)
+        {
+            _log.UserNotFound(userId);
+            return false;
+        }
+
+        if (!user.ValidateETagParameter(parameters))
+        {
+            _log.Conflict(userId);
+            return false;
+        }
+
+        _log.ChangePassword(userId);
+        await userRepository.Update(user.WithPasswordHash(query.Password.Trim()), cancellation);
+
         _log.Changed(user.Email);
-        activityRecorder.Update<User>(new(query.AuthenticatedUserId, user.Id));
+        activityRecorder.Update<User>(new(userId, user.Id));
         return true;
     }
 
@@ -45,10 +62,16 @@ public partial class ChangePasswordCommand(
         [LoggerMessage(210, LogLevel.Information, "Change {UserId} password")]
         public partial void ChangePassword(int userId);
 
-        [LoggerMessage(211, LogLevel.Warning, "User {UserId} typed the wrong password")]
-        public partial void WrongPassword(int userId);
+        [LoggerMessage(211, LogLevel.Warning, "Link expired/invalid")]
+        public partial void InvalidQueryString();
 
         [LoggerMessage(212, LogLevel.Information, "Password for {Email} successfully changed")]
         public partial void Changed(string email);
+
+        [LoggerMessage(213, LogLevel.Information, "User {UserId} not found")]
+        public partial void UserNotFound(int userId);
+
+        [LoggerMessage(214, LogLevel.Information, "Conflict: User {UserId} has updated since link was generated")]
+        public partial void Conflict(int userId);
     }
 }

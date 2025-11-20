@@ -44,6 +44,12 @@ public static partial class ServiceCollectionExtensions
             .Bind(configuration.GetRequiredSection("Jwt"))
             .ValidateOnStart();
 
+        services
+            .AddSingleton<IValidateOptions<PasswordSettings>, ValidatePasswordSettings>()
+            .AddOptions<PasswordSettings>()
+            .Bind(configuration.GetRequiredSection("Password"))
+            .ValidateOnStart();
+
         BoundedChannelOptions options = new(100)
         {
             SingleReader = true,
@@ -59,6 +65,8 @@ public static partial class ServiceCollectionExtensions
         services.AddScoped<IActivityRecorder, ActivityRecorder>();
 
         services.AddHostedService<ReminderMailService>();
+
+        services.AddSingleton<IExpiringQueryString, ExpiringQueryString>();
 
         return services;
     }

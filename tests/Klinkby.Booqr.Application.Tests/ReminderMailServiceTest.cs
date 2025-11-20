@@ -13,7 +13,7 @@ public class ReminderMailServiceTest
     public async Task GIVEN_BookingDetails_WHEN_CronTriggers_THEN_MailIsSent(BookingDetails[] bookingDetails)
     {
         // arrange
-        FakeTimeProvider timeProvider = new();
+        FakeTimeProvider timeProvider = TestHelpers.TimeProvider;
         DateTime now = timeProvider.GetUtcNow().UtcDateTime;
         ServiceCollection services = CreateServiceCollection();
         using ManualResetEventSlim mre = new();

@@ -1,7 +1,6 @@
 ﻿using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Klinkby.Booqr.Application.Util;
 
 namespace Klinkby.Booqr.Application.Commands.Vacancies;
 
