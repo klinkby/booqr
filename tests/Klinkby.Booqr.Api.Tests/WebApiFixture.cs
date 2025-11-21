@@ -21,7 +21,7 @@ internal sealed class WebApiFixture : WebApplicationFactory<Program>
             },
             "Password": {
               "HmacKey": "WzE4MiwxOTksOTQsNzcsMjU0LDY2LDQ3LDIzMyw5MywxMjcsMjUsMTIyLDU0LDE0OCwyNCwzMywxODgsNjMsMjI1LDE0Nyw5NiwyMzksMTc3LDEyMywyMjQsMTI2LDE4NywyMTUsMTY1LDEyNCwyMjQsMjM2XQ==",
-              "ResetPath": "/reset-password",
+              "ResetPath": "/change-password",
               "ResetTimeoutHours": 2,
               "SignUpTimeoutHours": 24
             }

@@ -28,11 +28,14 @@ public partial class ChangePasswordCommand(
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        if (!expiringQueryString.TryParse(query.QueryString, out NameValueCollection? parameters)
+        if (!expiringQueryString.TryParse(
+                query.QueryString,
+                out NameValueCollection? parameters,
+                out QueryStringValidation validation)
             || !int.TryParse(parameters[Query.Id], CultureInfo.InvariantCulture, out var userId)
-            || parameters[Query.Action] != Query.ResetPasswordAction)
+            || parameters[Query.Action] != Query.ChangePasswordAction)
         {
-            _log.InvalidQueryString();
+            _log.InvalidQueryString(validation);
             return false;
         }
 
@@ -62,8 +65,8 @@ public partial class ChangePasswordCommand(
         [LoggerMessage(210, LogLevel.Information, "Change {UserId} password")]
         public partial void ChangePassword(int userId);
 
-        [LoggerMessage(211, LogLevel.Warning, "Link expired/invalid")]
-        public partial void InvalidQueryString();
+        [LoggerMessage(211, LogLevel.Warning, "Link invalid {Validation}")]
+        public partial void InvalidQueryString(QueryStringValidation validation);
 
         [LoggerMessage(212, LogLevel.Information, "Password for {Email} successfully changed")]
         public partial void Changed(string email);

@@ -12,7 +12,9 @@ namespace Klinkby.Booqr.Application;
 public interface IExpiringQueryString
 {
     string Create(TimeSpan lifetime, NameValueCollection? parameters = null);
-    bool TryParse(string queryString, [NotNullWhen(true)] out NameValueCollection? parsedParameters);
+    bool TryParse(string queryString,
+        [NotNullWhen(true)] out NameValueCollection? parsedParameters,
+        out QueryStringValidation validationStatus);
 }
 
 internal sealed class ExpiringQueryString(
@@ -49,7 +51,9 @@ internal sealed class ExpiringQueryString(
         return queryString + "&" + hashPart;
     }
 
-    public bool TryParse(string queryString, [NotNullWhen(true)] out NameValueCollection? parsedParameters)
+    public bool TryParse(string queryString,
+        [NotNullWhen(true)] out NameValueCollection? parsedParameters,
+        out QueryStringValidation validationStatus)
     {
         NameValueCollection parameters = HttpUtility.ParseQueryString(queryString);
         parsedParameters = null;
@@ -60,17 +64,20 @@ internal sealed class ExpiringQueryString(
                 DateTimeStyles.RoundtripKind,
                 out DateTime expiresValue))
         {
+            validationStatus = QueryStringValidation.DateNotParsed;
             return false;
         }
 
         if (Now > expiresValue)
         {
+            validationStatus = QueryStringValidation.Expired;
             return false;
         }
 
         var index = queryString.IndexOf(HashKeyMatch, StringComparison.OrdinalIgnoreCase);
         if (index < 0)
         {
+            validationStatus = QueryStringValidation.HashMissing;
             return false;
         }
 
@@ -79,6 +86,7 @@ internal sealed class ExpiringQueryString(
         var hashValue = parameters[HashKey];
         if (string.IsNullOrEmpty(hashValue))
         {
+            validationStatus = QueryStringValidation.HashEmpty;
             return false;
         }
 
@@ -86,10 +94,12 @@ internal sealed class ExpiringQueryString(
 
         if (!string.Equals(computedHash, hashValue, StringComparison.Ordinal))
         {
+            validationStatus = QueryStringValidation.IntegrityFailed;
             return false;
         }
 
         parsedParameters = parameters;
+        validationStatus = QueryStringValidation.Success;
         return true;
     }
 
@@ -99,4 +109,14 @@ internal sealed class ExpiringQueryString(
         var hashValue = Base64Url.EncodeToString(hashBytes);
         return hashValue;
     }
+}
+
+public enum QueryStringValidation
+{
+    Success,
+    DateNotParsed,
+    Expired,
+    HashMissing,
+    HashEmpty,
+    IntegrityFailed
 }

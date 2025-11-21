@@ -9,7 +9,7 @@ internal static class Query
     public const string Id = "id";
     public const string ETag = "etag";
     public const string Action = "action";
-    public const string ResetPasswordAction = "reset-password";
+    public const string ChangePasswordAction = "change-password";
 }
 
 internal static class UserExtensions
@@ -22,7 +22,7 @@ internal static class UserExtensions
         {
             [Query.Id] = user.Id.ToString(CultureInfo.InvariantCulture),
             [Query.ETag] = user.ETag,
-            [Query.Action] = Query.ResetPasswordAction,
+            [Query.Action] = Query.ChangePasswordAction,
         };
 
     internal static bool ValidateETagParameter(this Audit user, NameValueCollection parameters) =>

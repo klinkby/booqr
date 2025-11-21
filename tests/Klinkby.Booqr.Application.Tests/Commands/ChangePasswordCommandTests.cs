@@ -59,7 +59,7 @@ public class ChangePasswordCommandTests
         var queryString = ExpiringQueryString.Create(TimeSpan.FromHours(1), new ()
         {
             { Query.Id, user.Id.ToString(CultureInfo.InvariantCulture) },
-            { Query.Action, Query.ResetPasswordAction },
+            { Query.Action, Query.ChangePasswordAction },
             { Query.ETag, user.ETag }
         });
 
