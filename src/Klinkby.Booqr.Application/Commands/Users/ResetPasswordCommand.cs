@@ -1,7 +1,7 @@
-﻿using System.Security.Cryptography;
+﻿using System.Globalization;
+using System.Text.Json.Serialization;
 using System.Threading.Channels;
-using Klinkby.Booqr.Application.Util;
-using BCryptNet = BCrypt.Net.BCrypt;
+using Microsoft.Extensions.Options;
 
 namespace Klinkby.Booqr.Application.Commands.Users;
 
@@ -13,16 +13,20 @@ public sealed record ResetPasswordRequest(
         ^(?(")(".+?(?<!\\)"@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-\w]*[0-9a-z]*\.)+[a-z0-9][\-a-z0-9]{0,22}[a-z0-9]))$
         """, ErrorMessage = "Email is not valid"
     )]
-    string Email
-    );
+    string Email,
+    [property: JsonIgnore]
+    Uri Authority);
 
 public sealed partial class ResetPasswordCommand(
     IUserRepository userRepository,
+    IExpiringQueryString expiringQueryString,
     ChannelWriter<Message> channelWriter,
+    IOptions<PasswordSettings> passwordSettings,
     ILogger<ResetPasswordCommand> logger
 ) : ICommand<ResetPasswordRequest>
 {
     private readonly LoggerMessages _log = new(logger);
+    private readonly PasswordSettings _settings = passwordSettings.Value;
 
     public async Task Execute(ResetPasswordRequest query, CancellationToken cancellation = default)
     {
@@ -32,10 +36,7 @@ public sealed partial class ResetPasswordCommand(
         User? user = await userRepository.GetByEmail(query.Email.Trim(), cancellation);
         if (user != null)
         {
-            var password = GenerateRandomPassword();
-            await userRepository.Update(WithPasswordHash(user, password), cancellation); // TODO challenge/response
-
-            Message message = ComposeMessage(user, password);
+            Message message = ComposeMessage(user, query.Authority);
             _log.Enqueue(message.Id);
             await channelWriter.WriteAsync(message, cancellation);
         }
@@ -45,23 +46,20 @@ public sealed partial class ResetPasswordCommand(
         }
     }
 
-    private static Message ComposeMessage(User user, string password) =>
+    private Message ComposeMessage(User user, Uri authority) =>
         EmbeddedResource.Properties_PasswordReset_handlebars.ComposeMessage(
             user.Email,
             StringResources.ResetPasswordSubject,
-            new Dictionary<string, string>
+            new()
             {
                 ["name"] = user.Name ?? user.Email,
-                ["password"] = password
+                ["resetlink"] = authority.Authority
+                                + _settings.ResetPath
+                                + expiringQueryString.Create(
+                                    TimeSpan.FromHours(_settings.ResetTimeoutHours),
+                                    user.GetPasswordResetParameters()),
+                ["expiryhours"] = _settings.ResetTimeoutHours.ToString(CultureInfo.InvariantCulture)
             });
-
-    internal static User WithPasswordHash(User user, string password) =>
-        user with { PasswordHash = BCryptNet.EnhancedHashPassword(password) };
-
-    internal static string GenerateRandomPassword(int length = 10) =>
-        RandomNumberGenerator.GetString(
-            "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz!@#$%&*()+-=?",
-            length);
 
     private sealed partial class LoggerMessages(ILogger logger)
     {
@@ -73,6 +71,5 @@ public sealed partial class ResetPasswordCommand(
 
         [LoggerMessage(202, LogLevel.Warning, "Unknown email {Email}")]
         public partial void UnknownUser(string email);
-
     }
 }

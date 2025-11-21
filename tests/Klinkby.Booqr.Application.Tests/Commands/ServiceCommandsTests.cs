@@ -1,7 +1,6 @@
 using Klinkby.Booqr.Application.Abstractions;
-using Klinkby.Booqr.Application.Services;
 
-namespace Klinkby.Booqr.Application.Tests;
+namespace Klinkby.Booqr.Application.Tests.Commands;
 
 public class ServiceCommandsTests
 {

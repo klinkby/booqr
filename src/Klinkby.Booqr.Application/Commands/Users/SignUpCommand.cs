@@ -1,14 +1,12 @@
-﻿using System.Threading.Channels;
-using Klinkby.Booqr.Application.Util;
+﻿using System.Globalization;
+using System.Text.Json.Serialization;
+using System.Threading.Channels;
+using Microsoft.Extensions.Options;
 
 namespace Klinkby.Booqr.Application.Commands.Users;
 
 public sealed record SignUpRequest(
-    [Required]
-    [StringLength(0xff)]
-    string Name,
-    // https://emailregex.com/
-    // // https://gist.github.com/StephenWDickey/8cd8f97a36f357b0df8d2559b0e1c2ab
+    // https://gist.github.com/StephenWDickey/8cd8f97a36f357b0df8d2559b0e1c2ab
     [Required]
     [StringLength(0xff)]
     [RegularExpression(
@@ -17,30 +15,33 @@ public sealed record SignUpRequest(
         """, ErrorMessage = "Email is not valid"
     )]
     string Email,
-    [Required]
-    [Range(10_00_00_00, 99_99_99_99)]
-    long Phone
-    );
+
+    [property: JsonIgnore]
+    Uri Authority);
 
 public sealed partial class SignUpCommand(
     IUserRepository userRepository,
+    IExpiringQueryString expiringQueryString,
     ChannelWriter<Message> channelWriter,
     IActivityRecorder activityRecorder,
+    IOptions<PasswordSettings> passwordSettings,
     ILogger<SignUpCommand> logger
 ) : ICommand<SignUpRequest, Task<int>>
 {
     private readonly LoggerMessages _log = new(logger);
+    private readonly PasswordSettings _settings = passwordSettings.Value;
 
     public async Task<int> Execute(SignUpRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
         _log.CreateUser(query.Email);
-        var password = ResetPasswordCommand.GenerateRandomPassword();
-        User newUser = Map(query, password);
-        var userId = await userRepository.Add(newUser, cancellation);
 
-        Message message = ComposeMessage(newUser, password);
+        User newUser = Map(query);
+        var userId = await userRepository.Add(newUser, cancellation);
+        newUser = newUser with { Id = userId };
+
+        Message message = ComposeMessage(newUser, query.Authority);
         _log.Enqueue(message.Id);
         await channelWriter.WriteAsync(message, cancellation);
 
@@ -49,26 +50,27 @@ public sealed partial class SignUpCommand(
         return userId;
     }
 
-    private static Message ComposeMessage(User user, string password) =>
+    private Message ComposeMessage(User user, Uri authority) =>
         EmbeddedResource.Properties_SignUp_handlebars.ComposeMessage(
             user.Email,
             StringResources.SignUpSubject,
             new Dictionary<string, string>
             {
-                ["name"] = user.Name ?? user.Email,
-                ["password"] = password
+                ["name"] = user.Email,
+                ["resetlink"] = authority.Authority
+                                + _settings.ResetPath
+                                + expiringQueryString.Create(
+                                    TimeSpan.FromHours(_settings.SignUpTimeoutHours),
+                                    user.GetPasswordResetParameters()),
+                ["expiryhours"] = _settings.SignUpTimeoutHours.ToString(CultureInfo.InvariantCulture)
             });
 
-    private static User Map(SignUpRequest query, string password)
-    {
-        var user = new User(
-            query.Email.Trim(),
-            string.Empty,
+    private static User Map(SignUpRequest query) =>
+        new(query.Email.Trim(),
+            null,
             UserRole.Customer,
-            query.Name.Trim(),
-            query.Phone);
-        return ResetPasswordCommand.WithPasswordHash(user, password);
-    }
+            null,
+            null);
 
     private sealed partial class LoggerMessages(ILogger logger)
     {
@@ -80,6 +82,5 @@ public sealed partial class SignUpCommand(
 
         [LoggerMessage(142, LogLevel.Information, "Enqueue sign-up message {MessageId}")]
         public partial void Enqueue(Guid messageId);
-
     }
 }

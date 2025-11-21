@@ -1,21 +1,24 @@
 ﻿using System.Threading.Channels;
+using Microsoft.Extensions.Options;
 
-namespace Klinkby.Booqr.Application.Tests;
+namespace Klinkby.Booqr.Application.Tests.Commands;
 
 public class SignUpCommandTests
 {
+    private readonly static TimeProvider TimeProvider = TestHelpers.TimeProvider;
+    private readonly static Mock<IActivityRecorder> ActivityRecorder = new();
+
     private readonly Mock<IUserRepository> _users = new();
-    private readonly static Mock<IActivityRecorder> _activityRecorder = new();
     private readonly Channel<Message> _channel = Channel.CreateBounded<Message>(100);
 
-    private SignUpCommand CreateSut()
-    {
-        return new SignUpCommand(
+    private SignUpCommand CreateSut() =>
+        new(
             _users.Object,
+            CreateExpiringQueryString(TimeProvider),
             _channel.Writer,
-            _activityRecorder.Object,
+            ActivityRecorder.Object,
+            Options.Create(new PasswordSettings { HmacKey = "" }),
             NullLogger<SignUpCommand>.Instance);
-    }
 
     [Fact]
     public async Task GIVEN_NullRequest_WHEN_Execute_THEN_ThrowsArgumentNullException()
@@ -28,20 +31,22 @@ public class SignUpCommandTests
     }
 
     [Theory]
-    [InlineData("  Jane Doe  ", 12345678, "  user@example.com  ")]
-    [InlineData("John", 87654321, "USER@EXAMPLE.COM")]
-    public async Task GIVEN_ValidRequest_WHEN_Execute_THEN_MapsAndCallsRepository(string name, long phone, string email)
+    [InlineAutoData("  user@example.com  ")]
+    [InlineAutoData("USER@EXAMPLE.COM")]
+    public async Task GIVEN_ValidRequest_WHEN_Execute_THEN_MapsAndCallsRepository(string email, User user)
     {
         // Arrange
         const int newUserId = 987;
+        var expectedEmail = email.Trim();
+
         User? capturedUser = null;
         _users.Setup(x => x.Add(It.IsAny<User>(), It.IsAny<CancellationToken>()))
             .Callback<User, CancellationToken>((u, _) => capturedUser = u)
             .ReturnsAsync(newUserId);
+        _users.Setup(x => x.GetById(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user with { Id = newUserId, Email = expectedEmail });
 
-        var request = new SignUpRequest(name, email, phone);
-        var expectedEmail = email.Trim();
-        var expectedName = name.Trim();
+        var request = new SignUpRequest(email, new Uri("https://localhost"));
 
         SignUpCommand sut = CreateSut();
 
@@ -52,14 +57,12 @@ public class SignUpCommandTests
         Assert.Equal(newUserId, result);
         Assert.NotNull(capturedUser);
         Assert.Equal(expectedEmail, capturedUser!.Email);
-        Assert.Equal(expectedName, capturedUser.Name);
-        Assert.Equal(phone, capturedUser.Phone);
         Assert.Equal(UserRole.Customer, capturedUser.Role);
 
         bool hasMessage = _channel.Reader.TryRead(out Message? message);
         Assert.True(hasMessage && message is not null);
 
         Assert.Equal(expectedEmail, message.To);
-        Assert.Contains(expectedName,  message.Body, StringComparison.InvariantCulture);
+        Assert.Contains(expectedEmail,  message.Body, StringComparison.InvariantCulture);
     }
 }

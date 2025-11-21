@@ -2,7 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 
-namespace Klinkby.Booqr.Application.Tests;
+namespace Klinkby.Booqr.Application.Tests.Commands;
 
 public class UserCommandsTests
 {

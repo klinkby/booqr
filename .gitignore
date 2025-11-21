@@ -8,3 +8,4 @@ NLog.xsd
 certs/
 dpkeys/
 w3clog/
+TestResults/

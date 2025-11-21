@@ -1,10 +1,12 @@
-﻿using Microsoft.Extensions.Time.Testing;
+﻿using System.Security.Cryptography;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Time.Testing;
 
 namespace Klinkby.Booqr.Application.Tests;
 
 internal static class TestHelpers
 {
-    public static TimeProvider TimeProvider { get; } = new FakeTimeProvider();
+    public static FakeTimeProvider TimeProvider => new();
 
     public static ClaimsPrincipal CreateUser(int id = 42, params string[] roles)
     {
@@ -31,5 +33,18 @@ internal static class TestHelpers
     public static IAsyncEnumerable<MyBooking> Yield(params MyBooking[] items)
     {
         return Yield<MyBooking>(items);
+    }
+
+    public static ExpiringQueryString CreateExpiringQueryString(TimeProvider timeProvider)
+    {
+        return new ExpiringQueryString(
+        Options
+            .Create(new PasswordSettings
+            {
+                HmacKey = Convert.ToBase64String(
+                    RandomNumberGenerator.GetBytes(
+                        HMACSHA3_384.HashSizeInBytes))
+            }),
+            timeProvider);
     }
 }

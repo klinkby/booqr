@@ -6,7 +6,7 @@ namespace Klinkby.Booqr.Api;
 
 internal static class StatusCode
 {
-    public static int FromException(Exception exception)
+    internal static int FromException(Exception exception)
     {
         if (exception is AggregateException agg)
         {

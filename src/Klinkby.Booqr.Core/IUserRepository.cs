@@ -26,7 +26,8 @@ namespace Klinkby.Booqr.Core;
 /// </param>
 public sealed record User(
     string Email,
-    [property: JsonIgnore(Condition = JsonIgnoreCondition.Always)] string PasswordHash,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+    string? PasswordHash,
     string Role,
     string? Name,
     long? Phone) : Audit;

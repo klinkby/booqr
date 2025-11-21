@@ -11,7 +11,7 @@ create table public.users
     email        varchar(255)             not null
         constraint users_email
             unique,
-    passwordhash varchar(255)             not null,
+    passwordhash varchar(255),
     role         varchar(20)              not null,
     name         varchar(255),
     phone        bigint,
