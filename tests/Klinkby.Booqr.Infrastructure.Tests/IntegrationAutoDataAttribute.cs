@@ -25,7 +25,7 @@ internal sealed class IntegrationAutoDataAttribute() : AutoDataAttribute(CreateF
             .Without(p => p.Deleted));
         fixture.Customize<User>(c => c
             .With(p => p.Role, () => UserRole.Customer)
-            .With(p => p.PasswordHash , () => new string('a', 60))
+            .With(p => p.PasswordHash, () => new string('a', 60))
             .Without(p => p.Deleted));
         fixture.Customize<Service>(c => c
             .Without(p => p.Deleted));
