@@ -20,7 +20,7 @@ internal sealed class WebApiFixture : WebApplicationFactory<Program>
               "Audience": "https://www.booqr.dk"
             },
             "Password": {
-              "HmacKey": "dGVzdE9oYWNrcw==",
+              "HmacKey": "Njv1mzP1g1bjtKA0GMP2iH31HhdSa2AImK5EtrIAHUA=",
               "ResetPath": "/reset-password",
               "ResetTimeoutHours": 2,
               "SignUpTimeoutHours": 24
