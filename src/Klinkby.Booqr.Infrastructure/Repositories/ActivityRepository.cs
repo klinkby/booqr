@@ -16,7 +16,7 @@ internal sealed class ActivityRepository(
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
         IAsyncEnumerable<Activity> query = connection.QueryUnbufferedAsync<Activity>(
             $"""
-             SELECT id,timestamp,{CommaSeparated}
+             SELECT id,{CommaSeparated}
              FROM {TableName}
              WHERE (timestamp BETWEEN @fromTime AND @toTime)
              LIMIT @Num OFFSET @Start
@@ -32,7 +32,7 @@ internal sealed class ActivityRepository(
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
         IAsyncEnumerable<Activity> query = connection.QueryUnbufferedAsync<Activity>(
-            $"SELECT id,timestamp,{CommaSeparated} FROM {TableName} LIMIT @Num OFFSET @Start",
+            $"SELECT id,{CommaSeparated} FROM {TableName} LIMIT @Num OFFSET @Start",
             new { pageQuery.Start, pageQuery.Num });
         await foreach (Activity item in query.WithCancellation(cancellation))
         {
@@ -45,7 +45,7 @@ internal sealed class ActivityRepository(
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
         return await connection.QuerySingleOrDefaultAsync<Activity>(
-            $"SELECT id,timestamp,{CommaSeparated} FROM {TableName} WHERE id=@id",
+            $"SELECT id,{CommaSeparated} FROM {TableName} WHERE id=@id",
             new GetByLongIdParameters(id));
     }
 
