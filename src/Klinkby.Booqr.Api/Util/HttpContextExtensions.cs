@@ -5,7 +5,7 @@ namespace Klinkby.Booqr.Api.Util;
 
 internal static class HttpContextExtensions
 {
-    internal static Uri ContextAuthority(this HttpContext context) =>
+    internal static Uri GetContextAuthority(this HttpContext context) =>
         new(context.Request.Scheme + Uri.SchemeDelimiter + context.Request.Host.Value,
             UriKind.Absolute);
 }

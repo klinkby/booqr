@@ -39,9 +39,11 @@ public sealed partial class SignUpCommand(
 
         User newUser = Map(query);
         var userId = await userRepository.Add(newUser, cancellation);
+        // retrieve the user again to get all fields populated (like ETag)
+        newUser = await userRepository.GetById(userId, cancellation)
+            ?? throw new InvalidOperationException($"Failed to retrieve newly created user {userId}.");;
 
-        User userWithId = newUser with { Id = userId };
-        Message message = ComposeMessage(userWithId, query.Authority);
+        Message message = ComposeMessage(newUser, query.Authority);
         _log.Enqueue(message.Id);
         await channelWriter.WriteAsync(message, cancellation);
 

@@ -7,7 +7,7 @@ namespace Klinkby.Booqr.Application.Models;
 /// </summary>
 public sealed record PasswordSettings
 {
-    [Required]
+    [Required, MinLength(32)]
     public required string HmacKey { get; set; }
 
     /// <summary>
@@ -19,13 +19,13 @@ public sealed record PasswordSettings
     /// <summary>
     /// Gets or sets the timeout duration for password reset tokens. Defaults to 2 hours.
     /// </summary>
-    [Required]
+    [Required, Range(1, Int32.MaxValue)]
     public int ResetTimeoutHours { get; set; } = 2;
 
     /// <summary>
     /// Gets or sets the timeout duration for sign-up tokens. Defaults to 24 hours.
     /// </summary>
-    [Required]
+    [Required, Range(1, Int32.MaxValue)]
     public int SignUpTimeoutHours { get; set; } = 24;
 
 }

@@ -32,19 +32,22 @@ public class SignUpCommandTests
     }
 
     [Theory]
-    [InlineData("  user@example.com  ")]
-    [InlineData("USER@EXAMPLE.COM")]
-    public async Task GIVEN_ValidRequest_WHEN_Execute_THEN_MapsAndCallsRepository(string email)
+    [InlineAutoData("  user@example.com  ")]
+    [InlineAutoData("USER@EXAMPLE.COM")]
+    public async Task GIVEN_ValidRequest_WHEN_Execute_THEN_MapsAndCallsRepository(string email, User user)
     {
         // Arrange
         const int newUserId = 987;
+        var expectedEmail = email.Trim();
+
         User? capturedUser = null;
         _users.Setup(x => x.Add(It.IsAny<User>(), It.IsAny<CancellationToken>()))
             .Callback<User, CancellationToken>((u, _) => capturedUser = u)
             .ReturnsAsync(newUserId);
+        _users.Setup(x => x.GetById(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user with { Id = newUserId, Email = expectedEmail });
 
         var request = new SignUpRequest(email, new Uri("https://localhost"));
-        var expectedEmail = email.Trim();
 
         SignUpCommand sut = CreateSut();
 

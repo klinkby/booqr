@@ -191,7 +191,7 @@ internal static class Routing
 
         group.MapPost("/reset-password",
                 static (ResetPasswordCommand command, [FromBody] ResetPasswordRequest request, HttpContext context, CancellationToken cancellation) =>
-                command.NoContent(request with { Authority = context.ContextAuthority }, cancellation))
+                command.NoContent(request with { Authority = context.GetContextAuthority() }, cancellation))
             .WithName("resetPassword")
             .WithSummary("Reset password");
 
@@ -247,7 +247,7 @@ internal static class Routing
                         [FromBody] SignUpRequest request,
                         HttpContext context,
                         CancellationToken cancellation) =>
-                    command.CreatedAnonymous(request with { Authority = context.ContextAuthority }, $"{BaseUrl}/{resourceName}", cancellation))
+                    command.CreatedAnonymous(request with { Authority = context.GetContextAuthority() }, $"{BaseUrl}/{resourceName}", cancellation))
             .WithName("addUser")
             .WithSummary("Sign up for a user account");
 
