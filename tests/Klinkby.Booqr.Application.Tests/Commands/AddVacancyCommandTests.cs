@@ -1,4 +1,4 @@
-﻿namespace Klinkby.Booqr.Application.Tests;
+﻿namespace Klinkby.Booqr.Application.Tests.Commands;
 
 public class AddVacancyCommandTests
 {

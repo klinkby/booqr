@@ -1,25 +1,24 @@
 ﻿using System.Threading.Channels;
 using Microsoft.Extensions.Options;
 
-namespace Klinkby.Booqr.Application.Tests;
+namespace Klinkby.Booqr.Application.Tests.Commands;
 
 public class SignUpCommandTests
 {
+    private readonly static TimeProvider TimeProvider = TestHelpers.TimeProvider;
+    private readonly static Mock<IActivityRecorder> ActivityRecorder = new();
+
     private readonly Mock<IUserRepository> _users = new();
-    private readonly static Mock<IActivityRecorder> _activityRecorder = new();
     private readonly Channel<Message> _channel = Channel.CreateBounded<Message>(100);
 
-    private SignUpCommand CreateSut()
-    {
-
-        return new SignUpCommand(
+    private SignUpCommand CreateSut() =>
+        new(
             _users.Object,
-            CreateExpiringQueryString(),
+            CreateExpiringQueryString(TimeProvider),
             _channel.Writer,
-            _activityRecorder.Object,
+            ActivityRecorder.Object,
             Options.Create(new PasswordSettings { HmacKey = "" }),
             NullLogger<SignUpCommand>.Instance);
-    }
 
     [Fact]
     public async Task GIVEN_NullRequest_WHEN_Execute_THEN_ThrowsArgumentNullException()

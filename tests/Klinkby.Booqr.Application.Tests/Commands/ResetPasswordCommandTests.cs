@@ -1,12 +1,13 @@
 ﻿using System.Threading.Channels;
 using Microsoft.Extensions.Options;
 
-namespace Klinkby.Booqr.Application.Tests;
+namespace Klinkby.Booqr.Application.Tests.Commands;
 
 public class ResetPasswordCommandTests
 {
+    private readonly static TimeProvider TimeProvider = TestHelpers.TimeProvider;
     private static ResetPasswordCommand CreateSut(IUserRepository users, ChannelWriter<Message> writer)
-        => new(users, CreateExpiringQueryString(), writer, Options.Create(new PasswordSettings { HmacKey = "" }), NullLogger<ResetPasswordCommand>.Instance);
+        => new(users, CreateExpiringQueryString(TimeProvider), writer, Options.Create(new PasswordSettings { HmacKey = "" }), NullLogger<ResetPasswordCommand>.Instance);
 
     [Fact]
     public async Task GIVEN_NullRequest_WHEN_Execute_THEN_ThrowsArgumentNullException()

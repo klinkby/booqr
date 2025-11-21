@@ -35,7 +35,7 @@ internal static class TestHelpers
         return Yield<MyBooking>(items);
     }
 
-    public static ExpiringQueryString CreateExpiringQueryString()
+    public static ExpiringQueryString CreateExpiringQueryString(TimeProvider timeProvider)
     {
         return new ExpiringQueryString(
         Options
@@ -45,6 +45,6 @@ internal static class TestHelpers
                     RandomNumberGenerator.GetBytes(
                         HMACSHA3_384.HashSizeInBytes))
             }),
-            TimeProvider);
+            timeProvider);
     }
 }

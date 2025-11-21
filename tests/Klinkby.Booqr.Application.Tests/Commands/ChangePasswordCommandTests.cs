@@ -1,15 +1,16 @@
 ﻿using System.Globalization;
 using Klinkby.Booqr.Application.Util;
 
-namespace Klinkby.Booqr.Application.Tests;
+namespace Klinkby.Booqr.Application.Tests.Commands;
 
 public class ChangePasswordCommandTests
 {
-    private readonly static Mock<IActivityRecorder> _activityRecorder = new();
-    private readonly static ExpiringQueryString ExpiringQueryString = CreateExpiringQueryString();
+    private readonly static TimeProvider TimeProvider = TestHelpers.TimeProvider;
+    private readonly static Mock<IActivityRecorder> ActivityRecorder = new();
+    private readonly static ExpiringQueryString ExpiringQueryString = CreateExpiringQueryString(TimeProvider);
 
     private static ChangePasswordCommand CreateSut(IUserRepository users)
-        => new(users, ExpiringQueryString, _activityRecorder.Object, NullLogger<ChangePasswordCommand>.Instance);
+        => new(users, ExpiringQueryString, ActivityRecorder.Object, NullLogger<ChangePasswordCommand>.Instance);
 
     [Fact]
     public async Task GIVEN_NullRequest_WHEN_Execute_THEN_ThrowsArgumentNullException()
