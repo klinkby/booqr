@@ -1,4 +1,6 @@
-﻿namespace Klinkby.Booqr.Core;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Klinkby.Booqr.Core;
 
 /// <summary>
 /// Represents an activity log entry that records user interactions within the system.
@@ -18,10 +20,13 @@
 public sealed record Activity(
     long Id,
     DateTime Timestamp,
+    [property: StringLength(23)]
     string? RequestId,
     int UserId,
+    [property: StringLength(20)]
     string Entity,
     int EntityId,
+    [property: StringLength(30)]
     string Action
 );
 
