@@ -11,7 +11,7 @@ create table public.users
     email        varchar(255)             not null
         constraint users_email
             unique,
-    passwordhash varchar(255),
+    passwordhash char(60),
     role         varchar(20)              not null,
     name         varchar(255),
     phone        bigint,
@@ -115,10 +115,11 @@ create table public.activities
 (
     id        bigint generated always as identity,
     timestamp timestamp with time zone not null,
-    requestid varchar(23),
-    userid    integer                                                                       not null,
-    entity    varchar(25)                                                                   not null,
-    action    varchar(100)                                                                  not null,
+    requestid char(23),
+    userid    integer           not null,
+    entity    varchar(20)       not null,
+    entityid  integer           not null,
+    action    varchar(30)       not null,
     primary key (timestamp, id)
 );
 
