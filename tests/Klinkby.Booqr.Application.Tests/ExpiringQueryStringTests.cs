@@ -25,7 +25,7 @@ public class ExpiringQueryStringTests
 
         // Act
         var queryString = sut.Create(TimeSpan.FromHours(1));
-        var isValid = sut.TryParse(queryString, out NameValueCollection? _);
+        var isValid = sut.TryParse(queryString, out NameValueCollection? _, out QueryStringValidation _);
 
         // Assert
         Assert.True(isValid);
@@ -45,7 +45,7 @@ public class ExpiringQueryStringTests
 
         // Act
         var queryString = sut.Create(TimeSpan.FromHours(1), inParameters);
-        var isValid = sut.TryParse(queryString, out NameValueCollection? outParameters);
+        var isValid = sut.TryParse(queryString, out NameValueCollection? outParameters, out QueryStringValidation _);
 
         // Assert
         Assert.True(isValid);
@@ -67,7 +67,7 @@ public class ExpiringQueryStringTests
         var queryString = sut
             .Create(TimeSpan.FromHours(1))
             .Replace("2000", replacement, StringComparison.Ordinal);
-        var isValid = sut.TryParse(queryString, out NameValueCollection? _);
+        var isValid = sut.TryParse(queryString, out NameValueCollection? _, out QueryStringValidation _);
 
         // Assert
         Assert.False(isValid);
@@ -83,7 +83,7 @@ public class ExpiringQueryStringTests
         // Act
         var queryString = sut.Create(TimeSpan.Zero);
         _timeProvider.Advance(TimeSpan.FromMinutes(1));
-        var isValid = sut.TryParse(queryString, out NameValueCollection? _);
+        var isValid = sut.TryParse(queryString, out NameValueCollection? _, out QueryStringValidation _);
 
         // Assert
         Assert.False(isValid);
@@ -102,7 +102,7 @@ public class ExpiringQueryStringTests
         var queryString = sut.Create(TimeSpan.FromHours(1))
                              .Split("&hash=")[0]
                           + replacement;
-        var isValid = sut.TryParse(queryString, out NameValueCollection? _);
+        var isValid = sut.TryParse(queryString, out NameValueCollection? _, out QueryStringValidation _);
 
         // Assert
         Assert.False(isValid);
