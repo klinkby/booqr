@@ -40,7 +40,8 @@ public sealed partial class SignUpCommand(
         User newUser = Map(query);
         var userId = await userRepository.Add(newUser, cancellation);
 
-        Message message = ComposeMessage(newUser, query.Authority);
+        User userWithId = newUser with { Id = userId };
+        Message message = ComposeMessage(userWithId, query.Authority);
         _log.Enqueue(message.Id);
         await channelWriter.WriteAsync(message, cancellation);
 
