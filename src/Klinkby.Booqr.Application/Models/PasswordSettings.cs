@@ -11,10 +11,10 @@ public sealed record PasswordSettings
     public required string HmacKey { get; set; }
 
     /// <summary>
-    /// Gets or sets the path used for password reset operations. Defaults to "reset-password".
+    /// Gets or sets the path used for password reset operations. Defaults to "change-password".
     /// </summary>
     [Required]
-    public string ResetPath { get; set; } = "/reset-password";
+    public string ResetPath { get; set; } = "/change-password";
 
     /// <summary>
     /// Gets or sets the timeout duration for password reset tokens. Defaults to 2 hours.

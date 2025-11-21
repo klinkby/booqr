@@ -45,7 +45,6 @@ internal sealed class ExpiringQueryString(
             queryString = (queryParameters.ToString() ?? string.Empty) + "&" + queryString;
         }
 
-        queryString = "?" + queryString;
         var hashPart = HashKey + "=" + HashAndEncodeToBase64Url(queryString);
 
         return queryString + "&" + hashPart;
