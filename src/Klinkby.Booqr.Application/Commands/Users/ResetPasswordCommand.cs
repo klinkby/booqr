@@ -14,8 +14,9 @@ public sealed record ResetPasswordRequest(
         """, ErrorMessage = "Email is not valid"
     )]
     string Email,
+
     [property: JsonIgnore]
-    Uri Authority);
+    string Authority);
 
 public sealed partial class ResetPasswordCommand(
     IUserRepository userRepository,
@@ -46,14 +47,14 @@ public sealed partial class ResetPasswordCommand(
         }
     }
 
-    private Message ComposeMessage(User user, Uri authority) =>
+    private Message ComposeMessage(User user, string authority) =>
         EmbeddedResource.Properties_PasswordReset_handlebars.ComposeMessage(
             user.Email,
             StringResources.ResetPasswordSubject,
             new()
             {
                 ["name"] = user.Name ?? user.Email,
-                ["resetlink"] = authority.Authority
+                ["resetlink"] = authority
                                 + _settings.ResetPath
                                 + expiringQueryString.Create(
                                     TimeSpan.FromHours(_settings.ResetTimeoutHours),
