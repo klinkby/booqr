@@ -31,11 +31,21 @@ public partial class ChangePasswordCommand(
         if (!expiringQueryString.TryParse(
                 query.QueryString,
                 out NameValueCollection? parameters,
-                out QueryStringValidation validation)
-            || !int.TryParse(parameters[Query.Id], CultureInfo.InvariantCulture, out var userId)
-            || parameters[Query.Action] != Query.ChangePasswordAction)
+                out QueryStringValidation validation))
         {
             _log.InvalidQueryString(validation);
+            return false;
+        }
+
+        if (!int.TryParse(parameters[Query.Id], CultureInfo.InvariantCulture, out var userId))
+        {
+            _log.UserIdNotAnInteger(parameters[Query.Id]);
+            return false;
+        }
+
+        if (parameters[Query.Action] != Query.ChangePasswordAction)
+        {
+            _log.InvalidAction(parameters[Query.Action]);
             return false;
         }
 
@@ -71,10 +81,16 @@ public partial class ChangePasswordCommand(
         [LoggerMessage(212, LogLevel.Information, "Password for {Email} successfully changed")]
         public partial void Changed(string email);
 
-        [LoggerMessage(213, LogLevel.Information, "User {UserId} not found")]
+        [LoggerMessage(213, LogLevel.Warning, "User {UserId} not found")]
         public partial void UserNotFound(int userId);
 
-        [LoggerMessage(214, LogLevel.Information, "Conflict: User {UserId} has updated since link was generated")]
+        [LoggerMessage(214, LogLevel.Warning, "Conflict: User {UserId} has updated since link was generated")]
         public partial void Conflict(int userId);
+
+        [LoggerMessage(215, LogLevel.Warning, "UserId not an integer: {UserId}")]
+        public partial void UserIdNotAnInteger(string? userId);
+
+        [LoggerMessage(216, LogLevel.Warning, "Invalid action: {Action}")]
+        public partial void InvalidAction(string? action);
     }
 }
