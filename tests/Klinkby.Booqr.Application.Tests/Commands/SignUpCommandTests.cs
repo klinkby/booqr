@@ -46,7 +46,7 @@ public class SignUpCommandTests
         _users.Setup(x => x.GetById(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user with { Id = newUserId, Email = expectedEmail });
 
-        var request = new SignUpRequest(email, new Uri("https://localhost"));
+        var request = new SignUpRequest(email, "https://localhost");
 
         SignUpCommand sut = CreateSut();
 

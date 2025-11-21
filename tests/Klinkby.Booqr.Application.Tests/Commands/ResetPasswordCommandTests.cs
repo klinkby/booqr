@@ -34,7 +34,7 @@ public class ResetPasswordCommandTests
         var channel = Channel.CreateBounded<Message>(100);
         var sut = CreateSut(users.Object, channel.Writer);
 
-        var request = new ResetPasswordRequest(email, new Uri("https://localhost"));
+        var request = new ResetPasswordRequest(email, "https://localhost");
         var expectedEmail = email.Trim();
 
         // Act
@@ -62,7 +62,7 @@ public class ResetPasswordCommandTests
         var channel = Channel.CreateBounded<Message>(100);
         var sut = CreateSut(users.Object, channel.Writer);
 
-        var request = new ResetPasswordRequest(email, new Uri("https://localhost"));
+        var request = new ResetPasswordRequest(email, "https://localhost");
         var expectedEmail = email.Trim();
 
         // Act

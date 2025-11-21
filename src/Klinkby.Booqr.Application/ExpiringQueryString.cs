@@ -45,6 +45,7 @@ internal sealed class ExpiringQueryString(
             queryString = (queryParameters.ToString() ?? string.Empty) + "&" + queryString;
         }
 
+        queryString = "?" + queryString;
         var hashPart = HashKey + "=" + HashAndEncodeToBase64Url(queryString);
 
         return queryString + "&" + hashPart;
@@ -104,7 +105,9 @@ internal sealed class ExpiringQueryString(
 
     private string HashAndEncodeToBase64Url(string text)
     {
-        var hashBytes = HMACSHA3_384.HashData(Convert.FromBase64String(_hmacKey), Encoding.UTF8.GetBytes(text));
+        var hashBytes = HMACSHA3_384.HashData(
+            Convert.FromBase64String(_hmacKey),
+            Encoding.UTF8.GetBytes(text.ToUpperInvariant()));
         var hashValue = Base64Url.EncodeToString(hashBytes);
         return hashValue;
     }

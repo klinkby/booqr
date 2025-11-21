@@ -6,8 +6,8 @@ namespace Klinkby.Booqr.Infrastructure.Repositories;
 internal sealed class ActivityRepository(
     IConnectionProvider connectionProvider) : IActivityRepository
 {
-    private const string CommaSeparated = "requestid,userid,entity,entityid,action";
-    private const string ParametersCommaSeparated = "@requestid,@userid,@entity,@entityid,@action";
+    private const string CommaSeparated = "timestamp,requestid,userid,entity,entityid,action";
+    private const string ParametersCommaSeparated = "@timestamp,@requestid,@userid,@entity,@entityid,@action";
     private const string TableName = "activities";
 
     public async IAsyncEnumerable<Activity> GetRange(DateTime fromTime, DateTime toTime, IPageQuery pageQuery,

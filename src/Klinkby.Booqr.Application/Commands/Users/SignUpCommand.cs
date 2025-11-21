@@ -17,7 +17,7 @@ public sealed record SignUpRequest(
     string Email,
 
     [property: JsonIgnore]
-    Uri Authority);
+    string Authority);
 
 public sealed partial class SignUpCommand(
     IUserRepository userRepository,
@@ -38,26 +38,28 @@ public sealed partial class SignUpCommand(
         _log.CreateUser(query.Email);
 
         User newUser = Map(query);
-        var userId = await userRepository.Add(newUser, cancellation);
-        newUser = newUser with { Id = userId };
+        int userId = await userRepository.Add(newUser, cancellation);
+        // read back the user to get all fields populated (e.g., ETag)
+        newUser = await userRepository.GetById(userId, cancellation)
+                  ?? throw new InvalidOperationException($"Failed to retrieve newly created user with ID {userId}");
 
         Message message = ComposeMessage(newUser, query.Authority);
         _log.Enqueue(message.Id);
         await channelWriter.WriteAsync(message, cancellation);
 
-        _log.CreatedUser(newUser.Email, userId);
-        activityRecorder.Add<User>(new(userId, userId));
-        return userId;
+        _log.CreatedUser(newUser.Email, newUser.Id);
+        activityRecorder.Add<User>(new(newUser.Id, newUser.Id));
+        return newUser.Id;
     }
 
-    private Message ComposeMessage(User user, Uri authority) =>
+    private Message ComposeMessage(User user, string authority) =>
         EmbeddedResource.Properties_SignUp_handlebars.ComposeMessage(
             user.Email,
             StringResources.SignUpSubject,
             new Dictionary<string, string>
             {
                 ["name"] = user.Email,
-                ["resetlink"] = authority.Authority
+                ["resetlink"] = authority
                                 + _settings.ResetPath
                                 + expiringQueryString.Create(
                                     TimeSpan.FromHours(_settings.SignUpTimeoutHours),
