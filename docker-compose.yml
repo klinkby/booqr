@@ -77,7 +77,7 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=scram-sha-256
     read_only: true
     volumes:
-      - /mnt/postgres-hel1-1/beta:/var/lib/postgresql/18/docker
+      - /mnt/postgres-hel1-1/booqr:/var/lib/postgresql/18/docker
       - ./ddl/initdb.sql:/docker-entrypoint-initdb.d/DDL.sql:ro
       - postgres_socket:/var/run/postgresql
     tmpfs:
