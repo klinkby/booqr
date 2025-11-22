@@ -23,7 +23,7 @@ for an application requiring efficient and secure booking management with a Post
     *   [Command pattern](https://en.wikipedia.org/wiki/Command_pattern) for encapsulating operations as objects
     *   [Repository pattern](https://martinfowler.com/eaaCatalog/repository.html) with soft deletes and immutable variants
 *   **Activity Tracking**: Automatic audit logging using [CallerMemberName](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.callermembernameattribute) to capture action names at compile-time
-*   **[CLEF Logging](https://github.com/Serilog/serilog-formatting-compact)**: Compact Log Event Format structured logging via [NLog](https://nlog-project.org/) for efficient log processing.
+*   **[CLEF Logging](https://github.com/Serilog/serilog-formatting-compact)** via [NLog](https://nlog-project.org/): Structured logging in Compact Log Event Format (CLEF) using NLog's [structured logging](https://nlog-project.org/config/?tab=structured-logging) for efficient log processing.
 *   **Container Security**: Runs rootless in tiny [Alpine Linux](https://alpinelinux.org/) images (~8MB runtime-deps) with immutable filesystem (`read_only: true`).
 *   **PostgreSQL Backend**: Reliable data storage with [Npgsql](https://www.npgsql.org/) optimized for AOT.
 *   **[JWT Authentication](https://jwt.io/)**: Secure API authentication with [Microsoft.AspNetCore.Authentication.JwtBearer](https://www.nuget.org/packages/Microsoft.AspNetCore.Authentication.JwtBearer).
