@@ -20,7 +20,7 @@ for an application requiring efficient and secure booking management with a Post
 *   **Design Patterns**:
     *   [Command pattern](https://en.wikipedia.org/wiki/Command_pattern) for CQRS-like operation handling
     *   [Repository pattern](https://martinfowler.com/eaaCatalog/repository.html) with soft deletes and immutable variants
-    *   Activity recorder pattern with [CallerMemberName](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.callermembernameattribute) for automatic action tracking
+*   **Activity Tracking**: Automatic audit logging using [CallerMemberName](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.callermembernameattribute) to capture action names at compile-time
 *   **PostgreSQL Backend**: Reliable data storage with [Npgsql](https://www.npgsql.org/) optimized for AOT.
 *   **[JWT Authentication](https://jwt.io/)**: Secure API authentication with [Microsoft.AspNetCore.Authentication.JwtBearer](https://www.nuget.org/packages/Microsoft.AspNetCore.Authentication.JwtBearer).
 *   **Separation of Concerns**: Minimalist clean architecture emphasizing maintainability without ceremony.
