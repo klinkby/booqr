@@ -1,21 +1,14 @@
 version: 2
-# Configure Dependabot to enforce a 7-day cooldown period for NuGet packages
-# This security measure helps prevent supply chain injection attacks by:
-# - Waiting for the community to detect and report malicious packages
-# - Blocking ~80% of supply chain attacks that exploit fast compromise windows
-# - Allowing time for security scanners to identify vulnerabilities
 updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    cooldown:
+      default-days: 7
+    schedule:
+      interval: "weekly"
   - package-ecosystem: "nuget"
     directory: "/"
+    cooldown:
+      default-days: 7
     schedule:
-      interval: "daily"
-    # Minimum age a package must have before Dependabot opens a PR
-    # This 7-day cooldown period significantly reduces supply chain attack risk
-    minimum-release-age: 7
-    # Group all updates into a single PR to reduce noise
-    groups:
-      all-nuget-dependencies:
-        patterns:
-          - "*"
-    # Limit concurrent PRs to avoid overwhelming reviewers
-    open-pull-requests-limit: 5
+      interval: "weekly"
