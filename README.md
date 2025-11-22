@@ -9,14 +9,21 @@ for an application requiring efficient and secure booking management with a Post
 
 ## Features
 
-*   **AOT Compilation**: Leverages .NET 10's AOT compilation for improved startup performance and reduced memory
-footprint.
-*   **PostgreSQL Backend**: Utilizes PostgreSQL for reliable and scalable data storage.
-*   **JWT Authentication**: Implements JSON Web Token (JWT) for secure API authentication and authorization.
-*   **Compile-time Generated OpenAPI Specification**: Features a build-time generated OpenAPI specification, ensuring
-API documentation is always up-to-date and accurate without runtime overhead.
-*   **Separation of Concerns**: The codebase is structured with as a "minimalist clean-architecture" with emphasis on
-maintainability and testability without the ceremony.
+*   **[AOT Compilation](https://learn.microsoft.com/dotnet/core/deploying/native-aot/)**: Leverages .NET 10's Native AOT with aggressive trimming for sub-second startup and minimal memory footprint.
+*   **[Build-time OpenAPI](https://learn.microsoft.com/aspnet/core/fundamentals/openapi/aspnetcore-openapi)**: Compile-time generated OpenAPI spec with zero runtime overhead.
+*   **[Source Generators](https://learn.microsoft.com/dotnet/csharp/roslyn-sdk/source-generators-overview)**: Extensive use of compile-time code generation:
+    *   [ServiceScan](https://github.com/Dreamescaper/ServiceScan.SourceGenerator) for automatic DI registration
+    *   [LoggerMessage](https://learn.microsoft.com/dotnet/core/extensions/logger-message-generator) for high-performance logging
+    *   [System.Text.Json source generation](https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/source-generation) for AOT-compatible serialization
+*   **[System.Threading.Channels](https://learn.microsoft.com/dotnet/core/extensions/channels)**: Lock-free async pipelines for email delivery and activity tracking with bounded channels.
+*   **[Background Services](https://learn.microsoft.com/aspnet/core/fundamentals/host/hosted-services)**: Three hosted services for email processing, activity recording, and scheduled reminder delivery.
+*   **Design Patterns**:
+    *   [Command pattern](https://en.wikipedia.org/wiki/Command_pattern) for CQRS-like operation handling
+    *   [Repository pattern](https://martinfowler.com/eaaCatalog/repository.html) with soft deletes and immutable variants
+    *   Activity recorder pattern with [CallerMemberName](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.callermembernameattribute) for automatic action tracking
+*   **PostgreSQL Backend**: Reliable data storage with [Npgsql](https://www.npgsql.org/) optimized for AOT.
+*   **[JWT Authentication](https://jwt.io/)**: Secure API authentication with [Microsoft.AspNetCore.Authentication.JwtBearer](https://www.nuget.org/packages/Microsoft.AspNetCore.Authentication.JwtBearer).
+*   **Separation of Concerns**: Minimalist clean architecture emphasizing maintainability without ceremony.
 
 ## Project Structure
 
