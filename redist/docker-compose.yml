@@ -32,16 +32,16 @@ services:
 
   api1:
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile
     env_file:
-      - .env
+      - ../.env
     image: klinkby/booqr:latest
     networks:
       - service-net
     read_only: true
     volumes:
-      - ./w3clog:/home/app/w3clog
+      - ../w3clog:/home/app/w3clog
       - postgres_socket:/var/run/postgresql
     tmpfs:
       - /tmp
@@ -78,7 +78,7 @@ services:
     read_only: true
     volumes:
       - /mnt/postgres-hel1-1/booqr:/var/lib/postgresql/18/docker
-      - ./redist/ddl/initdb.sql:/docker-entrypoint-initdb.d/DDL.sql:ro
+      - ./ddl/initdb.sql:/docker-entrypoint-initdb.d/DDL.sql:ro
       - postgres_socket:/var/run/postgresql
     tmpfs:
       - /tmp
@@ -108,10 +108,10 @@ services:
       - '443:8443/tcp'
     image: haproxy:3.2-alpine3.22
     volumes:
-      - ./redist/web-gateway/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./web-gateway/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
       - /root/certs.pem:/etc/ssl/certs/certs.pem:ro
     env_file:
-      - ./redist/web-gateway/gateway.env
+      - ./web-gateway/gateway.env
     tmpfs:
       - /tmp
     restart: unless-stopped
