@@ -46,9 +46,9 @@
       },
       "Microsoft.OpenApi": {
         "type": "Direct",
-        "requested": "[2.3.9, )",
-        "resolved": "2.3.9",
-        "contentHash": "ILwsyAMvb64TTrjo5qix4jUtNeedxlCBW6htGarLGC3hFKDr3215HYi4J+j2y5wEGiR0X1asgXnB0ZV8DfcoVg=="
+        "requested": "[3.0.0, )",
+        "resolved": "3.0.0",
+        "contentHash": "S6J/MHkyJ+5HLsAcSrGiA/7x6SF9SUf9WxA4TBkI9W/2nJcCklDaPdjEfOzjkyF1VqrcO51HXvnn33qRpCglzA=="
       },
       "NLog": {
         "type": "Direct",
