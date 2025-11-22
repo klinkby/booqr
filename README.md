@@ -20,7 +20,7 @@ for an application requiring efficient and secure booking management with a Post
 *   **[Background Services](https://learn.microsoft.com/aspnet/core/fundamentals/host/hosted-services)**: Three hosted services for email processing, activity recording, and scheduled reminder delivery.
 *   **[Problem Details](https://datatracker.ietf.org/doc/html/rfc7807)**: RFC 7807 compliant error responses with trace ID correlation.
 *   **Design Patterns**:
-    *   [Command pattern](https://en.wikipedia.org/wiki/Command_pattern) for CQRS-like operation handling
+    *   [Command pattern](https://en.wikipedia.org/wiki/Command_pattern) for encapsulating operations as objects
     *   [Repository pattern](https://martinfowler.com/eaaCatalog/repository.html) with soft deletes and immutable variants
 *   **Activity Tracking**: Automatic audit logging using [CallerMemberName](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.callermembernameattribute) to capture action names at compile-time
 *   **[CLEF Logging](https://github.com/Serilog/serilog-formatting-compact)**: Compact Log Event Format structured logging via [NLog](https://nlog-project.org/) for efficient log processing.
