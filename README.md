@@ -15,12 +15,16 @@ for an application requiring efficient and secure booking management with a Post
     *   [ServiceScan](https://github.com/Dreamescaper/ServiceScan.SourceGenerator) for automatic DI registration
     *   [LoggerMessage](https://learn.microsoft.com/dotnet/core/extensions/logger-message-generator) for high-performance logging
     *   [System.Text.Json source generation](https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/source-generation) for AOT-compatible serialization
+*   **[IAsyncEnumerable Streaming](https://learn.microsoft.com/dotnet/csharp/asynchronous-programming/generate-consume-asynchronous-stream)**: Unbuffered streaming for collection endpoints with true async iteration.
 *   **[System.Threading.Channels](https://learn.microsoft.com/dotnet/core/extensions/channels)**: Lock-free async pipelines for email delivery and activity tracking with bounded channels.
 *   **[Background Services](https://learn.microsoft.com/aspnet/core/fundamentals/host/hosted-services)**: Three hosted services for email processing, activity recording, and scheduled reminder delivery.
+*   **[Problem Details](https://datatracker.ietf.org/doc/html/rfc7807)**: RFC 7807 compliant error responses with trace ID correlation.
 *   **Design Patterns**:
     *   [Command pattern](https://en.wikipedia.org/wiki/Command_pattern) for CQRS-like operation handling
     *   [Repository pattern](https://martinfowler.com/eaaCatalog/repository.html) with soft deletes and immutable variants
 *   **Activity Tracking**: Automatic audit logging using [CallerMemberName](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.callermembernameattribute) to capture action names at compile-time
+*   **[CLEF Logging](https://github.com/Serilog/serilog-formatting-compact)**: Compact Log Event Format structured logging via [NLog](https://nlog-project.org/) for efficient log processing.
+*   **Container Security**: Runs rootless in tiny [Alpine Linux](https://alpinelinux.org/) images (~8MB runtime-deps) with immutable filesystem (`read_only: true`).
 *   **PostgreSQL Backend**: Reliable data storage with [Npgsql](https://www.npgsql.org/) optimized for AOT.
 *   **[JWT Authentication](https://jwt.io/)**: Secure API authentication with [Microsoft.AspNetCore.Authentication.JwtBearer](https://www.nuget.org/packages/Microsoft.AspNetCore.Authentication.JwtBearer).
 *   **Separation of Concerns**: Minimalist clean architecture emphasizing maintainability without ceremony.
