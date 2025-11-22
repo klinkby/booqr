@@ -36,7 +36,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Include="..\..\redist\ddl\initdb.sql">
+      <EmbeddedResource Include="..\..\redist\initdb.sql">
         <Link>initdb.sql</Link>
       </EmbeddedResource>
     </ItemGroup>
