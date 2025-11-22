@@ -17,5 +17,5 @@ updates:
       all-nuget-dependencies:
         patterns:
           - "*"
-    # Additional security: ensure reproducible builds
+    # Limit concurrent PRs to avoid overwhelming reviewers
     open-pull-requests-limit: 5
