@@ -1,9 +1,9 @@
 ﻿# Klinkby.Booqr
 
 [![Build+Push Docker image](https://github.com/klinkby/booqr/actions/workflows/docker-publish.yml/badge.svg?branch=main)](https://github.com/klinkby/booqr/actions/workflows/docker-publish.yml)
+[![codecov](https://codecov.io/github/klinkby/booqr/graph/badge.svg?token=GNQ7UPJ35G)](https://codecov.io/github/klinkby/booqr)
 [![CodeQL](https://github.com/klinkby/booqr/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/klinkby/booqr/actions/workflows/github-code-scanning/codeql)
 [![License](https://img.shields.io/github/license/klinkby/booqr.svg)](LICENSE)
-
 
 An AOT (Ahead-of-Time) enabled ASP.NET 10 Web API, designed to serve as a robust backend
 for an application requiring efficient and secure booking management with a PostgreSQL database. The service is designed
