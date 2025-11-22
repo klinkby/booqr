@@ -11,7 +11,7 @@ updates:
       interval: "daily"
     # Minimum age a package must have before Dependabot opens a PR
     # This 7-day cooldown period significantly reduces supply chain attack risk
-    minimum-release-age: 7 days
+    minimum-release-age: 7
     # Group all updates into a single PR to reduce noise
     groups:
       all-nuget-dependencies:
