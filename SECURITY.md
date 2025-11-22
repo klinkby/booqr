@@ -21,21 +21,7 @@ The `nuget.config` file explicitly maps all packages to `nuget.org`, preventing:
 - **Dependency confusion attacks** where malicious packages from unexpected sources could be installed
 - Accidental use of packages from untrusted or unknown sources
 
-### 3. Package Signature Validation
-
-All NuGet packages must be signed and trusted:
-
-- `signatureValidationMode` is set to `require`
-- Only packages signed by trusted sources (nuget.org repository certificate) are accepted
-- This prevents installation of tampered or malicious unsigned packages
-
-### 4. Trusted Signers
-
-The `nuget.config` explicitly lists trusted certificate fingerprints for:
-
-- NuGet.org repository (certificate fingerprint: `0E5F38F57DC1BCC806D8494F4F90FBCEDD988B46760709CBEEC6F4219AA6157D`)
-
-### 5. Reproducible Builds
+### 3. Reproducible Builds
 
 - `RestorePackagesWithLockFile` is enabled in `Directory.Build.props`
 - Ensures consistent package versions across all builds
@@ -60,4 +46,3 @@ When contributing to this project:
 - [Dependency Cooldowns Block 80% of Supply Chain Attacks](https://byteiota.com/dependency-cooldowns-supply-chain-security/)
 - [Microsoft: NuGet Security Best Practices](https://learn.microsoft.com/en-us/nuget/concepts/security-best-practices)
 - [Package Source Mapping](https://learn.microsoft.com/en-us/nuget/consume-packages/package-source-mapping)
-- [Trusted Signers](https://learn.microsoft.com/en-us/nuget/consume-packages/installing-signed-packages)
