@@ -15,6 +15,11 @@ for an application requiring efficient and secure booking management with a Post
     *   [ServiceScan](https://github.com/Dreamescaper/ServiceScan.SourceGenerator) for automatic DI registration
     *   [LoggerMessage](https://learn.microsoft.com/dotnet/core/extensions/logger-message-generator) for high-performance logging
     *   [System.Text.Json source generation](https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/source-generation) for AOT-compatible serialization
+    *   [OptionsValidator](https://learn.microsoft.com/dotnet/core/extensions/options#options-validation-source-generator) for compile-time options validation
+    *   [Configuration binding](https://learn.microsoft.com/dotnet/core/extensions/configuration#source-generator) for AOT-compatible configuration binding
+    *   [EmbeddedResourceAccessGenerator](https://github.com/ChristianHorvat/EmbeddedResourceAccessGenerator) for type-safe embedded resource access
+    *   [Dapper.AOT](https://github.com/DapperLib/DapperAOT) for AOT-compatible SQL queries
+    *   Custom infrastructure repository query helper for streamlined data access
 *   **[IAsyncEnumerable Streaming](https://learn.microsoft.com/dotnet/csharp/asynchronous-programming/generate-consume-asynchronous-stream)**: Unbuffered streaming for collection endpoints with true async iteration.
 *   **[System.Threading.Channels](https://learn.microsoft.com/dotnet/core/extensions/channels)**: Lock-free async pipelines for email delivery and activity tracking with bounded channels.
 *   **[Background Services](https://learn.microsoft.com/aspnet/core/fundamentals/host/hosted-services)**: Three hosted services for email processing, activity recording, and scheduled reminder delivery.
