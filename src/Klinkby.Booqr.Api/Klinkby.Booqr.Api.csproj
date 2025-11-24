@@ -23,18 +23,18 @@
     </PropertyGroup>
 
     <ItemGroup Label="Project references">
-        <ProjectReference Include="..\Klinkby.Booqr.Application\Klinkby.Booqr.Application.csproj"/>
-        <ProjectReference Include="..\Klinkby.Booqr.Infrastructure\Klinkby.Booqr.Infrastructure.csproj"/>
+        <ProjectReference Include="..\Klinkby.Booqr.Application\Klinkby.Booqr.Application.csproj" />
+        <ProjectReference Include="..\Klinkby.Booqr.Infrastructure\Klinkby.Booqr.Infrastructure.csproj" />
     </ItemGroup>
 
     <ItemGroup Label="Nuget references">
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0-preview.7.25380.108" /> <!-- RTM not supported by Microsoft.OpenApi 2.3.9 -->
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0-preview.7.25380.108" /> <!-- Preview required for Microsoft.OpenApi 2.x -->
         <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.OpenApi" Version="3.0.0" /> <!-- v3 requires dotnet 11 -->
+        <PackageReference Include="Microsoft.OpenApi" Version="2.3.9" /> <!-- v3.x requires .NET 11 -->
         <PackageReference Include="NLog" Version="6.0.6" />
         <PackageReference Include="NLog.Schema" Version="6.0.6">
             <PrivateAssets>all</PrivateAssets>
@@ -49,7 +49,7 @@
     </PropertyGroup>
 
     <ItemGroup Label="Friend test proj">
-        <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
+        <InternalsVisibleTo Include="$(AssemblyName).Tests" />
     </ItemGroup>
 
     <ItemGroup Label="wwwroot">
