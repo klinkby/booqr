@@ -6,7 +6,7 @@
 
     <ItemGroup Label="Nuget references">
         <PackageReference Include="AutoFixture" Version="4.18.1"/>
-        <PackageReference Include="AutoFixture.Xunit2" Version="4.18.1"/>
+        <PackageReference Include="AutoFixture.Xunit3" Version="4.19.0"/>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
         <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.0.0" />
         <PackageReference Include="Moq" Version="4.20.72"/>
@@ -24,12 +24,12 @@
 
     <ItemGroup>
         <Using Include="Moq"/>
-        <Using Include="AutoFixture.Xunit2"/>
+        <Using Include="AutoFixture.Xunit3"/>
         <Using Include="Klinkby.Booqr.Core"/>
     </ItemGroup>
 
     <ItemGroup>
-        <AssemblyAttribute Include="Xunit.AssemblyTraitAttribute">
+        <AssemblyAttribute Include="Xunit.TraitAttribute">
             <_Parameter1>Category</_Parameter1>
             <_Parameter2>Unit</_Parameter2>
         </AssemblyAttribute>

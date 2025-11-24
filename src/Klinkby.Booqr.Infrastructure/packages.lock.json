@@ -12,10 +12,7 @@
         "type": "Direct",
         "requested": "[1.0.48, )",
         "resolved": "1.0.48",
-        "contentHash": "rsLM3yKr4g+YKKox9lhc8D+kz67P7Q9+xdyn1LmCsoYr1kYpJSm+Nt6slo5UrfUrcTiGJ57zUlyO8XUdV7G7iA==",
-        "dependencies": {
-          "System.Collections.Immutable": "9.0.1"
-        }
+        "contentHash": "rsLM3yKr4g+YKKox9lhc8D+kz67P7Q9+xdyn1LmCsoYr1kYpJSm+Nt6slo5UrfUrcTiGJ57zUlyO8XUdV7G7iA=="
       },
       "DotNet.ReproducibleBuilds": {
         "type": "Direct",
@@ -340,11 +337,6 @@
           "Polly.Core": "8.4.2",
           "System.Threading.RateLimiting": "8.0.0"
         }
-      },
-      "System.Collections.Immutable": {
-        "type": "Transitive",
-        "resolved": "9.0.1",
-        "contentHash": "qt4+ClsZYKzar/Rw1zbt0t9iuBUCLVNsjXicEuVQyKL7143CwhWzI2gTwzz8AhSaFYVHnpcb8SBGA+zaY4weUg=="
       },
       "System.Threading.RateLimiting": {
         "type": "Transitive",
