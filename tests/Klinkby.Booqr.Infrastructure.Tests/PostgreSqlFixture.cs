@@ -23,7 +23,7 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
         .WithImage("postgres:18-alpine3.22")
         .Build();
 
-    async Task IAsyncLifetime.InitializeAsync()
+    async ValueTask IAsyncLifetime.InitializeAsync()
     {
         Fixture fixture = new();
         await SqlContainer.StartAsync();
@@ -46,7 +46,7 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
         await InitializeDatabase();
     }
 
-    async Task IAsyncLifetime.DisposeAsync()
+    async ValueTask IAsyncDisposable.DisposeAsync()
     {
         await SqlContainer.DisposeAsync();
         await _services!.DisposeAsync();
