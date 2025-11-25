@@ -32,6 +32,17 @@ public sealed record User(
     string? Name,
     long? Phone) : Audit;
 
+public sealed record PartialUser : Audit
+{
+    public PartialUser(int id) => Id = id;
+
+    public string? Email { get; init; }
+    public string? PasswordHash { get; init; }
+    public string? Role { get; init; }
+    public string? Name { get; init; }
+    public long? Phone { get; init; }
+}
+
 /// <summary>
 ///     Defines the standard user roles available in the system.
 /// </summary>
@@ -72,4 +83,6 @@ public interface IUserRepository : IRepository<User>
     ///     if found, otherwise <c>null</c>.
     /// </returns>
     Task<User?> GetByEmail(string email, CancellationToken cancellation = default);
+
+    Task<bool> Patch(PartialUser partialUser, CancellationToken cancellation = default);
 }

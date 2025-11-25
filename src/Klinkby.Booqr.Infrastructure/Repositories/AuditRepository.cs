@@ -21,7 +21,7 @@ internal abstract class AuditRepository<T>(TimeProvider timeProvider)
         return item with { Created = now, Modified = now };
     }
 
-    protected T WithModified(T item)
+    protected TAudit WithModified<TAudit>(TAudit item) where TAudit : Audit
     {
         return item with { Modified = Now };
     }

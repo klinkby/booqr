@@ -46,7 +46,7 @@ internal static class CommandExtensions
             new CreatedResponse(newId));
     }
 
-    internal static Task<Results<NoContent, BadRequest>> NoContent<TQuery>(
+    internal static Task<Results<NoContent, Conflict, BadRequest>> NoContent<TQuery>(
         this ICommand<TQuery> command, TQuery query, ClaimsPrincipal user, CancellationToken cancellationToken)
         where TQuery : AuthenticatedRequest =>
         NoContent(command, query with { User = user }, cancellationToken);
@@ -58,7 +58,7 @@ internal static class CommandExtensions
             ? TypedResults.NoContent()
             : TypedResults.Unauthorized();
 
-    async internal static Task<Results<NoContent, BadRequest>> NoContent<TQuery>(
+    async internal static Task<Results<NoContent, Conflict, BadRequest>> NoContent<TQuery>(
         this ICommand<TQuery> command, TQuery query, CancellationToken cancellationToken)
         where TQuery : notnull
     {

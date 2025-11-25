@@ -251,17 +251,16 @@ internal static class Routing
             .WithName("addUser")
             .WithSummary("Sign up for a user account");
 
-        // group.MapPut(IdRoutePattern,
-        //         static (UpdateUserCommand command,
-        //                 int id,
-        //                 [FromBody] UpdateUserRequest request,
-        //                 ClaimsPrincipal user, CancellationToken cancellation) =>
-        //             command.NoContent(request with { Id = id }, user, cancellation))
-        //     .AddEndpointFilter<ETagProviderEndPointFilter>()
-        //     .RequireAuthorization(UserRole.Admin)
-        //     .WithName("updateUser")
-        //     .WithSummary("Update a user");
-        //
+        group.MapPut(IdRoutePattern,
+                static (UpdateUserProfileCommand command,
+                        int id,
+                        [FromBody] UpdateUserProfileRequest request,
+                        ClaimsPrincipal user, CancellationToken cancellation) =>
+                    command.NoContent(request with { Id = id }, user, cancellation))
+            .RequireAuthorization(UserRole.Admin)
+            .WithName("updateUser")
+            .WithSummary("Update a user");
+
         // group.MapDelete(IdRoutePattern,
         //         static (DeleteUserCommand command,
         //                 [AsParameters] AuthenticatedByIdRequest request,

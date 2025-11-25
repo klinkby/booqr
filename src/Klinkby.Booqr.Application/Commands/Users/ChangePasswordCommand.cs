@@ -63,7 +63,8 @@ public partial class ChangePasswordCommand(
         }
 
         _log.ChangePassword(userId);
-        await userRepository.Update(user.WithPasswordHash(query.Password.Trim()), cancellation);
+
+        await userRepository.Patch(new PartialUser(userId).WithPasswordHash(query.Password.Trim()), cancellation);
 
         _log.Changed(user.Email);
         activityRecorder.Update<User>(new(userId, user.Id));
