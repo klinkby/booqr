@@ -25,10 +25,10 @@ public class UpdateUserProfileCommandTests
     [Theory]
     [ApplicationAutoData]
     public async Task GIVEN_ValidRequest_WHEN_Execute_THEN_PatchesUserInRepository(
-        ClaimsPrincipal user,
         UpdateUserProfileRequest request)
     {
         // Arrange
+        ClaimsPrincipal user = CreateUser(request.Id, UserRole.Customer);
         _repo.Setup(x => x.Patch(It.IsAny<PartialUser>(), CancellationToken.None))
             .ReturnsAsync(true);
 
@@ -53,10 +53,10 @@ public class UpdateUserProfileCommandTests
     [Theory]
     [ApplicationAutoData]
     public async Task GIVEN_RepositoryUpdateFails_WHEN_Execute_THEN_ThrowsMidAirCollisionException(
-        ClaimsPrincipal user,
         UpdateUserProfileRequest request)
     {
         // Arrange
+        ClaimsPrincipal user = CreateUser(request.Id, UserRole.Customer);
         _repo.Setup(x => x.Patch(It.IsAny<PartialUser>(), CancellationToken.None))
             .ReturnsAsync(false);
 
@@ -71,10 +71,10 @@ public class UpdateUserProfileCommandTests
     [Theory]
     [ApplicationAutoData]
     public async Task GIVEN_ValidRequest_WHEN_Execute_THEN_RecordsActivity(
-        ClaimsPrincipal user,
         UpdateUserProfileRequest request)
     {
         // Arrange
+        ClaimsPrincipal user = CreateUser(request.Id, UserRole.Customer);
         _repo.Setup(x => x.Patch(It.IsAny<PartialUser>(), CancellationToken.None))
             .ReturnsAsync(true);
 
@@ -93,10 +93,10 @@ public class UpdateUserProfileCommandTests
     [Theory]
     [ApplicationAutoData]
     public async Task GIVEN_UpdateFails_WHEN_Execute_THEN_DoesNotRecordActivity(
-        ClaimsPrincipal user,
         UpdateUserProfileRequest request)
     {
         // Arrange
+        ClaimsPrincipal user = CreateUser(request.Id, UserRole.Customer);
         _repo.Setup(x => x.Patch(It.IsAny<PartialUser>(), CancellationToken.None))
             .ReturnsAsync(false);
 

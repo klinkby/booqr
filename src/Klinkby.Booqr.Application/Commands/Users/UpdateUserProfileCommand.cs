@@ -34,6 +34,11 @@ public sealed partial class UpdateUserProfileCommand(
     {
         ArgumentNullException.ThrowIfNull(query);
 
+        if (!query.IsOwnerOrEmployee(query.Id))
+        {
+            FailUnauthorized(query);
+        }
+
         _log.PatchUser(query.AuthenticatedUserId, query.Id);
         PartialUser partialItem = Map(query);
         var updated = await repository.Patch(partialItem, cancellation);
@@ -43,6 +48,12 @@ public sealed partial class UpdateUserProfileCommand(
         }
 
         activityRecorder.Update<User>(new(query.AuthenticatedUserId, query.Id));
+    }
+
+    private void FailUnauthorized(UpdateUserProfileRequest query)
+    {
+        _log.CannotChangeProfile(query.AuthenticatedUserId, query.Id);
+        throw new UnauthorizedAccessException("You do not have access to update this user profile.");
     }
 
     private PartialUser Map(UpdateUserProfileRequest request) => new(request.Id)
@@ -56,5 +67,9 @@ public sealed partial class UpdateUserProfileCommand(
     {
         [LoggerMessage(230, LogLevel.Information, "User {UserId} patch User {Id} profile")]
         public partial void PatchUser(int userId, int id);
+
+        [LoggerMessage(231, LogLevel.Warning, "User {UserId} is not permitted to change profile for {Id}")]
+        public partial void CannotChangeProfile(int userId, int id);
+
     }
 }

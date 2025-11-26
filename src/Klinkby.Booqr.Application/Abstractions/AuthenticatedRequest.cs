@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
@@ -24,15 +25,22 @@ public abstract record AuthenticatedRequest
         }
     }
 
-    internal bool CanUserAccess(int resourceForUserId)
+    [MemberNotNullWhen(true, nameof(User))]
+    public bool IsOwnerOrEmployee(int ownerUserId)
     {
-        var userId = AuthenticatedUserId;
-        if (userId == resourceForUserId)
-        {
-            return true; // is for me
-        }
-
-        var isEmployee = User!.IsInRole(UserRole.Employee) || User.IsInRole(UserRole.Admin);
-        return isEmployee; // I am employee
+        ClaimsPrincipal? user = User;
+        return user is not null
+               && (user.IsInRole(UserRole.Employee) ||
+                   user.IsInRole(UserRole.Admin) ||
+                   ownerUserId == AuthenticatedUserId);
     }
+    //
+    // [MemberNotNullWhen(true, nameof(User))]
+    // public bool IsOwnerOrAdmin(int ownerUserId)
+    // {
+    //     ClaimsPrincipal? user = User;
+    //     return user is not null
+    //            && (user.IsInRole(UserRole.Admin) ||
+    //                ownerUserId == AuthenticatedUserId);
+    // }
 }

@@ -257,7 +257,7 @@ internal static class Routing
                         [FromBody] UpdateUserProfileRequest request,
                         ClaimsPrincipal user, CancellationToken cancellation) =>
                     command.NoContent(request with { Id = id }, user, cancellation))
-            .RequireAuthorization(UserRole.Admin)
+            .RequireAuthorization(UserRole.Customer)
             .WithName("updateUser")
             .WithSummary("Update a user");
 

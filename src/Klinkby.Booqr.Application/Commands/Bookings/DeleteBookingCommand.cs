@@ -21,18 +21,15 @@ public sealed partial class DeleteBookingCommand(
     [SuppressMessage("Exceptions usages", "EX006:Do not write logic driven by exceptions.", Justification = "Unauthorized is an exceptional case")]
     async internal override Task<bool> Delete(AuthenticatedByIdRequest query, CancellationToken cancellation)
     {
-        int userId = query.AuthenticatedUserId;
-        bool isEmployee = query.User!.IsInRole(UserRole.Employee) || query.User.IsInRole(UserRole.Admin);
         bool deleted;
 
         await transaction.Begin(IsolationLevel.RepeatableRead, cancellation);
         try
         {
             Booking? booking = await bookings.GetById(query.Id, cancellation);
-            if (booking is null) return false; // already gone
+            if (booking is null) return true; // idempotence, already gone
 
-            var bookingCustomerId = booking.CustomerId;
-            if (!isEmployee || bookingCustomerId != userId)
+            if (!query.IsOwnerOrEmployee(booking.CustomerId))
             {
                 _log.CannotDeleteBooking(query.AuthenticatedUserId, booking.Id);
                 throw new UnauthorizedAccessException("You do not have access to delete this booking");
@@ -55,7 +52,6 @@ public sealed partial class DeleteBookingCommand(
         }
 
         await transaction.Commit(cancellation);
-
 
         return deleted;
     }

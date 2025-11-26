@@ -25,18 +25,14 @@ public sealed partial class GetMyBookingByIdCommand(
 
     private void ValidateUserAccess(GetMyBookingByIdRequest query, MyBooking myBooking)
     {
-        if (myBooking.CustomerId == query.Id || query.User!.IsInRole(UserRole.Employee) || query.User.IsInRole(UserRole.Admin))
-        {
-            return;
-        }
-
+        if (query.IsOwnerOrEmployee(myBooking.CustomerId)) return;
         FailUnauthorized(query);
     }
 
 
     private void ValidateUserAccess(GetMyBookingByIdRequest query)
     {
-        if (query.CanUserAccess(query.Id)) return;
+        if (query.IsOwnerOrEmployee(query.Id)) return;
 
         FailUnauthorized(query);
     }
