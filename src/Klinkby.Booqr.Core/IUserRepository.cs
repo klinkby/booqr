@@ -33,6 +33,42 @@ public sealed record User(
     long? Phone) : Audit;
 
 /// <summary>
+///     Represents a partially defined user with minimal editable properties.
+/// </summary>
+/// <remarks>
+///     This class derives from the <see cref="Audit" /> record and provides a minimal representation of a user.
+///     It is primarily used for scenarios where only partial user updates are required, such as patch operations.
+/// </remarks>
+/// <param name="Id">
+///     The unique identifier of the user, used for targeting updates.
+/// </param>
+/// <param name="Email">
+///     The email address of the user, or <c>null</c> if not provided.
+/// </param>
+/// <param name="PasswordHash">
+///     The hashed password of the user, or <c>null</c> if not provided.
+/// </param>
+/// <param name="Role">
+///     The role assigned to the user, or <c>null</c> if not provided.
+/// </param>
+/// <param name="Name">
+///     The display name of the user, or <c>null</c> if not provided.
+/// </param>
+/// <param name="Phone">
+///     The phone number of the user, or <c>null</c> if not provided.
+/// </param>
+public sealed record PartialUser : Audit
+{
+    public PartialUser(int id) => Id = id;
+
+    public string? Email { get; init; }
+    public string? PasswordHash { get; init; }
+    public string? Role { get; init; }
+    public string? Name { get; init; }
+    public long? Phone { get; init; }
+}
+
+/// <summary>
 ///     Defines the standard user roles available in the system.
 /// </summary>
 /// <remarks>
@@ -72,4 +108,24 @@ public interface IUserRepository : IRepository<User>
     ///     if found, otherwise <c>null</c>.
     /// </returns>
     Task<User?> GetByEmail(string email, CancellationToken cancellation = default);
+
+    /// <summary>
+    ///     Applies a partial update to a user entity using the specified <see cref="PartialUser"/> object.
+    ///     Only the non-null properties of <paramref name="partialUser"/> will be updated.
+    /// </summary>
+    /// <param name="partialUser">
+    ///     The <see cref="PartialUser"/> instance containing the user ID and the properties to update.
+    ///     Properties with <c>null</c> values are ignored.
+    /// </param>
+    /// <param name="cancellation">
+    ///     A <see cref="CancellationToken"/> to observe while waiting for the task to complete.
+    /// </param>
+    /// <returns>
+    ///     A task that represents the asynchronous operation. The task result is <c>true</c> if the patch succeeded;
+    ///     <c>false</c> if the update failed due to an optimistic concurrency conflict.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    ///     Thrown if <paramref name="partialUser"/> is <c>null</c>.
+    /// </exception>
+    Task<bool> Patch(PartialUser partialUser, CancellationToken cancellation = default);
 }

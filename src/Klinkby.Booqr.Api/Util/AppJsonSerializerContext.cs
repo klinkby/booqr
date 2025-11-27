@@ -28,5 +28,6 @@ namespace Klinkby.Booqr.Api.Util;
 [JsonSerializable(typeof(SignUpRequest))]
 [JsonSerializable(typeof(UpdateLocationRequest))]
 [JsonSerializable(typeof(UpdateServiceRequest))]
+[JsonSerializable(typeof(UpdateUserProfileRequest))]
 [JsonSerializable(typeof(User))]
 internal sealed partial class AppJsonSerializerContext : JsonSerializerContext;

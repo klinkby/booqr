@@ -56,6 +56,12 @@ internal sealed partial class UserRepository(IConnectionProvider connectionProvi
         return 1 == await connection.ExecuteAsync($"{UpdateQuery}", WithModified(item));
     }
 
+    public async Task<bool> Patch(PartialUser item, CancellationToken cancellation)
+    {
+        DbConnection connection = await connectionProvider.GetConnection(cancellation);
+        return 1 == await connection.ExecuteAsync($"{PatchQuery}", WithModified(item));
+    }
+
     public async Task<bool> Delete(int id, CancellationToken cancellation)
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);

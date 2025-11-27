@@ -14,7 +14,7 @@ internal static class Query
 
 internal static class UserExtensions
 {
-    internal static User WithPasswordHash(this User user, string password) =>
+    internal static PartialUser WithPasswordHash(this PartialUser user, string password) =>
         user with { PasswordHash = BCryptNet.EnhancedHashPassword(password) };
 
     internal static NameValueCollection GetPasswordResetParameters(this User user) =>

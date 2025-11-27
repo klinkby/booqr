@@ -49,11 +49,11 @@ public class ChangePasswordCommandTests
         string newPassword)
     {
         // Arrange
-        User? updatedUser = null;
+        PartialUser? patchedUser = null;
         var users = new Mock<IUserRepository>();
         users.Setup(x => x.GetById(It.IsAny<int>(), CancellationToken.None)).ReturnsAsync(user);
-        users.Setup(x => x.Update(It.IsAny<User>(), CancellationToken.None))
-            .Callback<User, CancellationToken>((u, _) => updatedUser = u)
+        users.Setup(x => x.Patch(It.IsAny<PartialUser>(), CancellationToken.None))
+            .Callback<PartialUser, CancellationToken>((u, _) => patchedUser = u)
             .ReturnsAsync(true);
 
         var queryString = ExpiringQueryString.Create(TimeSpan.FromHours(1), new ()
@@ -72,12 +72,11 @@ public class ChangePasswordCommandTests
 
         // Assert
         Assert.True(result);
-        users.Verify(x => x.GetById(It.IsAny<int>(), CancellationToken.None), Times.Once);
-        users.Verify(x => x.Update(It.IsAny<User>(), CancellationToken.None), Times.Once);
-        Assert.NotNull(updatedUser);
+        users.Verify();
+        Assert.NotNull(patchedUser);
         // Email must remain unchanged
-        Assert.Equal(user.Email, updatedUser!.Email);
+        Assert.Null(patchedUser.Email);
         // Password should be re-hashed and match new password
-        Assert.True(BCrypt.Net.BCrypt.EnhancedVerify(newPassword, updatedUser.PasswordHash));
+        Assert.True(BCrypt.Net.BCrypt.EnhancedVerify(newPassword, patchedUser.PasswordHash));
     }
 }

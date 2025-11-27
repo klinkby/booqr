@@ -30,7 +30,7 @@ public sealed partial class GetMyBookingsCommand(
 
     private void ValidateUserAccess(GetMyBookingsRequest query)
     {
-        if (query.CanUserAccess(query.Id)) return;
+        if (query.IsOwnerOrEmployee(query.Id)) return;
 
         _log.CannotInspectBooking(query.AuthenticatedUserId, query.Id);
         throw new UnauthorizedAccessException("Cannot list another customer's bookings");

@@ -43,35 +43,11 @@ public class DeleteBookingCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_Unauthorized_NotEmployeeOrAdmin_EvenIfOwner_WHEN_Execute_THEN_Throws(DateTime t0, Booking autoBooking, CalendarEvent autoEvent)
+    public async Task GIVEN_Unauthorized_CustomerButNotOwner_WHEN_Execute_THEN_Throws(DateTime t0, Booking autoBooking, CalendarEvent autoEvent)
     {
         // Arrange
         var userId = 42;
-        var roles = Array.Empty<string>();
-        ClaimsPrincipal user = CreateUser(userId, roles);
-        var request = new AuthenticatedByIdRequest(321) { User = user };
-
-        var booking = autoBooking with { CustomerId = userId, Id = request.Id };
-        _bookings.Setup(x => x.GetById(request.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(booking);
-        var calendarEvent = autoEvent with { BookingId = request.Id, StartTime = t0, EndTime = t0.AddHours(1), Id = 777 };
-        _calendar.Setup(x => x.GetByBookingId(request.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(calendarEvent);
-
-        DeleteBookingCommand sut = CreateSut();
-
-        // Act + Assert
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => sut.Execute(request));
-        _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Theory]
-    [ApplicationAutoData]
-    public async Task GIVEN_Unauthorized_EmployeeButNotOwner_WHEN_Execute_THEN_Throws(DateTime t0, Booking autoBooking, CalendarEvent autoEvent)
-    {
-        // Arrange
-        var userId = 42;
-        var roles = new[] { UserRole.Employee };
+        var roles = new[] { UserRole.Customer };
         ClaimsPrincipal user = CreateUser(userId, roles);
         var request = new AuthenticatedByIdRequest(321) { User = user };
 

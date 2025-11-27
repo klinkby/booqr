@@ -8,7 +8,7 @@ public sealed class UserRepositoryTests(ServiceProviderFixture serviceProvider)
 
     [Theory]
     [IntegrationAutoData]
-    public async Task GIVEN_User_WHEN_Add_THEN_CanBeReadBack(User expected)
+    public async Task GIVEN_User_WHEN_Add_THEN_CanBeReadBack(User expected, string name)
     {
         int newId;
         User? actual1;
@@ -18,6 +18,7 @@ public sealed class UserRepositoryTests(ServiceProviderFixture serviceProvider)
         {
             newId = await _sut.Add(expected);
             actual1 = await _sut.GetById(newId);
+            await _sut.Patch(new PartialUser(newId) { Name = name, Version = actual1!.Version });
             actual2 = await _sut.GetByEmail(expected.Email);
             await _sut.Delete(newId);
             await _sut.Undelete(newId);
@@ -37,5 +38,6 @@ public sealed class UserRepositoryTests(ServiceProviderFixture serviceProvider)
             },
             actual1);
         Assert.Equal(actual1.Id, actual2!.Id);
+        Assert.Equal(name, actual2.Name);
     }
 }
