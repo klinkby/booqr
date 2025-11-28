@@ -67,7 +67,7 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
 
 [CollectionDefinition(nameof(ServiceProviderFixture))]
 [SuppressMessage("Maintainability", "CA1515:Consider making public types internal")]
-public class PostgreSqlFixtureCollectionFixture : ICollectionFixture<ServiceProviderFixture>
+public class ServiceProviderCollectionFixture : ICollectionFixture<ServiceProviderFixture>
 {
     // This class has no code, and is never created. Its purpose is simply
     // to be the place to apply [CollectionDefinition] and all the

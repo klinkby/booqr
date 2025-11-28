@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup Label="Nuget references">
-        <PackageReference Include="NetArchTest.Rules" Version="1.3.2"/>
+        <PackageReference Include="TngTech.ArchUnitNET.xUnitV3" Version="0.12.3"/>
     </ItemGroup>
 
     <ItemGroup Label="Project references">
@@ -9,6 +9,13 @@
         <ProjectReference Include="..\..\src\Klinkby.Booqr.Application\Klinkby.Booqr.Application.csproj"/>
         <ProjectReference Include="..\..\src\Klinkby.Booqr.Core\Klinkby.Booqr.Core.csproj"/>
         <ProjectReference Include="..\..\src\Klinkby.Booqr.Infrastructure\Klinkby.Booqr.Infrastructure.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="Xunit.TraitAttribute">
+            <_Parameter1>Category</_Parameter1>
+            <_Parameter2>Architecture</_Parameter2>
+        </AssemblyAttribute>
     </ItemGroup>
 
 </Project>
