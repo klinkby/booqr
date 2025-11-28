@@ -118,7 +118,7 @@ public class ArchitectureTests
     private static bool IsRecord(Type type)
     {
         // Records have a compiler-generated EqualityContract property
-        return type.IsClass && type.GetMethod("<Clone>$") != null;
+        return type.IsClass && type.GetProperty("EqualityContract", BindingFlags.NonPublic | BindingFlags.Instance) != null;
     }
 
     private static string GetFailureMessage(NetArchTest.Rules.TestResult result, string context)
