@@ -34,7 +34,7 @@ internal sealed partial class ActivityBackgroundService(
         {
             _ = await activities.Add(activity, stoppingToken);
         }
-        catch (ExternalException ex) // DbException base
+        catch (DbException ex)
         {
             _log.AddActivityFailed(ex, ex.Message);
         }

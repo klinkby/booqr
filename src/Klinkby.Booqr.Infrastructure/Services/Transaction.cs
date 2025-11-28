@@ -48,7 +48,7 @@ internal sealed partial class Transaction(IConnectionProvider connectionProvider
         {
             await _transaction.CommitAsync(cancellation);
         }
-        catch (DbException)
+        catch
         {
             await Cleanup(false, cancellation);
             throw;
