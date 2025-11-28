@@ -16,7 +16,8 @@ public class EmailLabsMailClientTests
     private const string FromAddress = "noreply@test.com";
     private const string BaseAddress = "https://127.0.0.1";
 
-    private EmailLabsMailClient CreateClient(HttpMessageHandler handler)
+    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Used outside of factory")]
+    private static EmailLabsMailClient CreateClient(HttpMessageHandler handler)
     {
         var httpClient = new HttpClient(handler)
         {
