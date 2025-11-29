@@ -16,6 +16,9 @@ public sealed class LocationRepositoryTests(ServiceProviderFixture serviceProvid
         try
         {
             newId = await _sut.Add(expected);
+            await _sut.Update(expected);
+            await _sut.Delete(newId);
+            await _sut.Undelete(newId);
             actual = await _sut.GetById(newId);
         }
         finally
