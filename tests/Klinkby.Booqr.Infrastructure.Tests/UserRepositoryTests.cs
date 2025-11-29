@@ -19,9 +19,9 @@ public sealed class UserRepositoryTests(ServiceProviderFixture serviceProvider)
             newId = await _sut.Add(expected);
             actual1 = await _sut.GetById(newId);
             await _sut.Patch(new PartialUser(newId) { Name = name, Version = actual1!.Version });
-            actual2 = await _sut.GetByEmail(expected.Email);
             await _sut.Delete(newId);
             await _sut.Undelete(newId);
+            actual2 = await _sut.GetByEmail(expected.Email);
         }
         finally
         {

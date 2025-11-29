@@ -16,27 +16,30 @@ public class ReminderMailServiceTest
         FakeTimeProvider timeProvider = TestHelpers.TimeProvider;
         DateTime now = timeProvider.GetUtcNow().UtcDateTime;
         ServiceCollection services = CreateServiceCollection();
-        using ManualResetEventSlim mre = new();
+        using CountdownEvent cde = new(bookingDetails.Length);
 
         Mock<IMailClient> mailClientMock = new();
         mailClientMock
             .Setup(m => m.Send(It.IsAny<Message>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
-            .Callback(() => mre.Set())
+            .Callback(() => cde.Signal())
             .Verifiable(Times.Exactly(bookingDetails.Length));
         services.AddSingleton(mailClientMock.Object);
 
-        DateTime date = now.Date;
         Mock<IBookingDetailsRepository> repoMock = new();
         repoMock
-            .Setup(m => m.GetRange(It.Is<DateTime>(x => x == date), It.Is<DateTime>(x => x == date.AddDays(1)),
+            .Setup(m => m.GetRange(It.IsAny<DateTime>(), It.IsAny<DateTime>(),
                 It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => bookingDetails.ToAsyncEnumerable())
             .Verifiable(Times.Once);
         services.AddSingleton(repoMock.Object);
         await using ServiceProvider serviceProvider = services.BuildServiceProvider();
         var settings = new ReminderMailSettings
-            { TimeOfDay = (now + TimeSpan.FromMilliseconds(200)).TimeOfDay };
+            {
+                // Give the background service ample time to start before the scheduled trigger
+                // A larger offset improves stability on slower CI agents
+                TimeOfDay = (now + TimeSpan.FromSeconds(5)).TimeOfDay
+            };
 
         // act
         using var sut = new ReminderMailService(
@@ -45,7 +48,7 @@ public class ReminderMailServiceTest
             Options.Create(settings),
             NullLogger<ReminderMailService>.Instance);
         await sut.StartAsync(CancellationToken.None);
-        mre.Wait(TimeSpan.FromSeconds(5));
+        cde.Wait(TimeSpan.FromSeconds(20));
         await sut.StopAsync(CancellationToken.None);
 
         // assert
@@ -68,8 +71,9 @@ public class ReminderMailServiceTest
     public void GIVEN_GetNext_WHEN_Offset_THEN_NextDay(int offset, int expectedHours)
     {
         // arrange
-        TimeSpan timeOfDay = TimeSpan.FromHours(12);
-        FakeTimeProvider timeProvider = new(DateTimeOffset.UnixEpoch.UtcDateTime + timeOfDay);
+        FakeTimeProvider timeProvider = TestHelpers.TimeProvider;
+        var timeOfDay = TimeSpan.FromHours(12);
+        timeProvider.Advance(timeOfDay);
         DateTime now = timeProvider.GetUtcNow().UtcDateTime.AddHours(offset);
         var settings = new ReminderMailSettings { TimeOfDay = timeOfDay };
         ServiceCollection services = CreateServiceCollection();

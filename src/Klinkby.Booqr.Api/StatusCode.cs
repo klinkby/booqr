@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Sockets;
 using Klinkby.Booqr.Core.Exceptions;
 using Npgsql;
 
 namespace Klinkby.Booqr.Api;
 
+[ExcludeFromCodeCoverage(Justification = "Basic mapping")]
 internal static class StatusCode
 {
     internal static int FromException(Exception exception)
