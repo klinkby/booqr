@@ -11,7 +11,8 @@ public class DeleteUserCommandTest
     [Theory]
     [InlineAutoData(-1, true)]
     [InlineAutoData(0, false)]
-    public async Task GIVEN_User_WHEN_Execute_THEN_ReturnsTrueOnlyForOtherUsers(int userIncrement, bool expected, int userId)
+    public async Task GIVEN_User_WHEN_Execute_THEN_ReturnsTrueOnlyForOtherUsers(int userIncrement, bool expected,
+        int userId)
     {
         // Arrange
         AuthenticatedByIdRequest req = new(userId) { User = CreateUser(userId + userIncrement) };
@@ -28,6 +29,7 @@ public class DeleteUserCommandTest
         _users.Verify(x => x.Delete(req.Id, It.IsAny<CancellationToken>()),
             expected ? Times.Once : Times.Never);
         _activityRecorder.Verify(x => x.Delete<User>(
-            It.Is<User>(u => u.Id == req.Id), It.IsAny<CancellationToken>()),
+                It.Is<ActivityQuery<User>>(u => u.EntityId == req.Id)),
             expected ? Times.Once : Times.Never);
+    }
 }
