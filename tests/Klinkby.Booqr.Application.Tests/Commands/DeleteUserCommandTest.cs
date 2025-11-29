@@ -11,7 +11,7 @@ public class DeleteUserCommandTest
     [Theory]
     [InlineAutoData(-1, true)]
     [InlineAutoData(0, false)]
-    public async Task GIVEN_OtherUser_WHEN_Execute_THEN_ReturnsTrue(int userIncrement, bool expected, int userId)
+    public async Task GIVEN_User_WHEN_Execute_THEN_ReturnsTrueOnlyForOtherUsers(int userIncrement, bool expected, int userId)
     {
         // Arrange
         AuthenticatedByIdRequest req = new(userId) { User = CreateUser(userId + userIncrement) };
