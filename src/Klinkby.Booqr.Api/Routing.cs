@@ -65,7 +65,7 @@ internal static class Routing
             .WithSummary("Delete a booking");
     }
 
-        private static void MapLocations(IEndpointRouteBuilder app)
+    private static void MapLocations(IEndpointRouteBuilder app)
     {
         const string resourceName = "locations";
 
@@ -261,14 +261,14 @@ internal static class Routing
             .WithName("updateUser")
             .WithSummary("Update a user");
 
-        // group.MapDelete(IdRoutePattern,
-        //         static (DeleteUserCommand command,
-        //                 [AsParameters] AuthenticatedByIdRequest request,
-        //                 ClaimsPrincipal user, CancellationToken cancellation) =>
-        //             command.NoContent(request, user, cancellation))
-        //     .RequireAuthorization(UserRole.Admin)
-        //     .WithName("deleteUser")
-        //     .WithSummary("Delete a user");
+        group.MapDelete(IdRoutePattern,
+                static (DeleteUserCommand command,
+                        [AsParameters] AuthenticatedByIdRequest request,
+                        ClaimsPrincipal user, CancellationToken cancellation) =>
+                    command.NoContent(request, user, cancellation))
+            .RequireAuthorization(UserRole.Admin)
+            .WithName("deleteUser")
+            .WithSummary("Delete a user");
     }
 
     private static void MapVacancies(IEndpointRouteBuilder app)
