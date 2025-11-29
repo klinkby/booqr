@@ -8,7 +8,7 @@ public class ActivityBackgroundServiceTests
 {
     [Theory]
     [AutoData]
-    public async Task GivenChannelWithActivity_WhenStarted_ThenCallsRepositoryAdd(Activity activity)
+    public async Task GIVEN_ChannelWithActivity_WHEN_Started_THEN_CallsRepositoryAdd(Activity activity)
     {
         // Arrange
         var channel = Channel.CreateUnbounded<Activity>();
