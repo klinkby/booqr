@@ -22,11 +22,12 @@ public class DeleteUserCommandTest
         DeleteUserCommand sut = CreateSut();
 
         // Act
-        var deleted = await sut.Delete(req, CancellationToken.None);
+        await sut.Execute(req, CancellationToken.None);
 
         // Assert
-        Assert.Equal(expected, deleted);
         _users.Verify(x => x.Delete(req.Id, It.IsAny<CancellationToken>()),
             expected ? Times.Once : Times.Never);
-    }
+        _activityRecorder.Verify(x => x.Delete<User>(
+            It.Is<User>(u => u.Id == req.Id), It.IsAny<CancellationToken>()),
+            expected ? Times.Once : Times.Never);
 }
