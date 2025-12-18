@@ -14,11 +14,28 @@ internal static class Routing
             .MapGroup(BaseUrl)
             .AddEndpointFilter<RequestMetadataEndPointFilter>();
 
+        MapAuth(baseRoute);
         MapBookings(baseRoute);
         MapLocations(baseRoute);
         MapServices(baseRoute);
         MapUsers(baseRoute);
         MapVacancies(baseRoute);
+    }
+
+    private static void MapAuth(IEndpointRouteBuilder app)
+    {
+        const string resourceName = "auth";
+
+        RouteGroupBuilder group = app
+            .MapGroup(resourceName)
+            .WithTags("Authentication")
+            .WithDescription("Authentication");
+
+        group.MapPost("/login",
+                static (LoginCommand command, [FromBody] LoginRequest request, HttpContext context, CancellationToken cancellation) =>
+                command.GetAuthenticationTokenWithCookie(request, context, cancellation))
+            .WithName("login")
+            .WithSummary("Sign in");
     }
 
     private static void MapBookings(IEndpointRouteBuilder app)
@@ -182,12 +199,6 @@ internal static class Routing
             .MapGroup(resourceName)
             .WithTags(nameof(User))
             .WithDescription(nameof(User));
-
-        group.MapPost("/login",
-                static (LoginCommand command, [FromBody] LoginRequest request, CancellationToken cancellation) =>
-                command.GetAuthenticationToken(request, cancellation))
-            .WithName("login")
-            .WithSummary("Sign in");
 
         group.MapPost("/reset-password",
                 static (ResetPasswordCommand command, [FromBody] ResetPasswordRequest request, HttpContext context, CancellationToken cancellation) =>

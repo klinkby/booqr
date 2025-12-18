@@ -30,6 +30,12 @@ public sealed record JwtSettings
     /// </summary>
     [Required]
     public TimeSpan Expires { get; set; } = TimeSpan.FromHours(8);
+
+    /// <summary>
+    /// Gets or sets the expiration time span for refresh tokens. Defaults to 7 days.
+    /// </summary>
+    [Required]
+    public TimeSpan RefreshExpires { get; set; } = TimeSpan.FromDays(7);
 }
 
 [OptionsValidator]

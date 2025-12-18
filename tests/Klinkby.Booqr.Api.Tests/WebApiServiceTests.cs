@@ -30,7 +30,7 @@ public class WebApiServiceTests
             Encoding.UTF8, "application/json");
 
         HttpResponseMessage response =
-            await client.PostAsync(new Uri("api/users/login", UriKind.Relative), emptyRequest);
+            await client.PostAsync(new Uri("api/auth/login", UriKind.Relative), emptyRequest);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal(MediaTypeNames.Application.ProblemJson, response.Content.Headers.ContentType!.MediaType);

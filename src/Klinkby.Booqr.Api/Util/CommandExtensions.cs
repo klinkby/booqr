@@ -24,6 +24,31 @@ internal static class CommandExtensions
             ? TypedResults.Ok(result)
             : TypedResults.Unauthorized();
 
+    async internal static Task<Results<Ok<LoginResponse>, UnauthorizedHttpResult, BadRequest>> GetAuthenticationTokenWithCookie(
+        this ICommand<LoginRequest, Task<LoginResponse?>> command, LoginRequest query, HttpContext context,
+        CancellationToken cancellationToken)
+    {
+        var result = await command.Execute(query, cancellationToken);
+        if (result is null)
+        {
+            return TypedResults.Unauthorized();
+        }
+
+        // Set refresh token in HttpOnly cookie
+        if (result.RefreshToken is not null)
+        {
+            context.Response.Cookies.Append("refresh_token", result.RefreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(7) // Match RefreshExpires default
+            });
+        }
+
+        return TypedResults.Ok(result);
+    }
+
     async internal static Task<Results<Created<CreatedResponse>, BadRequest>> Created<TQuery>(
         this ICommand<TQuery, Task<int>> command, TQuery query, ClaimsPrincipal user, string resourceName,
         CancellationToken cancellationToken)
