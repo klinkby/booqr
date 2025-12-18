@@ -21,9 +21,11 @@ public sealed record LoginResponse(
     string TokenType,
     [property: JsonPropertyName("expires_in")]
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    int? ExpiresIn
-    // [property: JsonPropertyName("refresh_token"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? RefreshToken,
-    // [property: JsonPropertyName("scope"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Scope
+    int? ExpiresIn,
+    [property: JsonIgnore]
+    string? RefreshToken = null,
+    [property: JsonIgnore]
+    DateTimeOffset? RefreshTokenExpiration = null
 );
 
 public sealed partial class LoginCommand(
@@ -61,7 +63,10 @@ public sealed partial class LoginCommand(
         }
 
         var expires = _jwt.Expires;
-        var response = new LoginResponse(GenerateToken(user, expires), "Bearer", (int)expires.TotalSeconds);
+        var accessToken = GenerateToken(user, expires);
+        var refreshToken = GenerateRefreshToken(user);
+        var refreshExpiration = timeProvider.GetUtcNow() + _jwt.RefreshExpires;
+        var response = new LoginResponse(accessToken, "Bearer", (int)expires.TotalSeconds, refreshToken, refreshExpiration);
         _log.LoggedIn(user.Id);
         return response;
     }
@@ -87,7 +92,31 @@ public sealed partial class LoginCommand(
             NotBefore = timeProvider.GetUtcNow().UtcDateTime,
         };
 
-        SecurityToken? token = tokenHandler.CreateToken(tokenDescriptor);
+        SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
+    }
+
+    private string GenerateRefreshToken(User user)
+    {
+        var key = Encoding.ASCII.GetBytes(_jwt.Key!);
+        JwtSecurityTokenHandler tokenHandler = new();
+        IEnumerable<Claim> claims =
+        [
+            new(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
+            new("token_type", "refresh")
+        ];
+        SecurityTokenDescriptor tokenDescriptor = new()
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = timeProvider.GetUtcNow().UtcDateTime + _jwt.RefreshExpires,
+            SigningCredentials =
+                new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+            Issuer = _jwt.Issuer,
+            Audience = _jwt.Audience,
+            NotBefore = timeProvider.GetUtcNow().UtcDateTime,
+        };
+
+        SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
     }
 
