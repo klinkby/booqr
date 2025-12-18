@@ -85,6 +85,43 @@ public class UserCommandsTests
         repo.Verify(x => x.GetByEmail(user.Email, CancellationToken.None), Times.Once);
     }
 
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_CorrectCredentials_WHEN_Login_THEN_ReturnsRefreshToken(
+        User user,
+        string password)
+    {
+        User userWithHashedPassword = user with { PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(password) };
+        Mock<IUserRepository> repo = CreateUserRepositoryMock(userWithHashedPassword);
+
+        var command = new LoginCommand(repo.Object, Options.Create(_jwt), TimeProvider, NullLogger<LoginCommand>.Instance);
+        var request = new LoginRequest(userWithHashedPassword.Email, password);
+
+        // Act
+        LoginResponse? response = await command.Execute(request);
+
+        // Assert refresh token exists and is valid
+        Assert.NotNull(response);
+        Assert.NotNull(response.RefreshToken);
+        Assert.False(string.IsNullOrWhiteSpace(response.RefreshToken));
+
+        // Decode and validate refresh token
+        var handler = new JwtSecurityTokenHandler();
+        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+        JwtSecurityToken? refreshJwt = handler.ReadJwtToken(response.RefreshToken);
+        
+        Assert.Equal(_jwt.Issuer, refreshJwt.Issuer);
+        Assert.Contains(_jwt.Audience, refreshJwt.Audiences);
+        Assert.Contains(refreshJwt.Claims, c => c.Type == "nameid" && c.Value == $"{userWithHashedPassword.Id}");
+        Assert.Contains(refreshJwt.Claims, c => c.Type == "token_type" && c.Value == "refresh");
+        
+        // Verify refresh token has longer expiration (7 days default)
+        var expectedExpiration = TimeProvider.GetUtcNow().AddDays(7);
+        Assert.True(refreshJwt.ValidTo >= expectedExpiration.UtcDateTime);
+
+        repo.Verify(x => x.GetByEmail(user.Email, CancellationToken.None), Times.Once);
+    }
+
     private static Mock<IUserRepository> CreateUserRepositoryMock(User? user)
     {
         var repo = new Mock<IUserRepository>();
