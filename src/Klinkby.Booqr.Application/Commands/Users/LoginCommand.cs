@@ -92,7 +92,7 @@ public sealed partial class LoginCommand(
             NotBefore = timeProvider.GetUtcNow().UtcDateTime,
         };
 
-        SecurityToken? token = tokenHandler.CreateToken(tokenDescriptor);
+        SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
     }
 
@@ -116,7 +116,7 @@ public sealed partial class LoginCommand(
             NotBefore = timeProvider.GetUtcNow().UtcDateTime,
         };
 
-        SecurityToken? token = tokenHandler.CreateToken(tokenDescriptor);
+        SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
     }
 
