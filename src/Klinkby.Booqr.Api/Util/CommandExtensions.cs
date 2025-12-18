@@ -35,14 +35,14 @@ internal static class CommandExtensions
         }
 
         // Set refresh token in HttpOnly cookie
-        if (result.RefreshToken is not null)
+        if (result.RefreshToken is not null && result.RefreshTokenExpiration is not null)
         {
             context.Response.Cookies.Append("refresh_token", result.RefreshToken, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict,
-                Expires = DateTimeOffset.UtcNow.AddDays(7) // Match RefreshExpires default
+                Expires = result.RefreshTokenExpiration
             });
         }
 

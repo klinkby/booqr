@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
@@ -24,7 +23,9 @@ public sealed record LoginResponse(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     int? ExpiresIn,
     [property: JsonIgnore]
-    string? RefreshToken = null
+    string? RefreshToken = null,
+    [property: JsonIgnore]
+    DateTimeOffset? RefreshTokenExpiration = null
 );
 
 public sealed partial class LoginCommand(
@@ -64,7 +65,8 @@ public sealed partial class LoginCommand(
         var expires = _jwt.Expires;
         var accessToken = GenerateToken(user, expires);
         var refreshToken = GenerateRefreshToken(user);
-        var response = new LoginResponse(accessToken, "Bearer", (int)expires.TotalSeconds, refreshToken);
+        var refreshExpiration = timeProvider.GetUtcNow() + _jwt.RefreshExpires;
+        var response = new LoginResponse(accessToken, "Bearer", (int)expires.TotalSeconds, refreshToken, refreshExpiration);
         _log.LoggedIn(user.Id);
         return response;
     }
