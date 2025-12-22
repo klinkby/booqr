@@ -34,7 +34,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.OpenApi" Version="2.3.9" /> <!-- v3 requires dotnet 11 -->
+        <PackageReference Include="Microsoft.OpenApi" Version="3.0.2" /> <!-- v3 requires dotnet 11 -->
         <PackageReference Include="NLog" Version="6.0.6" />
         <PackageReference Include="NLog.Schema" Version="6.0.6">
             <PrivateAssets>all</PrivateAssets>
