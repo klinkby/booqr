@@ -21,7 +21,7 @@ namespace Klinkby.Booqr.Api.Util;
 [JsonSerializable(typeof(GetMyBookingsRequest))]
 [JsonSerializable(typeof(GetVacanciesRequest))]
 [JsonSerializable(typeof(LoginRequest))]
-[JsonSerializable(typeof(LoginResponse))]
+[JsonSerializable(typeof(OAuthTokenResponse))]
 [JsonSerializable(typeof(PageQuery))]
 [JsonSerializable(typeof(ProblemDetails))]
 [JsonSerializable(typeof(ResetPasswordRequest))]

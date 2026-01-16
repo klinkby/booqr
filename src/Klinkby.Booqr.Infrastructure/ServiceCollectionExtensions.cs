@@ -87,7 +87,7 @@ public static partial class ServiceCollectionExtensions
     private static void ConfigureHttpClient(HttpClient client, Uri baseAddress, string apiKey)
     {
         client.BaseAddress = baseAddress;
-        var codedValue = Convert.ToBase64String(Encoding.ASCII.GetBytes(apiKey ?? string.Empty));
+        var codedValue = Convert.ToBase64String(Encoding.Latin1.GetBytes(apiKey));
         HttpRequestHeaders headers = client.DefaultRequestHeaders;
         headers.Authorization = new AuthenticationHeaderValue("Basic", codedValue);
         headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse(MediaTypeNames.Application.Json));
@@ -97,7 +97,7 @@ public static partial class ServiceCollectionExtensions
     [GenerateServiceRegistrations(
         AssignableTo = typeof(IRepository),
         AsImplementedInterfaces = true)]
-    private static partial IServiceCollection AddRepositories(this IServiceCollection services);
+    private static partial void AddRepositories(this IServiceCollection services);
 
     [LoggerMessage(1040, LogLevel.Information, "PostgreSQL is at {Host}")]
     private static partial void PostgreSql(ILogger logger, string? host);

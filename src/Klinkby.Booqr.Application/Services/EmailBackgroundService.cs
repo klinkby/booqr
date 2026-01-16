@@ -36,7 +36,7 @@ internal sealed partial class EmailBackgroundService(
     {
         private readonly ILogger<EmailBackgroundService> _logger = logger;
 
-        [LoggerMessage(1010, LogLevel.Warning, "Email send to {ToAddress} {Status} {Code} {Message}")]
+        [LoggerMessage(260, LogLevel.Warning, "Email send to {ToAddress} {Status} {Code} {Message}")]
         public partial void SendFailed(Exception ex, string toAddress, int code, string? status, string message);
     }
 }

@@ -133,19 +133,19 @@ internal sealed partial class ReminderMailService(
     {
         private readonly ILogger<ReminderMailService> _logger = logger;
 
-        [LoggerMessage(1110, LogLevel.Warning, "Email send to {ToAddress} {Status} {Code} {Message}")]
+        [LoggerMessage(270, LogLevel.Warning, "Email send to {ToAddress} {Status} {Code} {Message}")]
         public partial void SendFailed(Exception ex, string toAddress, int code, string? status, string message);
 
-        [LoggerMessage(1111, LogLevel.Information, "Sent {Count} reminder emails in {Elapsed}")]
+        [LoggerMessage(271, LogLevel.Information, "Sent {Count} reminder emails in {Elapsed}")]
         public partial void Complete(int count, TimeSpan elapsed);
 
-        [LoggerMessage(1112, LogLevel.Information, "No reminder emails to send")]
+        [LoggerMessage(272, LogLevel.Information, "No reminder emails to send")]
         public partial void NothingToSend();
 
-        [LoggerMessage(1113, LogLevel.Information, "Sleep for {Duration} until {Next}")]
+        [LoggerMessage(273, LogLevel.Information, "Sleep for {Duration} until {Next}")]
         public partial void Sleep(TimeSpan duration, DateTime next);
 
-        [LoggerMessage(1114, LogLevel.Information, "Reminder emails is sent at {TimeOfDay}")]
+        [LoggerMessage(274, LogLevel.Information, "Reminder emails is sent at {TimeOfDay}")]
         public partial void ReminderMailServiceStart(TimeSpan timeOfDay);
     }
 }

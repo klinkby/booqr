@@ -15,7 +15,9 @@ internal sealed class ApplicationAutoDataAttribute : AutoDataAttribute
         const int serviceId = 56;
         const int locationId = 101;
         const int vacancyId = 77;
+
         var fixture = new Fixture();
+        fixture.Customize<TimeProvider>(c => c.FromFactory(() => TestHelpers.TimeProvider));
         fixture.Customize<DateTime>(c => c
             .FromFactory(() => t0));
         fixture.Customize<ClaimsPrincipal>(c => c
@@ -39,6 +41,13 @@ internal sealed class ApplicationAutoDataAttribute : AutoDataAttribute
         fixture.Customize<AddBookingRequest>(c => c
             .With(p => p.ServiceId, serviceId)
             .With(p => p.StartTime, t0));
+        fixture.Customize<JwtSettings>(c => c
+            .With(p => p.Key, "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+            .With(p => p.Issuer, "test-issuer")
+            .With(p => p.Audience, "test-audience")
+            .Without(p => p.AccessExpires)
+            .Without(p => p.RefreshExpires));
+
         return fixture;
     }
 

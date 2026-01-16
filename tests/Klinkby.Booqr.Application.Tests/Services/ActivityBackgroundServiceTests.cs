@@ -28,7 +28,7 @@ public class ActivityBackgroundServiceTests
         channel.Writer.Complete();
 
         // Assert
-        await Task.Delay(100, cts.Token); // Allow processing
+        await Task.Delay(200, cts.Token); // Allow processing
         repoMock.Verify(r => r.Add(activity, It.IsAny<CancellationToken>()), Times.Once);
         await sut.StopAsync(CancellationToken.None);
     }

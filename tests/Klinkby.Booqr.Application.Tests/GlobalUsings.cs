@@ -1,4 +1,5 @@
 ﻿global using System.Security.Claims;
+global using Klinkby.Booqr.Application.Commands.Auth;
 global using Klinkby.Booqr.Application.Commands.Bookings;
 global using Klinkby.Booqr.Application.Commands.Locations;
 global using Klinkby.Booqr.Application.Commands.Services;

@@ -44,7 +44,7 @@ internal sealed partial class ActivityBackgroundService(
     {
         private readonly ILogger<ActivityBackgroundService> _logger = logger;
 
-        [LoggerMessage(1030, LogLevel.Warning, "Error adding activity: {Message}")]
+        [LoggerMessage(250, LogLevel.Warning, "Error adding activity: {Message}")]
         public partial void AddActivityFailed(Exception ex, string message);
     }
 }
