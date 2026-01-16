@@ -3,6 +3,7 @@ global using Klinkby.Booqr.Api.Filters;
 global using Klinkby.Booqr.Api.Models;
 global using Klinkby.Booqr.Api.Util;
 global using Klinkby.Booqr.Application.Abstractions;
+global using Klinkby.Booqr.Application.Commands.Auth;
 global using Klinkby.Booqr.Application.Commands.Bookings;
 global using Klinkby.Booqr.Application.Commands.Locations;
 global using Klinkby.Booqr.Application.Commands.Services;

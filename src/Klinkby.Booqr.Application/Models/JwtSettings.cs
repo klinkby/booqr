@@ -10,7 +10,7 @@ public sealed record JwtSettings
     /// <summary>
     /// Gets or sets the secret key used for signing JWTs.
     /// </summary>
-    [Required]
+    [Required, MinLength(32)]
     public required string Key { get; set; }
 
     /// <summary>
@@ -26,16 +26,16 @@ public sealed record JwtSettings
     public required string Audience { get; set; }
 
     /// <summary>
-    /// Gets or sets the expiration time span for JWTs. Defaults to 8 hours.
+    /// Gets or sets the expiration time span for access JWTs. Defaults to 1 hour.
     /// </summary>
     [Required]
-    public TimeSpan Expires { get; set; } = TimeSpan.FromHours(8);
+    public TimeSpan AccessExpires { get; set; } = TimeSpan.FromHours(1);
 
     /// <summary>
-    /// Gets or sets the expiration time span for refresh tokens. Defaults to 7 days.
+    /// Gets or sets the expiration time span for refresh tokens. Defaults to 1 day.
     /// </summary>
     [Required]
-    public TimeSpan RefreshExpires { get; set; } = TimeSpan.FromDays(7);
+    public TimeSpan RefreshExpires { get; set; } = TimeSpan.FromDays(1);
 }
 
 [OptionsValidator]

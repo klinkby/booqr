@@ -36,6 +36,13 @@ internal static class Routing
                 command.GetAuthenticationTokenWithCookie(request, context, cancellation))
             .WithName("login")
             .WithSummary("Sign in");
+
+        group.MapPost("/refresh",
+                static (RefreshCommand command, HttpContext context, CancellationToken cancellation) =>
+                    command.GetAuthenticationTokenWithCookie(new RefreshRequest(context.Request.Cookies["refresh_token"]), context, cancellation))
+            .WithName("refresh")
+            .WithSummary("Refresh auth token");
+
     }
 
     private static void MapBookings(IEndpointRouteBuilder app)

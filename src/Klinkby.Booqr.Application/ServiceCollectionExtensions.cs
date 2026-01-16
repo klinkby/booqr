@@ -57,15 +57,20 @@ public static partial class ServiceCollectionExtensions
             AllowSynchronousContinuations = true,
         };
 
+        // emails
         services.AddBoundedChannel<Message>(options);
         services.AddHostedService<EmailBackgroundService>();
+        services.AddHostedService<ReminderMailService>();
 
+        // activities
         services.AddBoundedChannel<Activity>(options);
         services.AddHostedService<ActivityBackgroundService>();
         services.AddScoped<IActivityRecorder, ActivityRecorder>();
 
-        services.AddHostedService<ReminderMailService>();
+        // auth
+        services.AddTransient<IOAuth, OAuth>();
 
+        // expiring queries
         services.AddSingleton<IExpiringQueryString, ExpiringQueryString>();
 
         return services;
@@ -82,5 +87,5 @@ public static partial class ServiceCollectionExtensions
         AssignableTo = typeof(ICommand<>), AsSelf = true)]
     [GenerateServiceRegistrations(
         AssignableTo = typeof(ICommand<,>), AsSelf = true)]
-    private static partial IServiceCollection AddCommands(this IServiceCollection services);
+    private static partial void AddCommands(this IServiceCollection services);
 }
