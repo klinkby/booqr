@@ -5,6 +5,8 @@ namespace Klinkby.Booqr.Api.Util;
 
 internal static class CommandExtensions
 {
+    internal const string RefreshTokenCookieName = "refresh_token";
+
     internal static async Task<Results<Ok<TResult>, BadRequest, NotFound>> GetSingle<TQuery, TResult>(
         this ICommand<TQuery, Task<TResult?>> command, TQuery query, CancellationToken cancellationToken)
         where TQuery : notnull =>
@@ -29,7 +31,7 @@ internal static class CommandExtensions
         }
 
         // Set refresh token in HttpOnly cookie
-        context.Response.Cookies.Append("refresh_token", result.RefreshToken!, new CookieOptions
+        context.Response.Cookies.Append(RefreshTokenCookieName, result.RefreshToken!, new CookieOptions
         {
             HttpOnly = true,
             Secure = true,

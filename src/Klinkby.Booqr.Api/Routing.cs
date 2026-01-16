@@ -39,7 +39,7 @@ internal static class Routing
 
         group.MapPost("/refresh",
                 static (RefreshCommand command, HttpContext context, CancellationToken cancellation) =>
-                    command.GetAuthenticationTokenWithCookie(new RefreshRequest(context.Request.Cookies["refresh_token"]), context, cancellation))
+                    command.GetAuthenticationTokenWithCookie(new RefreshRequest(context.Request.Cookies[CommandExtensions.RefreshTokenCookieName]), context, cancellation))
             .WithName("refresh")
             .WithSummary("Refresh auth token");
 

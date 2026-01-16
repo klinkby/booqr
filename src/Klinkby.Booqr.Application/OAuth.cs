@@ -26,7 +26,7 @@ internal sealed partial class OAuth(
     private const string Refresh = nameof(Refresh);
     private readonly JwtSettings _jwt = jwtSettings.Value;
     private readonly LoggerMessages _log = new(logger);
-    private static Encoding Encoding => Encoding.Latin1;
+    private static Encoding Encoding => Encoding.UTF8;
 
     public async Task<OAuthTokenResponse> GenerateTokenResponse(User user, CancellationToken cancellation)
     {
@@ -95,7 +95,7 @@ internal sealed partial class OAuth(
             return null;
         }
 
-        if (r.Expires >= now)
+        if (r.Expires > now)
         {
             return userid;
         }
@@ -118,6 +118,8 @@ internal sealed partial class OAuth(
             ValidAudience = _jwt.Audience,
             ValidIssuer = _jwt.Issuer,
             ValidTypes = validTypes,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(5)
         };
 
         return tokenHandler.ValidateTokenAsync(token, validationParameters);
@@ -163,7 +165,7 @@ internal sealed partial class OAuth(
     }
 
     private static string Hash(string token, int outputLength = 20 /* =160 bits like SHA1, translates 40 chars */) =>
-        Convert.ToBase64String(Shake128.HashData(Encoding.Latin1.GetBytes(token), outputLength));
+        Convert.ToBase64String(Shake128.HashData(Encoding.UTF8.GetBytes(token), outputLength));
 
     private sealed partial class LoggerMessages(ILogger<OAuth> logger)
     {
