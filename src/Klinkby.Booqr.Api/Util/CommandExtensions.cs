@@ -36,6 +36,7 @@ internal static class CommandExtensions
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Strict,
+            Path = "/api/auth",
             Expires = result.RefreshTokenExpiration
         });
         context.Response.Headers.CacheControl = "no-store";
