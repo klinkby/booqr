@@ -24,9 +24,9 @@ internal sealed partial class OAuth(
     ) : IOAuth
 {
     private const string Refresh = nameof(Refresh);
+    private static Encoding Encoding => Encoding.UTF8;
     private readonly JwtSettings _jwt = jwtSettings.Value;
     private readonly LoggerMessages _log = new(logger);
-    private static Encoding Encoding => Encoding.UTF8;
 
     public async Task<OAuthTokenResponse> GenerateTokenResponse(User user, CancellationToken cancellation)
     {
@@ -165,7 +165,7 @@ internal sealed partial class OAuth(
     }
 
     private static string Hash(string token, int outputLength = 20 /* =160 bits like SHA1, translates 40 chars */) =>
-        Convert.ToBase64String(Shake128.HashData(Encoding.UTF8.GetBytes(token), outputLength));
+        Convert.ToBase64String(Shake128.HashData(Encoding.GetBytes(token), outputLength));
 
     private sealed partial class LoggerMessages(ILogger<OAuth> logger)
     {

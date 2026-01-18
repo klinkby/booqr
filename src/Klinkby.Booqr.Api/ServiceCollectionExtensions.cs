@@ -27,7 +27,7 @@ internal static class ServiceCollectionExtensions
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.Latin1.GetBytes(configuration.GetValue<string>(nameof(JwtSettings.Key))!)),
+                        Encoding.UTF8.GetBytes(configuration.GetValue<string>(nameof(JwtSettings.Key))!)),
                     ValidateIssuer = true,
                     ValidIssuer = configuration.GetValue<string>(nameof(JwtSettings.Issuer)),
                     ValidateAudience = true,
