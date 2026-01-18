@@ -26,7 +26,7 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
     async ValueTask IAsyncLifetime.InitializeAsync()
     {
         Fixture fixture = new();
-        await SqlContainer.StartAsync();
+        await SqlContainer.StartAsync(TestContext.Current.CancellationToken);
         InfrastructureSettings? settings = fixture.Create<InfrastructureSettings>();
         IConfigurationRoot config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -43,7 +43,7 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
             .AddSingleton(typeof(ILogger<>), typeof(NullLogger<>))
             .AddInfrastructure(config)
             .BuildServiceProvider();
-        await InitializeDatabase();
+        await InitializeDatabase(TestContext.Current.CancellationToken);
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()
@@ -61,7 +61,7 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
                 .Assembly
                 .GetManifestResourceStream("Klinkby.Booqr.Infrastructure.Tests.initdb.sql")!);
         var initScript = await sr.ReadToEndAsync(cancellationToken);
-        await connection.ExecuteScalarAsync(initScript);
+        await connection.ExecuteScalarAsync(initScript, cancellationToken);
     }
 }
 
