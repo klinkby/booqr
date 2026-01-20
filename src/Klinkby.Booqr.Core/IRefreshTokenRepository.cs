@@ -48,17 +48,6 @@ public interface IRefreshTokenRepository : IRepository
     Task Add(RefreshToken newItem, CancellationToken cancellation = default);
 
     /// <summary>
-    ///     Update a <see cref="RefreshToken"/>..
-    /// </summary>
-    /// <param name="item">The item to update.</param>
-    /// <param name="cancellation">The token used to propagate notification that the operation should be canceled.</param>
-    /// <returns>
-    ///     A task that represents the asynchronous operation. The task result is <c>true</c> if an item was
-    ///     updated, otherwise <c>false</c>.
-    /// </returns>
-    Task<bool> Update(RefreshToken item, CancellationToken cancellation = default);
-
-    /// <summary>
     ///     Revokes a single refresh token by setting its Revoked field to the specified timestamp.
     /// </summary>
     /// <param name="hash">The unique identifier of the item to revoke.</param>
@@ -69,7 +58,6 @@ public interface IRefreshTokenRepository : IRepository
     ///     revoked, otherwise <c>false</c>.
     /// </returns>
     Task<bool> RevokeSingle(string hash, DateTime timestamp, CancellationToken cancellation = default);
-
 
     /// <summary>
     ///     Revokes all refresh tokens associated with the specified family by marking them with the provided timestamp.

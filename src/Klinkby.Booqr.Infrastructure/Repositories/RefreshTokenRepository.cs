@@ -24,14 +24,6 @@ internal sealed partial class RefreshTokenRepository(IConnectionProvider connect
             newItem);
     }
 
-    public async Task<bool> Update(RefreshToken item, CancellationToken cancellation = default)
-    {
-        DbConnection connection = await connectionProvider.GetConnection(cancellation);
-        return 1 == await connection.ExecuteAsync(
-            $"UPDATE {TableName} SET {ParametersAssignment} where hash=@Hash AND revoked IS NULL AND replacedby IS NULL",
-            item);
-    }
-
     public async Task<bool> RevokeSingle(string hash, DateTime timestamp, CancellationToken cancellation = default)
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);

@@ -43,8 +43,10 @@ public class OAuthTests
 
         var actual = await sut.GenerateTokenResponse(user, TestContext.Current.CancellationToken);
 
-        var handler = new JwtSecurityTokenHandler();
-        handler.MapInboundClaims = false;
+        var handler = new JwtSecurityTokenHandler
+        {
+            MapInboundClaims = false
+        };
         var jwt = handler.ReadJwtToken(actual.AccessToken);
 
         Assert.Equal(settings.Issuer, jwt.Issuer);
@@ -52,7 +54,6 @@ public class OAuthTests
         Assert.Equal(user.Id.ToString(CultureInfo.InvariantCulture), jwt.Claims.First(c => c.Type == JwtRegisteredClaimNames.Sub).Value);
         Assert.Equal(user.Email, jwt.Claims.First(c => c.Type == JwtRegisteredClaimNames.Email).Value);
         Assert.Equal(user.Role, jwt.Claims.First(c => c.Type == "role").Value);
-        Assert.Equal("Access", jwt.Claims.First(c => c.Type == JwtRegisteredClaimNames.Typ).Value);
     }
 
     [Theory]
@@ -65,13 +66,9 @@ public class OAuthTests
 
         var actual = await sut.GenerateTokenResponse(user, TestContext.Current.CancellationToken);
 
-        var handler = new JwtSecurityTokenHandler();
-        var jwt = handler.ReadJwtToken(actual.RefreshToken);
-
-        Assert.Equal(settings.Issuer, jwt.Issuer);
-        Assert.Contains(settings.Audience, jwt.Audiences);
-        Assert.Equal(user.Id.ToString(CultureInfo.InvariantCulture), jwt.Claims.First(c => c.Type == JwtRegisteredClaimNames.Sub).Value);
-        Assert.Equal("Refresh", jwt.Claims.First(c => c.Type == JwtRegisteredClaimNames.Typ).Value);
+        Assert.NotNull(actual.RefreshToken);
+        Assert.Equal(40, actual.RefreshToken?.Length);
+        repoMock.VerifyAll();
     }
 
     private static Mock<IRefreshTokenRepository> CreateRepositoryMock()

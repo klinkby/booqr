@@ -23,7 +23,7 @@ internal sealed partial class OAuth(
     ILogger<OAuth> logger
     ) : IOAuth
 {
-    private const string Refresh = nameof(Refresh);
+    private const int Entropy = 30; // 240 bits, translates to 40 chars
     private static Encoding Encoding => Encoding.UTF8;
     private readonly JwtSettings _jwt = jwtSettings.Value;
     private readonly LoggerMessages _log = new(logger);
@@ -33,8 +33,8 @@ internal sealed partial class OAuth(
         _log.GenerateTokenResponse(user.Id);
 
         DateTime timestamp = timeProvider.GetUtcNow().UtcDateTime;
-        var accessToken = GenerateAccessToken(user);
-        var refreshToken = GenerateRefreshToken(user);
+        var accessToken = GenerateAccessToken(user); // jwt
+        var refreshToken = GenerateRefreshToken(); // opaque (random)
         var response = new OAuthTokenResponse(
             accessToken,
             (int)_jwt.AccessExpires.TotalSeconds,
@@ -65,79 +65,43 @@ internal sealed partial class OAuth(
 
     public async Task<int?> GetUserIdFromValidRefreshToken(string refreshToken, CancellationToken cancellation)
     {
-        _log.ValidateToken(Refresh);
+        _log.ValidateToken("Refresh");
 
         var tokenHash = Hash(refreshToken);
-        TokenValidationResult result = await ValidateToken(refreshToken, Refresh);
-        if (!result.IsValid
-            || !result.Claims.TryGetValue(JwtRegisteredClaimNames.Sub, out var subClaim)
-            || !int.TryParse(subClaim as string, CultureInfo.InvariantCulture, out var userid))
-        {
-            _log.InvalidToken(tokenHash, result.Exception?.Message ?? "Claim not found");
-            return null;
-        }
-
-        RefreshToken? r = await refreshTokenRepository.GetByHash(tokenHash, cancellation);
-        if (r is null) return null;
-        if (r.UserId != userid)
-        {
-            _log.DifferentUser(tokenHash, userid);
-            return null;
-        }
-
         DateTime now = timeProvider.GetUtcNow().UtcDateTime;
-        if (r.Revoked.HasValue)
+
+        RefreshToken? token = await refreshTokenRepository.GetByHash(tokenHash, cancellation);
+
+        switch (token)
         {
-            // oh, this is bad: possible token reuse: Just burn everything!
-            _log.Revoked(tokenHash, r.Revoked.Value);
+            case null:
+                _log.InvalidToken(tokenHash, "Not found");
+                return null;
 
-            await refreshTokenRepository.RevokeAll(r.Family, now, cancellation);
-            return null;
+            case { Revoked: { } revoked }:
+                _log.Revoked(tokenHash, revoked);
+                await refreshTokenRepository.RevokeAll(token.Family, now, cancellation);
+                return null;
+
+            case { Expires: var expires } when expires <= now:
+                _log.Expired(tokenHash, expires);
+                return null;
+
+            default:
+                return token.UserId;
         }
-
-        if (r.Expires > now)
-        {
-            return userid;
-        }
-
-        _log.Expired(tokenHash, r.Expires);
-        return null;
     }
 
-
-    private Task<TokenValidationResult> ValidateToken(string token, params IEnumerable<string> validTypes)
-    {
-        var key = Encoding.GetBytes(_jwt.Key);
-        JwtSecurityTokenHandler tokenHandler = new()
-        {
-            MapInboundClaims = false
-        };
-        TokenValidationParameters validationParameters = new()
-        {
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidAudience = _jwt.Audience,
-            ValidIssuer = _jwt.Issuer,
-            ValidTypes = validTypes,
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.FromMinutes(5)
-        };
-
-        return tokenHandler.ValidateTokenAsync(token, validationParameters);
-    }
-
-    private string GenerateRefreshToken(User user) =>
-        GenerateToken(
-            user,
-            _jwt.RefreshExpires,
-            new Claim(JwtRegisteredClaimNames.Typ, Refresh));
+    // Opaque token
+    private static string GenerateRefreshToken() =>
+        Convert.ToBase64String(RandomNumberGenerator.GetBytes(Entropy));
 
     private string GenerateAccessToken(User user) =>
         GenerateToken(
             user,
             _jwt.AccessExpires,
             new(JwtRegisteredClaimNames.Email, user.Email),
-            new(ClaimTypes.Role, user.Role),
-            new(JwtRegisteredClaimNames.Typ, "Access"));
+            new(ClaimTypes.Role, user.Role));
 
     private string GenerateToken(User user, TimeSpan expires, params IEnumerable<Claim> additionalClaims)
     {
@@ -164,7 +128,7 @@ internal sealed partial class OAuth(
         return tokenHandler.WriteToken(token);
     }
 
-    private static string Hash(string token, int outputLength = 20 /* =160 bits like SHA1, translates 40 chars */) =>
+    private static string Hash(string token, int outputLength = Entropy) =>
         Convert.ToBase64String(Shake128.HashData(Encoding.GetBytes(token), outputLength));
 
     private sealed partial class LoggerMessages(ILogger<OAuth> logger)
