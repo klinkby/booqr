@@ -32,6 +32,7 @@
     </ItemGroup>
 
     <ItemGroup Label="Resources">
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.2" />
         <EmbeddedResource Update="Properties\StringResources.resx">
             <Generator>ResXFileCodeGenerator</Generator>
             <LastGenOutput>StringResources.Designer.cs</LastGenOutput>
