@@ -7,7 +7,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 internal static class ServiceCollectionExtensions
 {
-    internal static IServiceCollection AddApi(this IServiceCollection services, IConfiguration configuration)
+    internal static void AddApi(this IServiceCollection services, IConfiguration configuration)
     {
         ConfigureAuthentication(services, configuration);
         ConfigureAuthorization(services);
@@ -15,8 +15,6 @@ internal static class ServiceCollectionExtensions
         ConfigureHealthChecks(services);
         ConfigureJson(services);
         ConfigureRequestMetadata(services);
-
-        return services;
     }
 
     private static void ConfigureAuthentication(IServiceCollection services, IConfiguration configuration)
@@ -29,7 +27,7 @@ internal static class ServiceCollectionExtensions
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.ASCII.GetBytes(configuration.GetValue<string>(nameof(JwtSettings.Key))!)),
+                        Encoding.UTF8.GetBytes(configuration.GetValue<string>(nameof(JwtSettings.Key))!)),
                     ValidateIssuer = true,
                     ValidIssuer = configuration.GetValue<string>(nameof(JwtSettings.Issuer)),
                     ValidateAudience = true,

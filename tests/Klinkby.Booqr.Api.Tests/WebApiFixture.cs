@@ -15,7 +15,7 @@ internal sealed class WebApiFixture : WebApplicationFactory<Program>
         {
           "Application": {
             "Jwt": {
-              "Key": "fa15a2b38ad08...fbbdba",
+              "Key": "fa15a2b3982173649182736498127364192387648ad08alskdjcnlaskjdncbbdba",
               "Issuer": "booqr",
               "Audience": "https://www.booqr.dk"
             },

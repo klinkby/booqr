@@ -11,7 +11,7 @@ create table public.users
     email        varchar(255)             not null
         constraint users_email
             unique,
-    passwordhash char(60),
+    passwordhash char(60) collate "POSIX",
     role         varchar(20)              not null,
     name         varchar(255),
     phone        bigint,
@@ -122,6 +122,34 @@ create table public.activities
     action    varchar(30)       not null,
     primary key (timestamp, id)
 );
+
+create table public.refreshtokens
+(
+    hash      char(40) collate "POSIX" not null,
+    family    uuid              not null,
+    userid    integer           not null
+        constraint refreshtokens_users_id_fk
+            references public.users,
+    expires   timestamp with time zone not null,
+    created   timestamp with time zone not null,
+    revoked   timestamp with time zone,
+    replacedby char(40) collate "POSIX"
+        constraint refreshtokens_refreshtokens_hash_fk
+            references public.refreshtokens,
+    primary key (hash),
+    -- Prevent a token from replacing itself
+    constraint check_not_self_replaced
+        check (replacedby <> hash),
+    -- Prevent dangling replaced token
+    constraint check_revoked_if_replaced
+        check (replacedby is null or revoked is not null)
+);
+
+create index idx_refreshtokens_family
+    on public.refreshtokens (family);
+
+create index idx_refreshtokens_expires
+    on public.refreshtokens (expires);
 
 -------------------------------------------------------------
 

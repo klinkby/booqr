@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Text;
 using AutoFixture.Xunit3;
 using Klinkby.Booqr.Core.Exceptions;
 using Klinkby.Booqr.Infrastructure.Models;
@@ -69,7 +70,7 @@ public class EmailLabsMailClientTests
         // Arrange
         var responseContent = new StringContent(
             """{"code": 1001, "status": "error", "message": "Invalid recipient"}""",
-            System.Text.Encoding.UTF8,
+            Encoding.UTF8,
             "application/json");
         using var badResponse = new HttpResponseMessage(HttpStatusCode.BadRequest);
         badResponse.Content = responseContent;
