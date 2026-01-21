@@ -1,3 +1,4 @@
+using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
@@ -93,8 +94,12 @@ internal sealed partial class OAuth(
     }
 
     // Opaque token
-    private static string GenerateRefreshToken() =>
-        Convert.ToBase64String(RandomNumberGenerator.GetBytes(Entropy));
+    private static string GenerateRefreshToken()
+    {
+        Span<byte> buffer = stackalloc byte[Entropy];
+        RandomNumberGenerator.Fill(buffer);
+        return Base64UrlEncode(buffer);
+    }
 
     private string GenerateAccessToken(User user) =>
         GenerateToken(
@@ -128,8 +133,17 @@ internal sealed partial class OAuth(
         return tokenHandler.WriteToken(token);
     }
 
-    private static string Hash(string token, int outputLength = Entropy) =>
-        Convert.ToBase64String(Shake128.HashData(Encoding.GetBytes(token), outputLength));
+    private static string Hash(string token, int outputLength = Entropy)
+    {
+        Span<byte> tokenBytes = stackalloc byte[Encoding.GetByteCount(token)];
+        Encoding.GetBytes(token, tokenBytes);
+        Span<byte> digest = stackalloc byte[outputLength];
+        Shake128.HashData(tokenBytes, digest);
+        return Base64UrlEncode(digest);
+    }
+
+    private static string Base64UrlEncode(ReadOnlySpan<byte> buffer) =>
+        Base64Url.EncodeToString(buffer);
 
     private sealed partial class LoggerMessages(ILogger<OAuth> logger)
     {
