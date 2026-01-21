@@ -14,10 +14,13 @@ public sealed partial class LoginCommand(
 {
     private readonly LoggerMessages _log = new(logger);
 
+    [SuppressMessage("Security", "CA5394:Do not use insecure randomness", Justification = "Not for cryptography")]
+    private static int RandomDelayMs => 50 + Random.Shared.Next(100);
+
     public async Task<OAuthTokenResponse?> Execute(LoginRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
-        await Task.Delay(50 + Random.Shared.Next(100), cancellation); // prevent timing attacks
+        await Task.Delay(RandomDelayMs, cancellation); // prevent timing attacks
 
         var userName = query.Email.Trim();
         User? user = await userRepository.GetByEmail(userName, cancellation);

@@ -1,5 +1,4 @@
-﻿using Klinkby.Booqr.Infrastructure.Services;
-using Activity = Klinkby.Booqr.Core.Activity;
+﻿using Activity = Klinkby.Booqr.Core.Activity;
 
 namespace Klinkby.Booqr.Infrastructure.Repositories;
 

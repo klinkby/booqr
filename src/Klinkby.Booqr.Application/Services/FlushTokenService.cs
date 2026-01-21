@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Klinkby.Booqr.Application.Services;
@@ -17,6 +18,7 @@ internal sealed partial class FlushTokenService(
     private readonly LoggerMessages _log = new(logger);
     protected override TimeSpan TriggerTimeOfDay => TimeSpan.Zero; // midnight
 
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Logging in background task")]
     protected override async Task ExecuteScheduledTaskAsync(CancellationToken cancellation)
     {
         await using AsyncServiceScope serviceScope = serviceProvider.CreateAsyncScope();

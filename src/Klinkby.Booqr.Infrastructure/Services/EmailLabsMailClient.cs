@@ -78,6 +78,7 @@ internal sealed partial class EmailLabsMailClient : IMailClient
 
     private sealed partial class LoggerMessages(ILogger<EmailLabsMailClient> logger)
     {
+        [SuppressMessage("Performance", "CA1823:Avoid unused private fields", Justification = "Ref by SG")]
         private readonly ILogger<EmailLabsMailClient> _logger = logger;
 
         [LoggerMessage(1020, LogLevel.Information, "Send email to {To}: {Subject}")]

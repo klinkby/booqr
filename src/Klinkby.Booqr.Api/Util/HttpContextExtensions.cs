@@ -1,7 +1,4 @@
-﻿using System;
-using Microsoft.AspNetCore.Http;
-
-namespace Klinkby.Booqr.Api.Util;
+﻿namespace Klinkby.Booqr.Api.Util;
 
 internal static class HttpContextExtensions
 {

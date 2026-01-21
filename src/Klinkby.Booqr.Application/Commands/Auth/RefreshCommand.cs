@@ -1,6 +1,6 @@
 namespace Klinkby.Booqr.Application.Commands.Auth;
 
-public sealed partial class RefreshCommand(
+public sealed class RefreshCommand(
     IUserRepository userRepository,
     IOAuth oauth,
     ITransaction transaction) : ICommand<RefreshRequest, Task<OAuthTokenResponse?>>

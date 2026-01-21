@@ -1,5 +1,4 @@
 using System.Data;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
 namespace Klinkby.Booqr.Infrastructure.Services;

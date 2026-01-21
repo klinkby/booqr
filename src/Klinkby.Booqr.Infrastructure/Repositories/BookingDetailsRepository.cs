@@ -1,6 +1,4 @@
-﻿using Klinkby.Booqr.Infrastructure.Services;
-
-namespace Klinkby.Booqr.Infrastructure.Repositories;
+﻿namespace Klinkby.Booqr.Infrastructure.Repositories;
 
 [QueryFields("id, starttime", "service", "duration", "location", "employee", "customerid", "customername", "customeremail")]
 internal sealed partial class BookingDetailsRepository(

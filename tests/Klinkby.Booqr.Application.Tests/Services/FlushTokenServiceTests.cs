@@ -1,3 +1,4 @@
+using System.Globalization;
 using Klinkby.Booqr.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
@@ -73,7 +74,7 @@ public class FlushTokenServiceTests
         using CountdownEvent cde = new(1);
         repoMock
             .Setup(m => m.Delete(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Database error"))
+            .ThrowsAsync(new InvalidOperationException("Database error"))
             .Callback(() => cde.Signal());
         services.AddSingleton(repoMock.Object);
 
@@ -105,8 +106,8 @@ public class FlushTokenServiceTests
     {
         // arrange
         FakeTimeProvider timeProvider = TestHelpers.TimeProvider;
-        var now = DateTime.Parse(nowStr);
-        var expected = DateTime.Parse(expectedStr);
+        var now = DateTime.Parse(nowStr, CultureInfo.InvariantCulture);
+        var expected = DateTime.Parse(expectedStr, CultureInfo.InvariantCulture);
 
         ServiceCollection services = new();
         using ServiceProvider serviceProvider = services.BuildServiceProvider();
