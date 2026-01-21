@@ -17,8 +17,9 @@ public sealed partial class LoginCommand(
     public async Task<OAuthTokenResponse?> Execute(LoginRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
-        var userName = query.Email.Trim();
+        await Task.Delay(Random.Shared.Next(100), cancellation); // prevent timing attacks
 
+        var userName = query.Email.Trim();
         User? user = await userRepository.GetByEmail(userName, cancellation);
         if (user is null)
         {
@@ -31,7 +32,6 @@ public sealed partial class LoginCommand(
             _log.NotConfirmed(user.Id);
             return null;
         }
-
         var isPasswordValid = BCryptNet.EnhancedVerify(query.Password, user.PasswordHash);
         if (!isPasswordValid)
         {
