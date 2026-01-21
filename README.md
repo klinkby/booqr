@@ -28,9 +28,12 @@ on a minimalist clean architecture emphasizing performance and maintainability w
 *   **[Problem Details](https://datatracker.ietf.org/doc/html/rfc7807)**: Structured error responses using RFC 7807 (ProblemDetails) standard with detailed validation errors.
 *   **[CLEF structured logging](https://github.com/Serilog/serilog-formatting-compact)** via [NLog](https://nlog-project.org/): Compact Log Event Format for efficient json log sink.
 *   **Container Security**: Runs rootless in tiny [Alpine Linux](https://alpinelinux.org/) [images (~17MB image)](https://hub.docker.com/r/klinkby/booqr/tags) with immutable filesystem.
-*   **Password handling**: Email-verified user accounts with [BCrypt](https://en.wikipedia.org/wiki/Bcrypt) password hashing.
+*   **Password handling**: Email-verified user accounts with [BCrypt](https://en.wikipedia.org/wiki/Bcrypt) password hashing and timing attack mitigation.
 *   **PostgreSQL Backend**: Reliable data storage in [Npgsql 18](https://www.npgsql.org/) container with schema bootstrapping.
 *   **[JWT Authentication](https://jwt.io/)**: Secure API authentication with [Microsoft.AspNetCore.Authentication.JwtBearer](https://www.nuget.org/packages/Microsoft.AspNetCore.Authentication.JwtBearer).
+*   **Refresh Token Rotation**: Opaque refresh tokens with 240-bit cryptographic entropy, family-based tracking for reuse detection, and automatic revocation on compromise.
+*   **HttpOnly Cookies**: Secure refresh token storage with `HttpOnly`, `Secure`, `SameSite=Strict`, and path-scoped attributes to prevent XSS and CSRF attacks.
+*   **Token Management**: SHAKE128 hashing for database storage, transactional token rotation, and automated daily cleanup of expired tokens.
 *   **Role-based Authorization**: Fine-grained access control using ASP.NET Core's built-in authorization policies.
 *   **Docker Compose**: Wraps the service with HAProxy gateway in the front, PostgreSQL in the back, and efficient UNIX
 sockets for inter-container communication.
