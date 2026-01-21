@@ -3,7 +3,6 @@ using System.Globalization;
 using Klinkby.Booqr.Application.Commands.Bookings;
 using Klinkby.Booqr.Core.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Klinkby.Booqr.Application.Services;
@@ -24,55 +23,35 @@ internal sealed partial class ReminderMailService(
     TimeProvider timeProvider,
     IServiceProvider serviceProvider,
     IOptions<ReminderMailSettings> reminderMailSettings,
-    ILogger<ReminderMailService> logger) : BackgroundService
+    ILogger<ReminderMailService> logger) : ScheduledBackgroundService(timeProvider, logger)
 {
     private readonly LoggerMessages _log = new(logger);
-    private readonly TimeSpan _timeOfDay = reminderMailSettings.Value.TimeOfDay;
+    protected override TimeSpan TriggerTimeOfDay => reminderMailSettings.Value.TimeOfDay;
 
-    private DateTime Now => timeProvider.GetUtcNow().UtcDateTime;
-
-    internal DateTime GetNext(DateTime now)
+    protected override async Task ExecuteScheduledTaskAsync(CancellationToken stoppingToken)
     {
-        return now
-                   .Date
-                   .AddDays(now.TimeOfDay >= _timeOfDay ? 1 : 0)
-               + _timeOfDay;
-    }
-
-    async protected override Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        _log.ReminderMailServiceStart(_timeOfDay);
-        while (!stoppingToken.IsCancellationRequested)
+        var timestamp = DateOnly.FromDateTime(Now);
+        await using AsyncServiceScope serviceScope = serviceProvider.CreateAsyncScope();
+        var sw = Stopwatch.StartNew();
+        var messageCount =
+            await FetchBookingDetailsAndSendReminders(serviceScope.ServiceProvider, timestamp, _log, stoppingToken);
+        if (messageCount == 0)
         {
-            DateTime now = Now;
-            DateTime next = GetNext(now);
-            TimeSpan timeToNext = next - now;
-            _log.Sleep(timeToNext, next);
-            await Task.Delay(timeToNext, stoppingToken);
-
-            if (stoppingToken.IsCancellationRequested)
-            {
-                break;
-            }
-
-            var timestamp = DateOnly.FromDateTime(Now);
-            using IDisposable? loggerScope = logger.BeginScope(new { TimeStamp = timestamp });
-            await using AsyncServiceScope serviceScope = serviceProvider.CreateAsyncScope();
-            var sw = Stopwatch.StartNew();
-            var messageCount =
-                await FetchBookingDetailsAndSendReminders(serviceScope.ServiceProvider, timestamp, _log, stoppingToken);
-            if (messageCount == 0)
-            {
-                _log.NothingToSend();
-            }
-            else
-            {
-                _log.Complete(messageCount, sw.Elapsed);
-            }
+            _log.NothingToSend();
+        }
+        else
+        {
+            _log.Complete(messageCount, sw.Elapsed);
         }
     }
 
-    async private static Task<int> FetchBookingDetailsAndSendReminders(
+    public override async Task StartAsync(CancellationToken cancellationToken)
+    {
+        _log.ReminderMailServiceStart(TriggerTimeOfDay);
+        await base.StartAsync(cancellationToken);
+    }
+
+    private static async Task<int> FetchBookingDetailsAndSendReminders(
         IServiceProvider scopedServices,
         DateOnly timestamp,
         LoggerMessages log,
@@ -116,7 +95,7 @@ internal sealed partial class ReminderMailService(
             });
     }
 
-    async private static Task TrySendReminder(Message message, IMailClient mailClient, LoggerMessages log,
+    private static async Task TrySendReminder(Message message, IMailClient mailClient, LoggerMessages log,
         CancellationToken stoppingToken)
     {
         try
@@ -141,9 +120,6 @@ internal sealed partial class ReminderMailService(
 
         [LoggerMessage(272, LogLevel.Information, "No reminder emails to send")]
         public partial void NothingToSend();
-
-        [LoggerMessage(273, LogLevel.Information, "Sleep for {Duration} until {Next}")]
-        public partial void Sleep(TimeSpan duration, DateTime next);
 
         [LoggerMessage(274, LogLevel.Information, "Reminder emails is sent at {TimeOfDay}")]
         public partial void ReminderMailServiceStart(TimeSpan timeOfDay);
