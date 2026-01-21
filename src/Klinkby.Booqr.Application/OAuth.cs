@@ -12,9 +12,9 @@ namespace Klinkby.Booqr.Application;
 
 public interface IOAuth
 {
-    Task<OAuthTokenResponse> GenerateTokenResponse(User user, CancellationToken cancellation);
+    Task<(OAuthTokenResponse, string)> GenerateTokenResponse(User user, CancellationToken cancellation);
     Task<int?> GetUserIdFromValidRefreshToken(string refreshToken, CancellationToken cancellation);
-    Task InvalidateToken(string refreshToken, CancellationToken cancellation);
+    Task InvalidateToken(string refreshToken, string replacedBy, CancellationToken cancellation);
 }
 
 internal sealed partial class OAuth(
@@ -29,7 +29,7 @@ internal sealed partial class OAuth(
     private readonly JwtSettings _jwt = jwtSettings.Value;
     private readonly LoggerMessages _log = new(logger);
 
-    public async Task<OAuthTokenResponse> GenerateTokenResponse(User user, CancellationToken cancellation)
+    public async Task<(OAuthTokenResponse, string)> GenerateTokenResponse(User user, CancellationToken cancellation)
     {
         _log.GenerateTokenResponse(user.Id);
 
@@ -53,15 +53,15 @@ internal sealed partial class OAuth(
 
         _log.NewToken(tokenHash);
 
-        return response;
+        return (response, tokenHash);
     }
 
-    public Task InvalidateToken(string refreshToken, CancellationToken cancellation)
+    public Task InvalidateToken(string refreshToken, string? replacedBy, CancellationToken cancellation)
     {
         var tokenHash = Hash(refreshToken);
         _log.Revoke(tokenHash);
 
-        return refreshTokenRepository.RevokeSingle(tokenHash, timeProvider.GetUtcNow().UtcDateTime, cancellation);
+        return refreshTokenRepository.RevokeSingle(tokenHash, timeProvider.GetUtcNow().UtcDateTime, replacedBy, cancellation);
     }
 
     public async Task<int?> GetUserIdFromValidRefreshToken(string refreshToken, CancellationToken cancellation)

@@ -22,12 +22,12 @@ internal sealed partial class RefreshTokenRepository(IConnectionProvider connect
             newItem);
     }
 
-    public async Task<bool> RevokeSingle(string hash, DateTime timestamp, CancellationToken cancellation = default)
+    public async Task<bool> RevokeSingle(string hash, DateTime timestamp, string? replacedBy, CancellationToken cancellation = default)
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
         return 1 == await connection.ExecuteAsync(
-            $"UPDATE {TableName} SET revoked=@Timestamp WHERE hash=@Hash AND revoked IS NULL AND replacedby IS NULL",
-            new { Hash = hash, Timestamp = timestamp });
+            $"UPDATE {TableName} SET revoked=@Timestamp, replacedby=@ReplacedBy WHERE hash=@Hash AND revoked IS NULL AND replacedby IS NULL",
+            new { Hash = hash, Timestamp = timestamp, ReplacedBy = replacedBy });
     }
 
     public async Task<int> RevokeAll(Guid family, DateTime timestamp, CancellationToken cancellation = default)

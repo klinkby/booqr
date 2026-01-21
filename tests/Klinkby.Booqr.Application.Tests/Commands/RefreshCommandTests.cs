@@ -77,7 +77,8 @@ public class RefreshCommandTests
         string refreshToken,
         int userId,
         User user,
-        OAuthTokenResponse expectedResponse)
+        OAuthTokenResponse expectedResponse,
+        string tokenHash)
     {
         var request = new RefreshRequest(refreshToken);
         _oauthMock.Setup(x => x.GetUserIdFromValidRefreshToken(request.RefreshToken!, It.IsAny<CancellationToken>()))
@@ -85,13 +86,13 @@ public class RefreshCommandTests
         _userRepositoryMock.Setup(x => x.GetById(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
         _oauthMock.Setup(x => x.GenerateTokenResponse(user, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedResponse);
+            .ReturnsAsync((expectedResponse, tokenHash));
 
         var result = await _command.Execute(request);
 
         Assert.Same(expectedResponse, result);
         _transactionMock.Verify(x => x.Begin(It.IsAny<CancellationToken>()), Times.Once);
-        _oauthMock.Verify(x => x.InvalidateToken(request.RefreshToken!, It.IsAny<CancellationToken>()), Times.Once);
+        _oauthMock.Verify(x => x.InvalidateToken(request.RefreshToken!, tokenHash, It.IsAny<CancellationToken>()), Times.Once);
         _transactionMock.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
     }
 

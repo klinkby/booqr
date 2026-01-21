@@ -52,12 +52,13 @@ public interface IRefreshTokenRepository : IRepository
     /// </summary>
     /// <param name="hash">The unique identifier of the item to revoke.</param>
     /// <param name="timestamp">The timestamp of the revocation.</param>
+    /// <param name="replacedBy">The hash of the refresh token that replaced this one, or <c>null</c> if not replaced.</param>
     /// <param name="cancellation">The token used to propagate notification that the operation should be canceled.</param>
     /// <returns>
     ///     A task that represents the asynchronous operation. The task result is <c>true</c> if an item was
     ///     revoked, otherwise <c>false</c>.
     /// </returns>
-    Task<bool> RevokeSingle(string hash, DateTime timestamp, CancellationToken cancellation = default);
+    Task<bool> RevokeSingle(string hash, DateTime timestamp, string? replacedBy, CancellationToken cancellation = default);
 
     /// <summary>
     ///     Revokes all refresh tokens associated with the specified family by marking them with the provided timestamp.

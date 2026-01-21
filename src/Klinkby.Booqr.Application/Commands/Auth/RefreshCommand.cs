@@ -20,8 +20,8 @@ public sealed class RefreshCommand(
         await transaction.Begin(cancellation);
         try
         {
-            OAuthTokenResponse response = await oauth.GenerateTokenResponse(user, cancellation);
-            await oauth.InvalidateToken(query.RefreshToken, cancellation);
+            (OAuthTokenResponse response, var newTokenHash) = await oauth.GenerateTokenResponse(user, cancellation);
+            await oauth.InvalidateToken(query.RefreshToken, newTokenHash, cancellation);
             await transaction.Commit(cancellation);
             return response;
         }

@@ -44,7 +44,7 @@ public sealed class RefreshTokenRepositoryTests(ServiceProviderFixture servicePr
             var tokenToAdd = token with { Hash = token.Hash[..40], UserId = userId, Revoked = null, ReplacedBy = null };
             await _sut.Add(tokenToAdd);
 
-            var result = await _sut.RevokeSingle(tokenToAdd.Hash, revokeTime);
+            var result = await _sut.RevokeSingle(tokenToAdd.Hash, revokeTime, null);
             var actual = await _sut.GetByHash(tokenToAdd.Hash);
 
             Assert.True(result);

@@ -42,7 +42,7 @@ public sealed partial class LoginCommand(
             return null;
         }
 
-        OAuthTokenResponse response = await oauth.GenerateTokenResponse(user, cancellation);
+        (OAuthTokenResponse response, _) = await oauth.GenerateTokenResponse(user, cancellation);
 
         _log.LoggedIn(user.Id);
         return response;
