@@ -17,7 +17,7 @@ public sealed partial class LoginCommand(
     public async Task<OAuthTokenResponse?> Execute(LoginRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
-        await Task.Delay(Random.Shared.Next(100), cancellation); // prevent timing attacks
+        await Task.Delay(50 + Random.Shared.Next(100), cancellation); // prevent timing attacks
 
         var userName = query.Email.Trim();
         User? user = await userRepository.GetByEmail(userName, cancellation);

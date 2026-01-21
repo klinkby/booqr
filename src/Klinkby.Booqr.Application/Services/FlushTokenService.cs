@@ -40,13 +40,13 @@ internal sealed partial class FlushTokenService(
     {
         private readonly ILogger<FlushTokenService> _logger = logger;
 
-        [LoggerMessage(280, LogLevel.Information, "Flushing tokens older than {Threshold}")]
+        [LoggerMessage(290, LogLevel.Information, "Flushing tokens older than {Threshold}")]
         public partial void FlushingTokens(DateTime threshold);
 
-        [LoggerMessage(281, LogLevel.Information, "Flushed {Count} tokens")]
+        [LoggerMessage(291, LogLevel.Information, "Flushed {Count} tokens")]
         public partial void FlushComplete(int count);
 
-        [LoggerMessage(282, LogLevel.Error, "Failed to flush tokens")]
+        [LoggerMessage(292, LogLevel.Error, "Failed to flush tokens")]
         public partial void FlushFailed(Exception ex);
     }
 }
