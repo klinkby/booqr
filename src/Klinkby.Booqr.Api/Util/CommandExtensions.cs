@@ -25,18 +25,18 @@ internal static class CommandExtensions
         CancellationToken cancellationToken) where T: notnull
     {
         OAuthTokenResponse? result = await command.Execute(query, cancellationToken);
-        if (result is null)
+        if (result?.RefreshToken is null)
         {
             return TypedResults.Unauthorized();
         }
 
         // Set refresh token in HttpOnly cookie
-        context.Response.Cookies.Append(RefreshTokenCookieName, result.RefreshToken!, new CookieOptions
+        context.Response.Cookies.Append(RefreshTokenCookieName, result.RefreshToken, new CookieOptions
         {
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Strict,
-            Path = "/api/auth/refresh",
+            Path = "/api/auth",
             Expires = result.RefreshTokenExpiration
         });
         context.Response.Headers.CacheControl = "no-store";
