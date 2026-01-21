@@ -61,6 +61,7 @@ public static partial class ServiceCollectionExtensions
         services.AddBoundedChannel<Message>(options);
         services.AddHostedService<EmailBackgroundService>();
         services.AddHostedService<ReminderMailService>();
+        services.AddHostedService<FlushTokenService>();
 
         // activities
         services.AddBoundedChannel<Activity>(options);
