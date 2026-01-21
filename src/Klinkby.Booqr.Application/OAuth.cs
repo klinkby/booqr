@@ -1,3 +1,4 @@
+using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
@@ -11,9 +12,9 @@ namespace Klinkby.Booqr.Application;
 
 public interface IOAuth
 {
-    Task<OAuthTokenResponse> GenerateTokenResponse(User user, CancellationToken cancellation);
+    Task<(OAuthTokenResponse, string)> GenerateTokenResponse(User user, CancellationToken cancellation);
     Task<int?> GetUserIdFromValidRefreshToken(string refreshToken, CancellationToken cancellation);
-    Task InvalidateToken(string refreshToken, CancellationToken cancellation);
+    Task InvalidateToken(string refreshToken, string replacedBy, CancellationToken cancellation);
 }
 
 internal sealed partial class OAuth(
@@ -28,7 +29,7 @@ internal sealed partial class OAuth(
     private readonly JwtSettings _jwt = jwtSettings.Value;
     private readonly LoggerMessages _log = new(logger);
 
-    public async Task<OAuthTokenResponse> GenerateTokenResponse(User user, CancellationToken cancellation)
+    public async Task<(OAuthTokenResponse, string)> GenerateTokenResponse(User user, CancellationToken cancellation)
     {
         _log.GenerateTokenResponse(user.Id);
 
@@ -52,15 +53,15 @@ internal sealed partial class OAuth(
 
         _log.NewToken(tokenHash);
 
-        return response;
+        return (response, tokenHash);
     }
 
-    public Task InvalidateToken(string refreshToken, CancellationToken cancellation)
+    public Task InvalidateToken(string refreshToken, string? replacedBy, CancellationToken cancellation)
     {
         var tokenHash = Hash(refreshToken);
         _log.Revoke(tokenHash);
 
-        return refreshTokenRepository.RevokeSingle(tokenHash, timeProvider.GetUtcNow().UtcDateTime, cancellation);
+        return refreshTokenRepository.RevokeSingle(tokenHash, timeProvider.GetUtcNow().UtcDateTime, replacedBy, cancellation);
     }
 
     public async Task<int?> GetUserIdFromValidRefreshToken(string refreshToken, CancellationToken cancellation)
@@ -93,8 +94,12 @@ internal sealed partial class OAuth(
     }
 
     // Opaque token
-    private static string GenerateRefreshToken() =>
-        Convert.ToBase64String(RandomNumberGenerator.GetBytes(Entropy));
+    private static string GenerateRefreshToken()
+    {
+        Span<byte> buffer = stackalloc byte[Entropy];
+        RandomNumberGenerator.Fill(buffer);
+        return Base64UrlEncode(buffer);
+    }
 
     private string GenerateAccessToken(User user) =>
         GenerateToken(
@@ -128,8 +133,17 @@ internal sealed partial class OAuth(
         return tokenHandler.WriteToken(token);
     }
 
-    private static string Hash(string token, int outputLength = Entropy) =>
-        Convert.ToBase64String(Shake128.HashData(Encoding.GetBytes(token), outputLength));
+    private static string Hash(string token, int outputLength = Entropy)
+    {
+        Span<byte> tokenBytes = stackalloc byte[Encoding.GetByteCount(token)];
+        Encoding.GetBytes(token, tokenBytes);
+        Span<byte> digest = stackalloc byte[outputLength];
+        Shake128.HashData(tokenBytes, digest);
+        return Base64UrlEncode(digest);
+    }
+
+    private static string Base64UrlEncode(ReadOnlySpan<byte> buffer) =>
+        Base64Url.EncodeToString(buffer);
 
     private sealed partial class LoggerMessages(ILogger<OAuth> logger)
     {

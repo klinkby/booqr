@@ -13,7 +13,7 @@ public class OAuthTests
         var repoMock = CreateRepositoryMock();
         var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
 
-        var actual = await sut.GenerateTokenResponse(user, TestContext.Current.CancellationToken);
+        (var actual, _) = await sut.GenerateTokenResponse(user, TestContext.Current.CancellationToken);
         Assert.NotNull(actual);
         Assert.NotEmpty(actual.AccessToken);
         Assert.NotEmpty(actual.RefreshToken!);
@@ -41,7 +41,7 @@ public class OAuthTests
         var repoMock = CreateRepositoryMock();
         var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
 
-        var actual = await sut.GenerateTokenResponse(user, TestContext.Current.CancellationToken);
+        (var actual, _) = await sut.GenerateTokenResponse(user, TestContext.Current.CancellationToken);
 
         var handler = new JwtSecurityTokenHandler
         {
@@ -64,7 +64,7 @@ public class OAuthTests
         var repoMock = CreateRepositoryMock();
         var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
 
-        var actual = await sut.GenerateTokenResponse(user, TestContext.Current.CancellationToken);
+        (var actual, _) = await sut.GenerateTokenResponse(user, TestContext.Current.CancellationToken);
 
         Assert.NotNull(actual.RefreshToken);
         Assert.Equal(40, actual.RefreshToken?.Length);
@@ -79,11 +79,12 @@ public class OAuthTests
         var timeProvider = TestHelpers.TimeProvider;
         var sut = new OAuth(repoMock.Object, timeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
 
-        await sut.InvalidateToken(refreshToken, TestContext.Current.CancellationToken);
+        await sut.InvalidateToken(refreshToken, null, TestContext.Current.CancellationToken);
 
         repoMock.Verify(x => x.RevokeSingle(
             It.Is<string>(s => !string.IsNullOrEmpty(s)),
             timeProvider.GetUtcNow().UtcDateTime,
+            null,
             TestContext.Current.CancellationToken), Times.Once);
     }
 

@@ -80,7 +80,7 @@ public class LoginCommandTests
     {
         var mock = new Mock<IOAuth>();
         mock.Setup(m => m.GenerateTokenResponse(It.IsAny<User>(), It.IsAny<CancellationToken>()))
-            .Returns(() => Task.FromResult(fakeResponse));
+            .Returns(() => Task.FromResult((fakeResponse, "tokenHash")));
         return mock;
     }
 }
