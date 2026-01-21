@@ -1,6 +1,4 @@
-﻿using Klinkby.Booqr.Infrastructure.Services;
-
-namespace Klinkby.Booqr.Infrastructure.Repositories;
+﻿namespace Klinkby.Booqr.Infrastructure.Repositories;
 
 [QueryFields("employeeid", "starttime", "endtime", "locationid", "bookingid")]
 internal sealed partial class CalendarRepository(IConnectionProvider connectionProvider, TimeProvider timeProvider)

@@ -1,7 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Text;
-using Klinkby.Booqr.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Logging;
