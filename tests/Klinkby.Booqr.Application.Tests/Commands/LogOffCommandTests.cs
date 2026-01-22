@@ -23,40 +23,40 @@ public class LogOffCommandTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public async Task GIVEN_EmptyRefreshToken_WHEN_Execute_THEN_DoesNotInvalidateToken(string? refreshToken)
+    public async Task GIVEN_EmptyRefreshToken_WHEN_Execute_THEN_DoesNotRevokeTokenFamily(string? refreshToken)
     {
         var request = new LogOffRequest(refreshToken!);
 
         await _command.Execute(request);
 
-        _oauthMock.Verify(x => x.InvalidateToken(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
+        _oauthMock.Verify(x => x.RevokeTokenFamily(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_ValidRefreshToken_WHEN_Execute_THEN_InvalidatesTokenWithNullReplacedBy(
+    public async Task GIVEN_ValidRefreshToken_WHEN_Execute_THEN_RevokesTokenFamily(
         string refreshToken)
     {
         var request = new LogOffRequest(refreshToken);
-        _oauthMock.Setup(x => x.InvalidateToken(refreshToken, null, It.IsAny<CancellationToken>()))
+        _oauthMock.Setup(x => x.RevokeTokenFamily(refreshToken, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         await _command.Execute(request);
 
-        _oauthMock.Verify(x => x.InvalidateToken(refreshToken, null, It.IsAny<CancellationToken>()), Times.Once);
+        _oauthMock.Verify(x => x.RevokeTokenFamily(refreshToken, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_InvalidRefreshToken_WHEN_Execute_THEN_CallsInvalidateToken(
+    public async Task GIVEN_InvalidRefreshToken_WHEN_Execute_THEN_CallsRevokeTokenFamily(
         string invalidRefreshToken)
     {
         var request = new LogOffRequest(invalidRefreshToken);
-        _oauthMock.Setup(x => x.InvalidateToken(invalidRefreshToken, null, It.IsAny<CancellationToken>()))
+        _oauthMock.Setup(x => x.RevokeTokenFamily(invalidRefreshToken, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         await _command.Execute(request);
 
-        _oauthMock.Verify(x => x.InvalidateToken(invalidRefreshToken, null, It.IsAny<CancellationToken>()), Times.Once);
+        _oauthMock.Verify(x => x.RevokeTokenFamily(invalidRefreshToken, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

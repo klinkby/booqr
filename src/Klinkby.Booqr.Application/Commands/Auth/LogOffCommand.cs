@@ -16,6 +16,6 @@ public sealed class LogOffCommand(
             return;
         }
 
-        await oauth.InvalidateToken(query.RefreshToken, null, cancellation);
+        await oauth.RevokeTokenFamily(query.RefreshToken, cancellation);
     }
 }
