@@ -14,7 +14,8 @@ public interface IOAuth
 {
     Task<(OAuthTokenResponse, string)> GenerateTokenResponse(User user, CancellationToken cancellation);
     Task<int?> GetUserIdFromValidRefreshToken(string refreshToken, CancellationToken cancellation);
-    Task InvalidateToken(string refreshToken, string replacedBy, CancellationToken cancellation);
+    Task InvalidateToken(string refreshToken, string? replacedBy, CancellationToken cancellation);
+    Task RevokeTokenFamily(string refreshToken, CancellationToken cancellation);
 }
 
 internal sealed partial class OAuth(
@@ -62,6 +63,23 @@ internal sealed partial class OAuth(
         _log.Revoke(tokenHash);
 
         return refreshTokenRepository.RevokeSingle(tokenHash, timeProvider.GetUtcNow().UtcDateTime, replacedBy, cancellation);
+    }
+
+    public async Task RevokeTokenFamily(string refreshToken, CancellationToken cancellation)
+    {
+        var tokenHash = Hash(refreshToken);
+        _log.ValidateToken("Refresh");
+
+        RefreshToken? token = await refreshTokenRepository.GetByHash(tokenHash, cancellation);
+        if (token is null)
+        {
+            _log.InvalidToken(tokenHash, "Not found");
+            return;
+        }
+
+        DateTime now = timeProvider.GetUtcNow().UtcDateTime;
+        _log.RevokeFamily(token.Family);
+        await refreshTokenRepository.RevokeAll(token.Family, now, cancellation);
     }
 
     public async Task<int?> GetUserIdFromValidRefreshToken(string refreshToken, CancellationToken cancellation)
@@ -173,5 +191,8 @@ internal sealed partial class OAuth(
 
         [LoggerMessage(287, LogLevel.Information, "Generated {Hash}")]
         internal partial void NewToken(string hash);
+
+        [LoggerMessage(288, LogLevel.Information, "Revoke token family {Family}")]
+        internal partial void RevokeFamily(Guid family);
     }
 }

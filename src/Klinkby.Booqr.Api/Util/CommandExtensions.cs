@@ -7,6 +7,15 @@ internal static class CommandExtensions
 {
     internal const string RefreshTokenCookieName = "refresh_token";
 
+    private static CookieOptions CreateRefreshTokenCookieOptions(DateTimeOffset? expires = null) => new()
+    {
+        HttpOnly = true,
+        Secure = true,
+        SameSite = SameSiteMode.Strict,
+        Path = "/api/auth",
+        Expires = expires
+    };
+
     internal static async Task<Results<Ok<TResult>, BadRequest, NotFound>> GetSingle<TQuery, TResult>(
         this ICommand<TQuery, Task<TResult?>> command, TQuery query, CancellationToken cancellationToken)
         where TQuery : notnull =>
@@ -31,14 +40,8 @@ internal static class CommandExtensions
         }
 
         // Set refresh token in HttpOnly cookie
-        context.Response.Cookies.Append(RefreshTokenCookieName, result.RefreshToken, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Path = "/api/auth",
-            Expires = result.RefreshTokenExpiration
-        });
+        context.Response.Cookies.Append(RefreshTokenCookieName, result.RefreshToken, 
+            CreateRefreshTokenCookieOptions(result.RefreshTokenExpiration));
         context.Response.Headers.CacheControl = "no-store";
         return TypedResults.Ok(result with { RefreshToken = string.Empty });
     }
@@ -82,6 +85,15 @@ internal static class CommandExtensions
         where TQuery : notnull
     {
         await command.Execute(query, cancellationToken);
+        return TypedResults.NoContent();
+    }
+
+    internal static async Task<Results<NoContent, BadRequest>> NoContentWithCookieDelete<TQuery>(
+        this ICommand<TQuery> command, TQuery query, HttpContext context, CancellationToken cancellationToken)
+        where TQuery : notnull
+    {
+        await command.Execute(query, cancellationToken);
+        context.Response.Cookies.Delete(RefreshTokenCookieName, CreateRefreshTokenCookieOptions());
         return TypedResults.NoContent();
     }
 }

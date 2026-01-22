@@ -28,9 +28,9 @@
       },
       "Microsoft.DotNet.ILCompiler": {
         "type": "Direct",
-        "requested": "[10.0.1, )",
-        "resolved": "10.0.1",
-        "contentHash": "339VHcUMA2iDrkLGaqjSwn25S9lmus/+Iqg5Hz2LDPhsX5a5GbdQZ2f/f6HMz/uGGWtUGpsusqUvW5L3fx36VA=="
+        "requested": "[10.0.2, )",
+        "resolved": "10.0.2",
+        "contentHash": "0g8tazNW4q0anSYNl1hnaHGc7+BQXwpNBMx3d5T3JboOVzz4OXZgqbuoBYfn60VtDFtBMNVS2Kfopelpo2pLZA=="
       },
       "Microsoft.Extensions.ApiDescription.Server": {
         "type": "Direct",
