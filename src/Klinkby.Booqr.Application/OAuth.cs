@@ -14,7 +14,7 @@ public interface IOAuth
 {
     Task<(OAuthTokenResponse, string)> GenerateTokenResponse(User user, CancellationToken cancellation);
     Task<int?> GetUserIdFromValidRefreshToken(string refreshToken, CancellationToken cancellation);
-    Task InvalidateToken(string refreshToken, string replacedBy, CancellationToken cancellation);
+    Task InvalidateToken(string refreshToken, string? replacedBy, CancellationToken cancellation);
 }
 
 internal sealed partial class OAuth(

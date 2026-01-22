@@ -84,4 +84,18 @@ internal static class CommandExtensions
         await command.Execute(query, cancellationToken);
         return TypedResults.NoContent();
     }
+
+    internal static async Task<Results<NoContent, BadRequest>> NoContentWithCookieDelete<TQuery>(
+        this ICommand<TQuery> command, TQuery query, HttpContext context, CancellationToken cancellationToken)
+        where TQuery : notnull
+    {
+        await command.Execute(query, cancellationToken);
+        context.Response.Cookies.Delete(RefreshTokenCookieName, new CookieOptions
+        {
+            Path = "/api/auth",
+            Secure = true,
+            SameSite = SameSiteMode.Strict
+        });
+        return TypedResults.NoContent();
+    }
 }

@@ -42,6 +42,12 @@ internal static class Routing
                     command.GetAuthenticationTokenWithCookie(new (context.Request.Cookies[CommandExtensions.RefreshTokenCookieName]), context, cancellation))
             .WithName("refresh")
             .WithSummary("Refresh auth token");
+
+        group.MapPost("/logout",
+                static (LogOffCommand command, HttpContext context, CancellationToken cancellation) =>
+                    command.NoContentWithCookieDelete(new (context.Request.Cookies[CommandExtensions.RefreshTokenCookieName]), context, cancellation))
+            .WithName("logout")
+            .WithSummary("Log out");
     }
 
     private static void MapBookings(IEndpointRouteBuilder app)
