@@ -66,6 +66,7 @@ public sealed partial class DeleteBookingCommand(
         };
 
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
         [LoggerMessage(110, LogLevel.Warning, "User {UserId} is not permitted to delete booking {Id}")]

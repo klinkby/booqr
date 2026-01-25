@@ -53,6 +53,7 @@ public sealed partial class LoginCommand(
         return response;
     }
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
         [SuppressMessage("Performance", "CA1823:Avoid unused private fields", Justification = "Ref by SG")]

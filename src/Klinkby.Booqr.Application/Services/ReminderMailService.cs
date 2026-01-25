@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Klinkby.Booqr.Application.Commands.Bookings;
 using Klinkby.Booqr.Core.Exceptions;

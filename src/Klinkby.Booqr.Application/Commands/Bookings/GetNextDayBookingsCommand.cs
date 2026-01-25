@@ -1,4 +1,5 @@
-﻿namespace Klinkby.Booqr.Application.Commands.Bookings;
+﻿using System.Diagnostics.CodeAnalysis;
+namespace Klinkby.Booqr.Application.Commands.Bookings;
 
 public sealed record GetBookingDetailsRequest(
     [property: Required] DateOnly Date);
@@ -23,6 +24,7 @@ public sealed partial class GetBookingDetailsCommand(
         return bookingsDetails.GetRange(fromTime, toTime, new PageQuery(), cancellation);
     }
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
         [LoggerMessage(220, LogLevel.Information, "Get bookings from {FromTime} to {ToTime}")]

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json.Serialization;
 
@@ -71,6 +72,7 @@ public partial class ChangePasswordCommand(
         return true;
     }
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
         [LoggerMessage(210, LogLevel.Information, "Change {UserId} password")]

@@ -1,4 +1,5 @@
-﻿using System.Threading.Channels;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Threading.Channels;
 using Klinkby.Booqr.Core.Exceptions;
 using Microsoft.Extensions.Hosting;
 
@@ -32,6 +33,7 @@ internal sealed partial class EmailBackgroundService(
         }
     }
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger<EmailBackgroundService> logger)
     {
         private readonly ILogger<EmailBackgroundService> _logger = logger;

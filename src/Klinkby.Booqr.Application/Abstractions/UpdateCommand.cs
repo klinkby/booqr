@@ -1,4 +1,5 @@
-﻿using Klinkby.Booqr.Core.Exceptions;
+﻿using System.Diagnostics.CodeAnalysis;
+using Klinkby.Booqr.Core.Exceptions;
 
 namespace Klinkby.Booqr.Application.Abstractions;
 
@@ -50,6 +51,7 @@ public abstract partial class UpdateCommand<TRequest, TItem>(
     protected abstract TItem Map(TRequest query);
 
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
         [LoggerMessage(190, LogLevel.Information, "User {UserId} update {Type}:{Id}")]

@@ -1,4 +1,5 @@
-﻿namespace Klinkby.Booqr.Application.Commands.Users;
+﻿using System.Diagnostics.CodeAnalysis;
+namespace Klinkby.Booqr.Application.Commands.Users;
 
 /// <inheritdoc />
 public sealed partial class DeleteUserCommand(
@@ -20,6 +21,7 @@ public sealed partial class DeleteUserCommand(
         return base.Delete(query, cancellation);
     }
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
         [LoggerMessage(240, LogLevel.Warning, "User {UserId} attempted self-terminating")]

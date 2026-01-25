@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
 using Microsoft.Extensions.Options;
@@ -74,6 +75,7 @@ public sealed partial class SignUpCommand(
             null,
             null);
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
         [LoggerMessage(140, LogLevel.Information, "Create new user {Email}")]

@@ -1,4 +1,5 @@
-﻿namespace Klinkby.Booqr.Application.Abstractions;
+﻿using System.Diagnostics.CodeAnalysis;
+namespace Klinkby.Booqr.Application.Abstractions;
 
 /// <summary>
 /// Abstract base class for commands that delete entities from the repository.
@@ -34,6 +35,7 @@ public abstract partial class DeleteCommand<TItem>(
         return repository.Delete(query.Id, cancellation);
     }
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
         [LoggerMessage(180, LogLevel.Information, "User {UserId} delete {Type}:{Id}")]

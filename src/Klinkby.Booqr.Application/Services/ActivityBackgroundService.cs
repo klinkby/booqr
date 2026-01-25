@@ -1,4 +1,5 @@
 ﻿using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Channels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -39,6 +40,7 @@ internal sealed partial class ActivityBackgroundService(
         }
     }
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger<ActivityBackgroundService> logger)
     {
         private readonly ILogger<ActivityBackgroundService> _logger = logger;
