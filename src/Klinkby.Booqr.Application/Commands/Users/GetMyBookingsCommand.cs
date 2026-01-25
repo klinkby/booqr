@@ -1,4 +1,5 @@
-﻿namespace Klinkby.Booqr.Application.Commands.Users;
+﻿using System.Diagnostics.CodeAnalysis;
+namespace Klinkby.Booqr.Application.Commands.Users;
 
 public sealed record GetMyBookingsRequest(
     [property: Range(1, int.MaxValue)] int Id, // UserId that is
@@ -36,6 +37,7 @@ public sealed partial class GetMyBookingsCommand(
         throw new UnauthorizedAccessException("Cannot list another customer's bookings");
     }
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
         [LoggerMessage(120, LogLevel.Warning,

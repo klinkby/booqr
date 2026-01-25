@@ -5,7 +5,7 @@ namespace Klinkby.Booqr.Application.Commands.Auth;
 
 public sealed record LoginRequest(
     [Required] [StringLength(0xff)] string Email,
-    [Required] [StringLength(0xff)] string Password);
+    [Required] [StringLength(0xff)] string Password) : RefreshTokenDto;
 
 public sealed partial class LoginCommand(
     IUserRepository userRepository,
@@ -42,12 +42,18 @@ public sealed partial class LoginCommand(
             return null;
         }
 
+        if (!string.IsNullOrEmpty(query.RefreshToken))
+        {
+            await oauth.RevokeTokenFamily(query.RefreshToken, cancellation);
+        }
+
         (OAuthTokenResponse response, _) = await oauth.GenerateTokenResponse(user, cancellation);
 
         _log.LoggedIn(user.Id);
         return response;
     }
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
         [SuppressMessage("Performance", "CA1823:Avoid unused private fields", Justification = "Ref by SG")]

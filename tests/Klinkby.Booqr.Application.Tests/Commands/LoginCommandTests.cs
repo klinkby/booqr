@@ -49,13 +49,13 @@ public class LoginCommandTests
     public async Task GIVEN_CorrectCredentials_WHEN_Login_THEN_ReturnsBearerToken(
         User user,
         string password,
-        OAuthTokenResponse expectedResponse)
+        OAuthTokenResponse expectedResponse, string refreshToken)
     {
         User userWithHashedPassword = user with { PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(password) };
         Mock<IUserRepository> userRepo = CreateUserRepositoryMock(userWithHashedPassword);
         Mock<IOAuth> oauth = CreateOAuthMock(expectedResponse);
         var command = new LoginCommand(userRepo.Object, oauth.Object, NullLogger<LoginCommand>.Instance);
-        var request = new LoginRequest(userWithHashedPassword.Email, password);
+        var request = new LoginRequest(userWithHashedPassword.Email, password) { RefreshToken = refreshToken };
 
         // Act
         OAuthTokenResponse? response = await command.Execute(request);
@@ -64,7 +64,10 @@ public class LoginCommandTests
         Assert.NotNull(response);
         Assert.False(string.IsNullOrWhiteSpace(response.AccessToken));
         Assert.Equal(expectedResponse.TokenType, response.TokenType);
+
+        // Verify interactions
         userRepo.Verify(x => x.GetByEmail(user.Email, CancellationToken.None), Times.Once);
+        oauth.Verify(x => x.RevokeTokenFamily(refreshToken, CancellationToken.None), Times.Once);
     }
 
     private static Mock<IUserRepository> CreateUserRepositoryMock(User? user)

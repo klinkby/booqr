@@ -31,16 +31,16 @@ internal static class CommandExtensions
 
     internal static async Task<Results<Ok<OAuthTokenResponse>, UnauthorizedHttpResult, BadRequest>> GetAuthenticationTokenWithCookie<T>(
         this ICommand<T, Task<OAuthTokenResponse?>> command, T query, HttpContext context,
-        CancellationToken cancellationToken) where T: notnull
+        CancellationToken cancellationToken) where T: RefreshTokenDto
     {
-        OAuthTokenResponse? result = await command.Execute(query, cancellationToken);
+        OAuthTokenResponse? result = await command.Execute(query.WithRefreshToken(context), cancellationToken);
         if (result?.RefreshToken is null)
         {
             return TypedResults.Unauthorized();
         }
 
         // Set refresh token in HttpOnly cookie
-        context.Response.Cookies.Append(RefreshTokenCookieName, result.RefreshToken, 
+        context.Response.Cookies.Append(RefreshTokenCookieName, result.RefreshToken,
             CreateRefreshTokenCookieOptions(result.RefreshTokenExpiration));
         context.Response.Headers.CacheControl = "no-store";
         return TypedResults.Ok(result with { RefreshToken = string.Empty });
@@ -90,9 +90,9 @@ internal static class CommandExtensions
 
     internal static async Task<Results<NoContent, BadRequest>> NoContentWithCookieDelete<TQuery>(
         this ICommand<TQuery> command, TQuery query, HttpContext context, CancellationToken cancellationToken)
-        where TQuery : notnull
+        where TQuery : RefreshTokenDto
     {
-        await command.Execute(query, cancellationToken);
+        await command.Execute(query.WithRefreshToken(context), cancellationToken);
         context.Response.Cookies.Delete(RefreshTokenCookieName, CreateRefreshTokenCookieOptions());
         return TypedResults.NoContent();
     }

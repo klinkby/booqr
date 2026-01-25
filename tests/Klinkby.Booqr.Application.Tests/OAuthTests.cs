@@ -152,6 +152,34 @@ public class OAuthTests
         Assert.Equal(tokenMetadata.UserId, actual);
     }
 
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_ExistingToken_WHEN_RevokeTokenFamily_THEN_RevokesFamily(string refreshToken, RefreshToken tokenMetadata, JwtSettings settings)
+    {
+        var repoMock = new Mock<IRefreshTokenRepository>();
+        repoMock.Setup(x => x.GetByHash(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tokenMetadata);
+        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
+
+        await sut.RevokeTokenFamily(refreshToken, TestContext.Current.CancellationToken);
+
+        repoMock.Verify(x => x.RevokeAll(tokenMetadata.Family, It.IsAny<DateTime>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_NonExistentToken_WHEN_RevokeTokenFamily_THEN_DoesNotRevoke(string refreshToken, JwtSettings settings)
+    {
+        var repoMock = new Mock<IRefreshTokenRepository>();
+        repoMock.Setup(x => x.GetByHash(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((RefreshToken?)null);
+        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
+
+        await sut.RevokeTokenFamily(refreshToken, TestContext.Current.CancellationToken);
+
+        repoMock.Verify(x => x.RevokeAll(It.IsAny<Guid>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
     private static Mock<IRefreshTokenRepository> CreateRepositoryMock()
     {
         var repo = new Mock<IRefreshTokenRepository>();

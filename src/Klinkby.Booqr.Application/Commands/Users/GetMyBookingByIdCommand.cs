@@ -1,4 +1,5 @@
-﻿namespace Klinkby.Booqr.Application.Commands.Users;
+﻿using System.Diagnostics.CodeAnalysis;
+namespace Klinkby.Booqr.Application.Commands.Users;
 
 public sealed record GetMyBookingByIdRequest(
     [Range(1, int.MaxValue)] int Id, // UserId that is
@@ -44,6 +45,7 @@ public sealed partial class GetMyBookingByIdCommand(
     }
 
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
         [LoggerMessage(200, LogLevel.Warning,

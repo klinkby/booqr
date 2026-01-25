@@ -1,4 +1,5 @@
-﻿namespace Klinkby.Booqr.Application.Abstractions;
+﻿using System.Diagnostics.CodeAnalysis;
+namespace Klinkby.Booqr.Application.Abstractions;
 
 /// <summary>
 /// Abstract base class for commands that add new entities to the repository.
@@ -42,6 +43,7 @@ public abstract partial class AddCommand<TRequest, TItem>(
     /// <returns>The mapped entity ready for persistence.</returns>
     protected abstract TItem Map(TRequest query);
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
         [LoggerMessage(170, LogLevel.Information, "User {UserId} created {Type}:{Id}")]

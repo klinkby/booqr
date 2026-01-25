@@ -40,8 +40,10 @@ internal sealed partial class OAuth(
         var response = new OAuthTokenResponse(
             accessToken,
             (int)_jwt.AccessExpires.TotalSeconds,
-            refreshToken,
-            timestamp + _jwt.RefreshExpires);
+            timestamp + _jwt.RefreshExpires)
+        {
+            RefreshToken = refreshToken,
+        };
 
         var tokenHash = Hash(refreshToken);
         RefreshToken refreshTokenMetadata = new(

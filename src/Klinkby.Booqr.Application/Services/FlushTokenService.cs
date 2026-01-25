@@ -38,6 +38,7 @@ internal sealed partial class FlushTokenService(
         }
     }
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger<FlushTokenService> logger)
     {
         private readonly ILogger<FlushTokenService> _logger = logger;

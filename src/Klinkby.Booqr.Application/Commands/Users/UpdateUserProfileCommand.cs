@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using Klinkby.Booqr.Core.Exceptions;
 
@@ -63,6 +64,7 @@ public sealed partial class UpdateUserProfileCommand(
         Version = etagProvider.Version
     };
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
         [LoggerMessage(230, LogLevel.Information, "User {UserId} patch User {Id} profile")]

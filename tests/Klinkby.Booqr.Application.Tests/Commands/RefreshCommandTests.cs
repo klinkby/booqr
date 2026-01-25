@@ -33,7 +33,7 @@ public class RefreshCommandTests
     [InlineData("")]
     public async Task GIVEN_EmptyRefreshToken_WHEN_Execute_THEN_ReturnsNull(string? refreshToken)
     {
-        var request = new RefreshRequest(refreshToken!);
+        var request = new RefreshRequest  { RefreshToken = refreshToken };
 
         var result = await _command.Execute(request);
 
@@ -45,7 +45,7 @@ public class RefreshCommandTests
     public async Task GIVEN_InvalidRefreshToken_WHEN_Execute_THEN_ReturnsNull(
         string refreshToken)
     {
-        var request = new RefreshRequest(refreshToken);
+        var request = new RefreshRequest { RefreshToken = refreshToken };
         _oauthMock.Setup(x => x.GetUserIdFromValidRefreshToken(request.RefreshToken!, It.IsAny<CancellationToken>()))
             .ReturnsAsync((int?)null);
 
@@ -60,7 +60,7 @@ public class RefreshCommandTests
         string refreshToken,
         int userId)
     {
-        var request = new RefreshRequest(refreshToken);
+        var request = new RefreshRequest { RefreshToken = refreshToken };
         _oauthMock.Setup(x => x.GetUserIdFromValidRefreshToken(request.RefreshToken!, It.IsAny<CancellationToken>()))
             .ReturnsAsync(userId);
         _userRepositoryMock.Setup(x => x.GetById(userId, It.IsAny<CancellationToken>()))
@@ -80,7 +80,7 @@ public class RefreshCommandTests
         OAuthTokenResponse expectedResponse,
         string tokenHash)
     {
-        var request = new RefreshRequest(refreshToken);
+        var request = new RefreshRequest { RefreshToken = refreshToken };
         _oauthMock.Setup(x => x.GetUserIdFromValidRefreshToken(request.RefreshToken!, It.IsAny<CancellationToken>()))
             .ReturnsAsync(userId);
         _userRepositoryMock.Setup(x => x.GetById(userId, It.IsAny<CancellationToken>()))
@@ -104,7 +104,7 @@ public class RefreshCommandTests
         User user,
         Exception testException)
     {
-        var request = new RefreshRequest(refreshToken);
+        var request = new RefreshRequest { RefreshToken = refreshToken };
         _oauthMock.Setup(x => x.GetUserIdFromValidRefreshToken(request.RefreshToken!, It.IsAny<CancellationToken>()))
             .ReturnsAsync(userId);
         _userRepositoryMock.Setup(x => x.GetById(userId, It.IsAny<CancellationToken>()))

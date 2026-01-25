@@ -1,13 +1,11 @@
 namespace Klinkby.Booqr.Application.Commands.Auth;
 
-public sealed record LogOffRequest(
-    string? RefreshToken
-);
+public sealed record LogoutRequest : RefreshTokenDto;
 
-public sealed class LogOffCommand(
-    IOAuth oauth) : ICommand<LogOffRequest>
+public sealed class LogoutCommand(
+    IOAuth oauth) : ICommand<LogoutRequest>
 {
-    public async Task Execute(LogOffRequest query, CancellationToken cancellation = default)
+    public async Task Execute(LogoutRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 

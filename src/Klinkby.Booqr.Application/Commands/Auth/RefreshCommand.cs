@@ -1,5 +1,7 @@
 namespace Klinkby.Booqr.Application.Commands.Auth;
 
+public sealed record RefreshRequest : RefreshTokenDto;
+
 public sealed class RefreshCommand(
     IUserRepository userRepository,
     IOAuth oauth,

@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
 using Microsoft.Extensions.Options;
@@ -62,6 +63,7 @@ public sealed partial class ResetPasswordCommand(
                 ["expiryhours"] = _settings.ResetTimeoutHours.ToString(CultureInfo.InvariantCulture)
             });
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
         [LoggerMessage(200, LogLevel.Information, "Reset {Email} user's password")]

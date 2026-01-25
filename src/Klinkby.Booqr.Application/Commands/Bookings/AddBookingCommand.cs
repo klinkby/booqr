@@ -166,6 +166,7 @@ public partial class AddBookingCommand(
     private static Booking Map(AddBookingRequest query) =>
         new(query.CustomerId!.Value, query.ServiceId, query.Notes);
 
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
         private readonly ILogger _logger = logger;
