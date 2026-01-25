@@ -1,16 +1,14 @@
-using LogOffCommand = Klinkby.Booqr.Application.Commands.Auth.LogOffCommand;
-
 namespace Klinkby.Booqr.Application.Tests.Commands;
 
-public class LogOffCommandTests
+public class LogoutCommandTests
 {
-    private readonly LogOffCommand _command;
+    private readonly LogoutCommand _command;
     private readonly Mock<IOAuth> _oauthMock;
 
-    public LogOffCommandTests()
+    public LogoutCommandTests()
     {
         _oauthMock = new Mock<IOAuth>();
-        _command = new LogOffCommand(_oauthMock.Object);
+        _command = new LogoutCommand(_oauthMock.Object);
     }
 
     [Fact]
@@ -25,7 +23,7 @@ public class LogOffCommandTests
     [InlineData("")]
     public async Task GIVEN_EmptyRefreshToken_WHEN_Execute_THEN_DoesNotRevokeTokenFamily(string? refreshToken)
     {
-        var request = new LogOffRequest(refreshToken!);
+        var request = new LogoutRequest { RefreshToken = refreshToken };
 
         await _command.Execute(request);
 
@@ -37,7 +35,7 @@ public class LogOffCommandTests
     public async Task GIVEN_ValidRefreshToken_WHEN_Execute_THEN_RevokesTokenFamily(
         string refreshToken)
     {
-        var request = new LogOffRequest(refreshToken);
+        var request = new LogoutRequest { RefreshToken = refreshToken };
         _oauthMock.Setup(x => x.RevokeTokenFamily(refreshToken, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
@@ -51,7 +49,7 @@ public class LogOffCommandTests
     public async Task GIVEN_InvalidRefreshToken_WHEN_Execute_THEN_CallsRevokeTokenFamily(
         string invalidRefreshToken)
     {
-        var request = new LogOffRequest(invalidRefreshToken);
+        var request = new LogoutRequest { RefreshToken = invalidRefreshToken };
         _oauthMock.Setup(x => x.RevokeTokenFamily(invalidRefreshToken, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 

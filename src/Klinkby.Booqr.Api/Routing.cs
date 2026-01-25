@@ -39,13 +39,13 @@ internal static class Routing
 
         group.MapPost("/refresh",
                 static (RefreshCommand command, HttpContext context, CancellationToken cancellation) =>
-                    command.GetAuthenticationTokenWithCookie(new (context.Request.Cookies[CommandExtensions.RefreshTokenCookieName]), context, cancellation))
+                    command.GetAuthenticationTokenWithCookie(new(), context, cancellation))
             .WithName("refresh")
             .WithSummary("Refresh auth token");
 
         group.MapPost("/logout",
-                static (LogOffCommand command, HttpContext context, CancellationToken cancellation) =>
-                    command.NoContentWithCookieDelete(new (context.Request.Cookies[CommandExtensions.RefreshTokenCookieName]), context, cancellation))
+                static (LogoutCommand command, HttpContext context, CancellationToken cancellation) =>
+                    command.NoContentWithCookieDelete(new(), context, cancellation))
             .WithName("logout")
             .WithSummary("Log out");
     }

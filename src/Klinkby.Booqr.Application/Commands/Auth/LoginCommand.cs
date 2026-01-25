@@ -5,7 +5,7 @@ namespace Klinkby.Booqr.Application.Commands.Auth;
 
 public sealed record LoginRequest(
     [Required] [StringLength(0xff)] string Email,
-    [Required] [StringLength(0xff)] string Password);
+    [Required] [StringLength(0xff)] string Password) : RefreshTokenDto;
 
 public sealed partial class LoginCommand(
     IUserRepository userRepository,
@@ -40,6 +40,11 @@ public sealed partial class LoginCommand(
         {
             _log.WrongPassword(user.Email);
             return null;
+        }
+
+        if (!string.IsNullOrEmpty(query.RefreshToken))
+        {
+            await oauth.RevokeTokenFamily(query.RefreshToken, cancellation);
         }
 
         (OAuthTokenResponse response, _) = await oauth.GenerateTokenResponse(user, cancellation);
