@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace Klinkby.Booqr.Application.Commands.Auth;
 
 public sealed record RefreshRequest : RefreshTokenDto;
