@@ -1,4 +1,4 @@
-﻿namespace Klinkby.Booqr.Infrastructure.Tests;
+﻿namespace Klinkby.Booqr.Infrastructure.Tests.Repositories;
 
 [Collection(nameof(ServiceProviderFixture))]
 public sealed class BookingRepositoryTests(ServiceProviderFixture serviceProvider)

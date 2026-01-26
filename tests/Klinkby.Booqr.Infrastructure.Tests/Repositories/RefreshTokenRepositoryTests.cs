@@ -1,8 +1,4 @@
-using Klinkby.Booqr.Core;
-using Klinkby.Booqr.Infrastructure.Services;
-using Microsoft.Extensions.DependencyInjection;
-
-namespace Klinkby.Booqr.Infrastructure.Tests;
+namespace Klinkby.Booqr.Infrastructure.Tests.Repositories;
 
 [Collection(nameof(ServiceProviderFixture))]
 public sealed class RefreshTokenRepositoryTests(ServiceProviderFixture serviceProvider)
