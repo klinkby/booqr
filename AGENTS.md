@@ -8,7 +8,7 @@ Klinkby.Booqr is an AOT-compiled ASP.NET 10 booking management API built on mini
 The system emphasizes performance, security, and maintainability through extensive compile-time code generation (source generators for DI, logging, JSON, ORM, OpenAPI), Native AOT with aggressive trimming, and strict architectural boundaries enforced by automated tests.
 
 ## Repository Structure
-
+- **Klinkby.Booqr.slnx** - Use the new XML-based solution file
 - **src/**
   - **Klinkby.Booqr.Core/** - Domain contracts, records, interfaces
   - **Klinkby.Booqr.Application/** - Business logic, Commands, Services
