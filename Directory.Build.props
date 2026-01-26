@@ -9,7 +9,7 @@
         <Configurations>Debug;Release</Configurations>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <Deterministic>true</Deterministic>
-        <Copyright>(c) 2025, Mads Klinkby. Licensed under AGPL-3.0.</Copyright>
+        <Copyright>(c) 2026, Mads Klinkby. Licensed under AGPL-3.0.</Copyright>
     </PropertyGroup>
 
     <PropertyGroup Label="Analyzer settings">

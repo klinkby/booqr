@@ -11,7 +11,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{5781DD67-C133-497E-867F-1840F0D526C9}"
 	ProjectSection(SolutionItems) = preProject
 		tests\Directory.Build.props = tests\Directory.Build.props
-		tests\Test-Guidelines.md = tests\Test-Guidelines.md
+		tests\Test-Guidelines.md = tests\AGENTS.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Klinkby.Booqr.Infrastructure.Tests", "tests\Klinkby.Booqr.Infrastructure.Tests\Klinkby.Booqr.Infrastructure.Tests.csproj", "{A25AA243-1E9C-436D-9114-96904144BBDF}"
