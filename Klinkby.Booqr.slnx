@@ -1,0 +1,29 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="ARCHITECTURE.md" />
+    <File Path="AGENTS.md" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+    <File Path="SECURITY.md" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <File Path="tests/AGENTS.md" />
+    <File Path="tests/Directory.Build.props" />
+    <Project Path="tests/Klinkby.Booqr.Api.Tests/Klinkby.Booqr.Api.Tests.csproj" />
+    <Project Path="tests/Klinkby.Booqr.Application.Tests/Klinkby.Booqr.Application.Tests.csproj" />
+    <Project Path="tests/Klinkby.Booqr.Core.Tests/Klinkby.Booqr.Core.Tests.csproj" />
+    <Project Path="tests/Klinkby.Booqr.Infrastructure.Tests/Klinkby.Booqr.Infrastructure.Tests.csproj" />
+    <Project Path="tests/Klinkby.Booqr.Tests/Klinkby.Booqr.Tests.csproj" />
+  </Folder>
+  <Project Path="src/Klinkby.Booqr.Api/Klinkby.Booqr.Api.csproj" />
+  <Project Path="src/Klinkby.Booqr.Application/Klinkby.Booqr.Application.csproj" />
+  <Project Path="src/Klinkby.Booqr.Core/Klinkby.Booqr.Core.csproj" />
+  <Project Path="src/Klinkby.Booqr.Infrastructure/Klinkby.Booqr.Infrastructure.csproj" />
+</Solution>

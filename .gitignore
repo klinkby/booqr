@@ -1,4 +1,4 @@
-﻿*.sln.DotSettings.user
+﻿*.DotSettings.user
 appsettings.Development.json
 bin/
 obj/
