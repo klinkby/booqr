@@ -1,4 +1,5 @@
-﻿using Klinkby.Booqr.Application.Models;
+﻿using System.Net.Mime;
+using Klinkby.Booqr.Application.Models;
 
 namespace Klinkby.Booqr.Api;
 
@@ -13,13 +14,28 @@ internal static class Routing
         RouteGroupBuilder baseRoute = app
             .MapGroup(BaseUrl)
             .AddEndpointFilter<RequestMetadataEndPointFilter>();
-
+        MapOpenApi(baseRoute);
         MapAuth(baseRoute);
         MapBookings(baseRoute);
         MapLocations(baseRoute);
         MapServices(baseRoute);
         MapUsers(baseRoute);
         MapVacancies(baseRoute);
+    }
+
+    private static void MapOpenApi(RouteGroupBuilder baseRoute)
+    {
+        const string filename = "v1.json";
+        baseRoute.MapGet(filename, static (HttpContext context, CancellationToken cancellation) =>
+            {
+                HttpResponse response = context.Response;
+                response.ContentType = MediaTypeNames.Application.Json;
+                response.Headers.CacheControl = "public, max-age=86400";
+                return response.SendFileAsync(Path.Combine(AppContext.BaseDirectory, filename), cancellation);
+            })
+            .WithName("openapi/v1")
+            .WithTags("OpenAPI")
+            .WithSummary("OpenAPI specification version 1");
     }
 
     private static void MapAuth(IEndpointRouteBuilder app)

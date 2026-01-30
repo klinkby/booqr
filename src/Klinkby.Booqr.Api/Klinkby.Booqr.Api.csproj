@@ -42,26 +42,33 @@
         </PackageReference>
         <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.0" />
     </ItemGroup>
-
-    <PropertyGroup Label="OpenApi generator">
-        <OpenApiDocumentsDirectory>./wwwroot/openapi</OpenApiDocumentsDirectory>
-        <OpenApiGenerateDocumentsOptions>--file-name v1</OpenApiGenerateDocumentsOptions>
-    </PropertyGroup>
-
+    
     <ItemGroup Label="Friend test proj">
         <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
     </ItemGroup>
 
-    <ItemGroup Label="wwwroot">
-        <Content Update="wwwroot\**">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
+    <ItemGroup Label="Dev AppSettings">
         <Content Update="appsettings.*.json" Condition=" '$(Configuration)' != 'Release' ">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <Content Update="appsettings.*.json" Condition=" '$(Configuration)' == 'Release' ">
-          <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-        </Content>
     </ItemGroup>
+
+    <PropertyGroup Label="OpenApi generator">
+        <OpenApiDocumentsDirectory>./openapi</OpenApiDocumentsDirectory>
+        <OpenApiGenerateDocumentsOptions>--file-name v1</OpenApiGenerateDocumentsOptions>
+    </PropertyGroup>
+
+    <ItemGroup Label="Not a source">
+        <Content Remove="openapi/*.json" />
+    </ItemGroup>
+
+    <Target Label="Copy openapi spec to output post build" Name="CopyOpenApiFilesAfterBuild" AfterTargets="Build">
+        <ItemGroup>
+            <OpenApiFiles Include="openapi/*.json" />
+        </ItemGroup>
+        <Copy SourceFiles="@(OpenApiFiles)"
+              DestinationFiles="@(OpenApiFiles->'$(TargetDir)%(Filename).json')"
+              SkipUnchangedFiles="true" />
+    </Target>
 
 </Project>

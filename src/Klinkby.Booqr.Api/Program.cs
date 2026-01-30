@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 using NLog.Web;
 
-const string StaticCacheControlValue = "public, max-age=86400";
-
 var timer = Stopwatch.StartNew();
 
 WebApplicationBuilder builder = WebApplication.CreateSlimBuilder(args);
@@ -65,7 +63,7 @@ static void ConfigureMiddleware(WebApplication app, bool isMockServer)
     }
 
     app.UseAuthorization();
-    app.UseHealthChecks("/health");
+    app.UseHealthChecks("/api/health");
 
     if (app.Environment.IsDevelopment())
     {
@@ -86,13 +84,6 @@ static void ConfigureMiddleware(WebApplication app, bool isMockServer)
 static void ConfigureEndpoints(WebApplication app)
 {
     app.UseStatusCodePages();
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        OnPrepareResponse = static ctx =>
-        {
-            ctx.Context.Response.Headers.Append("Cache-Control", StaticCacheControlValue);
-        }
-    });
     app.MapApiRoutes();
 }
 
