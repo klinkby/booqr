@@ -42,7 +42,7 @@
         </PackageReference>
         <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.0" />
     </ItemGroup>
-    
+
     <ItemGroup Label="Friend test proj">
         <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
     </ItemGroup>
@@ -62,13 +62,17 @@
         <Content Remove="openapi/*.json" />
     </ItemGroup>
 
-    <Target Label="Copy openapi spec to output post build" Name="CopyOpenApiFilesAfterBuild" AfterTargets="Build">
+    <Target Label="Copy openapi spec to output post build" Name="CopyOpenApiFilesAfterBuild" AfterTargets="Build;Publish">
         <ItemGroup>
             <OpenApiFiles Include="openapi/*.json" />
         </ItemGroup>
         <Copy SourceFiles="@(OpenApiFiles)"
               DestinationFiles="@(OpenApiFiles->'$(TargetDir)/openapi/%(Filename)%(Extension)')"
               SkipUnchangedFiles="true" />
+        <Copy SourceFiles="@(OpenApiFiles)"
+              DestinationFiles="@(OpenApiFiles->'$(PublishDir)/openapi/%(Filename)%(Extension)')"
+              SkipUnchangedFiles="true"
+              Condition=" '$(PublishDir)' != '' " />
     </Target>
 
 </Project>
