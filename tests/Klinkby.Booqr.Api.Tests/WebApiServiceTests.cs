@@ -12,7 +12,7 @@ public class WebApiServiceTests
         await using WebApiFixture fixture = new();
         HttpClient client = fixture.CreateClient();
 
-        HttpResponseMessage response = await client.GetAsync(new Uri("/openapi/v1.json", UriKind.Relative));
+        HttpResponseMessage response = await client.GetAsync(new Uri("api/v1.json", UriKind.Relative));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(MediaTypeNames.Application.Json, response.Content.Headers.ContentType!.MediaType);
@@ -42,7 +42,7 @@ public class WebApiServiceTests
         await using WebApiFixture fixture = new();
         HttpClient client = fixture.CreateClient();
 
-        HttpResponseMessage response = await client.GetAsync(new Uri("/health", UriKind.Relative));
+        HttpResponseMessage response = await client.GetAsync(new Uri("/api/health", UriKind.Relative));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(MediaTypeNames.Text.Plain, response.Content.Headers.ContentType!.MediaType);
