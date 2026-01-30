@@ -26,12 +26,12 @@ internal static class Routing
     private static void MapOpenApi(RouteGroupBuilder baseRoute)
     {
         const string filename = "v1.json";
-        baseRoute.MapGet(filename, static (HttpContext context, CancellationToken cancellation) =>
+        baseRoute.MapGet(filename, static (HttpContext context, IWebHostEnvironment env, CancellationToken cancellation) =>
             {
                 HttpResponse response = context.Response;
                 response.ContentType = MediaTypeNames.Application.Json;
                 response.Headers.CacheControl = "public, max-age=86400";
-                return response.SendFileAsync(Path.Combine(AppContext.BaseDirectory, filename), cancellation);
+                return response.SendFileAsync(Path.Combine(env.ContentRootPath, "openapi", filename), cancellation);
             })
             .WithName("openapi/v1")
             .WithTags("OpenAPI")

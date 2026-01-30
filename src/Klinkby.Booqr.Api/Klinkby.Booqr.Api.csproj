@@ -67,7 +67,7 @@
             <OpenApiFiles Include="openapi/*.json" />
         </ItemGroup>
         <Copy SourceFiles="@(OpenApiFiles)"
-              DestinationFiles="@(OpenApiFiles->'$(TargetDir)%(Filename).json')"
+              DestinationFiles="@(OpenApiFiles->'$(TargetDir)/openapi/%(Filename).json')"
               SkipUnchangedFiles="true" />
     </Target>
 
