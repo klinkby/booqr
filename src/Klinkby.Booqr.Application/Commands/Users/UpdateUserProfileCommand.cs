@@ -5,7 +5,6 @@ using Klinkby.Booqr.Core.Exceptions;
 namespace Klinkby.Booqr.Application.Commands.Users;
 
 public record UpdateUserProfileRequest(
-    [property: Range(1, int.MaxValue)]
     [property: IgnoreDataMember]
     int Id,
     [property: Required]
