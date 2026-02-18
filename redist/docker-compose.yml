@@ -7,11 +7,11 @@ services:
     env_file:
       - ../.env
     image: klinkby/booqr:latest
-    networks:
-      - service-net
+    network_mode: none
     read_only: true
     volumes:
       - postgres_socket:/var/run/postgresql
+      - booqr_socket:/tmp/booqr.sock
     tmpfs:
       - /tmp
       - /home/app/.aspnet/DataProtection-Keys
@@ -23,7 +23,7 @@ services:
     security_opt:
       - no-new-privileges:true
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:8080/api/health" ]
+      test: [ "CMD-SHELL", "test -S /tmp/booqr.sock/socket" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -51,8 +51,7 @@ services:
       - postgres_socket:/var/run/postgresql
     tmpfs:
       - /tmp
-    networks:
-      - database-net
+    network_mode: none
     restart: unless-stopped
     stop_grace_period: 30s
     security_opt:
@@ -88,9 +87,6 @@ services:
     security_opt:
       - no-new-privileges:true
     stop_grace_period: 5s
-    networks:
-      - service-net
-      - dmz-net
     deploy:
       resources:
         limits:
@@ -108,9 +104,5 @@ services:
 volumes:
   postgres_socket:
     driver: local
-
-networks:
-  database-net:
-    internal: true
-  service-net:
-  dmz-net:
+  booqr_socket:
+    driver: local
