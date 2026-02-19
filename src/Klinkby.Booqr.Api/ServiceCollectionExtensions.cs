@@ -58,9 +58,7 @@ internal static class ServiceCollectionExtensions
 
     private static void ConfigureHealthChecks(IServiceCollection services)
     {
-        services
-            .AddHealthChecks()
-            .AddCheck<DatabaseHealthCheck>(nameof(DatabaseHealthCheck));
+        services.AddHealthChecks();
     }
 
     private static void ConfigureJson(IServiceCollection services)

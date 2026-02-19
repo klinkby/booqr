@@ -1,15 +1,16 @@
 using System.Data;
-using Klinkby.Booqr.Infrastructure.Services;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 
-namespace Klinkby.Booqr.Api;
+namespace Klinkby.Booqr.Infrastructure.Services;
 
-[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types")]
-[System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1848:Use the LoggerMessage delegates")]
-internal sealed class DatabaseHealthCheck(IConnectionProvider connectionProvider, ILogger<DatabaseHealthCheck> logger)
+[SuppressMessage("Design", "CA1031:Do not catch general exception types")]
+internal sealed partial class DatabaseHealthCheck(IConnectionProvider connectionProvider, ILogger<DatabaseHealthCheck> logger)
     : IHealthCheck
 {
+    private readonly LoggerMessages _log = new(logger);
+
     public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
         CancellationToken cancellationToken = default)
@@ -27,8 +28,17 @@ internal sealed class DatabaseHealthCheck(IConnectionProvider connectionProvider
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Database health check failed");
+            _log.HealthCheckFailed(ex);
             return HealthCheckResult.Unhealthy("Database connection failed.", ex);
         }
+    }
+
+    private sealed partial class LoggerMessages(ILogger<DatabaseHealthCheck> logger)
+    {
+        [SuppressMessage("Performance", "CA1823:Avoid unused private fields", Justification = "Ref by SG")]
+        private readonly ILogger<DatabaseHealthCheck> _logger = logger;
+
+        [LoggerMessage(1042, LogLevel.Error, "Database health check failed")]
+        internal partial void HealthCheckFailed(Exception exception);
     }
 }
