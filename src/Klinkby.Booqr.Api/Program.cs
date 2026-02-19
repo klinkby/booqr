@@ -56,8 +56,21 @@ static void ConfigureServices(WebApplicationBuilder builder, bool isMockServer)
             .UseKestrelCore()
             .ConfigureKestrel(options =>
             {
-                options.ListenUnixSocket("/tmp/booqr.sock/socket",listenOptions =>
-                    listenOptions.Protocols = HttpProtocols.Http2);
+                // Optional Unix socket endpoint (typically for container/proxy scenarios)
+                var unixSocketPath = configuration["Kestrel:UnixSocketPath"];
+                if (!string.IsNullOrWhiteSpace(unixSocketPath))
+                {
+                    options.ListenUnixSocket(unixSocketPath, listenOptions =>
+                    {
+                        listenOptions.Protocols = HttpProtocols.Http2;
+                    });
+                }
+
+                // TCP endpoint for direct access (e.g., local/dev) supporting HTTP/1.1 and HTTP/2
+                options.ListenAnyIP(5000, listenOptions =>
+                {
+                    listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+                });
             });
     }
 }
