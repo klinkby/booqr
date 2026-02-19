@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.Unicode;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;

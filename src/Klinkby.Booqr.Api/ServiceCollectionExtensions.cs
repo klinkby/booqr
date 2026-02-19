@@ -1,5 +1,7 @@
 ﻿using System.Text;
+using Klinkby.Booqr.Api;
 using Klinkby.Booqr.Application.Models;
+using Klinkby.Booqr.Infrastructure.Services;
 using Microsoft.IdentityModel.Tokens;
 
 // ReSharper disable once CheckNamespace
@@ -56,7 +58,10 @@ internal static class ServiceCollectionExtensions
 
     private static void ConfigureHealthChecks(IServiceCollection services)
     {
-        services.AddHealthChecks();
+        services
+            .AddScoped<DatabaseHealthCheck>()
+            .AddHealthChecks()
+            .AddCheck<DatabaseHealthCheck>(nameof(DatabaseHealthCheck));
     }
 
     private static void ConfigureJson(IServiceCollection services)
