@@ -1,34 +1,4 @@
 services:
-#  kli:
-#    image: rtsp/lighttpd:1.4.76
-#    networks:
-#      - service-net
-#    read_only: true
-#    volumes:
-#      - /root/beta/kli/kli.dk/src/public:/var/www/html:ro
-#      - /root/beta/kli/01-server.conf:/etc/lighttpd/conf.d/01-server.conf:ro
-#      - /root/beta/kli/12-expire.conf:/etc/lighttpd/conf.d/12-expire.conf:ro
-#      - /root/beta/kli/20-setenv.conf:/etc/lighttpd/conf.d/20-setenv.conf:ro
-#    tmpfs:
-#      - /tmp
-#    restart: unless-stopped
-#    stop_grace_period: 5s
-#    user: 1000:1000
-#    security_opt:
-#      - no-new-privileges:true
-#    healthcheck:
-#      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:8080/" ]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 5
-#    deploy:
-#      resources:
-#        limits:
-#          memory: 64M
-#          cpus: '1.0'
-#        reservations:
-#          memory: 8M
-#          cpus: '0.25'
 
   api1:
     build:
