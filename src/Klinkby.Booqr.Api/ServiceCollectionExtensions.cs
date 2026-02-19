@@ -59,7 +59,6 @@ internal static class ServiceCollectionExtensions
     private static void ConfigureHealthChecks(IServiceCollection services)
     {
         services
-            .AddScoped<DatabaseHealthCheck>()
             .AddHealthChecks()
             .AddCheck<DatabaseHealthCheck>(nameof(DatabaseHealthCheck));
     }
