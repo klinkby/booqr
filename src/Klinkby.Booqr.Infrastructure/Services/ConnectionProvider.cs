@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Klinkby.Booqr.Infrastructure.Services;
 
-internal interface IConnectionProvider
+public interface IConnectionProvider
 {
     ValueTask<DbConnection> GetConnection(CancellationToken cancellation);
 }
