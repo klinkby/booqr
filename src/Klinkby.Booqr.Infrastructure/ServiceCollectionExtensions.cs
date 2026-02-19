@@ -62,6 +62,7 @@ public static partial class ServiceCollectionExtensions
         services.AddScoped<ITransaction, Transaction>();
         services.AddScoped<IConnectionProvider, ConnectionProvider>();
         services.AddRepositories();
+        services.AddHealthChecks().AddCheck<DatabaseHealthCheck>(nameof(DatabaseHealthCheck));
 
         return services;
     }

@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using Klinkby.Booqr.Api;
 using Klinkby.Booqr.Application.Models;
-using Klinkby.Booqr.Infrastructure.Services;
 using Microsoft.IdentityModel.Tokens;
 
 // ReSharper disable once CheckNamespace
@@ -14,7 +13,6 @@ internal static class ServiceCollectionExtensions
         ConfigureAuthentication(services, configuration);
         ConfigureAuthorization(services);
         ConfigureProblemDetails(services);
-        ConfigureHealthChecks(services);
         ConfigureJson(services);
         ConfigureRequestMetadata(services);
     }
@@ -54,13 +52,6 @@ internal static class ServiceCollectionExtensions
         services.AddProblemDetails(static options =>
             options.CustomizeProblemDetails = static context =>
                 context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier);
-    }
-
-    private static void ConfigureHealthChecks(IServiceCollection services)
-    {
-        services
-            .AddHealthChecks()
-            .AddCheck<DatabaseHealthCheck>(nameof(DatabaseHealthCheck));
     }
 
     private static void ConfigureJson(IServiceCollection services)
