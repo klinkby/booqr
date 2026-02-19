@@ -1,8 +1,12 @@
 using System.Diagnostics;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Klinkby.Booqr.Api;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.OpenApi;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi;
 using NLog.Web;
 
@@ -63,7 +67,10 @@ static void ConfigureMiddleware(WebApplication app, bool isMockServer)
     }
 
     app.UseAuthorization();
-    app.UseHealthChecks("/api/health");
+    app.UseHealthChecks("/api/health", new HealthCheckOptions
+    {
+        ResponseWriter = WriteHealthCheckResponse
+    });
 
     if (app.Environment.IsDevelopment())
     {
@@ -143,4 +150,43 @@ static void ConfigureBearerAuthentication(OpenApiOptions options)
 
         return Task.CompletedTask;
     });
+}
+
+static async Task WriteHealthCheckResponse(HttpContext context, HealthReport healthReport)
+{
+    // Check if details are requested via query parameter
+    bool includeDetails = context.Request.Query.ContainsKey("details") ||
+                          context.Request.Query.ContainsKey("fullReport");
+
+    if (!includeDetails)
+    {
+        // Default: return simple plain text response
+        context.Response.ContentType = "text/plain";
+        await context.Response.WriteAsync(healthReport.Status.ToString());
+        return;
+    }
+
+    // Return detailed JSON response
+    context.Response.ContentType = "application/json";
+    using var writer = new Utf8JsonWriter(context.Response.Body);
+    writer.WriteStartObject();
+    writer.WriteString("status", healthReport.Status.ToString());
+    writer.WriteNumber("totalDuration", healthReport.TotalDuration.TotalMilliseconds);
+    writer.WriteStartObject("entries");
+
+    foreach (var entry in healthReport.Entries)
+    {
+        writer.WriteStartObject(entry.Key);
+        writer.WriteString("status", entry.Value.Status.ToString());
+        if (entry.Value.Description is not null)
+        {
+            writer.WriteString("description", entry.Value.Description);
+        }
+        writer.WriteNumber("duration", entry.Value.Duration.TotalMilliseconds);
+        writer.WriteEndObject();
+    }
+
+    writer.WriteEndObject(); // end entries
+    writer.WriteEndObject(); // end root
+    await writer.FlushAsync();
 }
