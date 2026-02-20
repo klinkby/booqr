@@ -1,4 +1,29 @@
 services:
+  app:
+    image: "klinkby/booqr-app:107"
+    read_only: true
+    tmpfs:
+      - "/tmp:mode=1777,noexec,nosuid"
+    volumes:
+      - app-sock:/var/run/lighttpd
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "test -S /var/run/lighttpd/sock" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "64M"
+        reservations:
+          memory: "16M"
+          cpus: "0.1"
 
   api1:
     build:
@@ -14,7 +39,7 @@ services:
       - postgres_socket:/var/run/postgresql
       - booqr_socket:/var/run/booqr
     tmpfs:
-      - /tmp
+      - "/tmp:mode=1777,noexec,nosuid"
       - /home/app/.aspnet/DataProtection-Keys
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
@@ -36,7 +61,7 @@ services:
           cpus: '1.5'
         reservations:
           memory: 32M
-          cpus: '0.25'
+          cpus: '0.1'
 
   postgres:
     image: postgres:18-alpine3.22
@@ -52,7 +77,7 @@ services:
       - ./initdb.sql:/docker-entrypoint-initdb.d/DDL.sql:ro
       - postgres_socket:/var/run/postgresql
     tmpfs:
-      - /tmp
+      - "/tmp:mode=1777,noexec,nosuid"
     network_mode: none
     restart: unless-stopped
     stop_grace_period: 30s
@@ -81,12 +106,13 @@ services:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
       - /root/certs.pem:/etc/ssl/certs/certs.pem:ro
       - booqr_socket:/var/run/booqr
+      - app_socket:/var/run/app
     networks:
       - gateway-net
     env_file:
       - ./gateway.env
     tmpfs:
-      - /tmp
+      - "/tmp:mode=1777,noexec,nosuid"
     restart: unless-stopped
     read_only: true
     security_opt:
@@ -99,7 +125,7 @@ services:
           cpus: '1.0'
         reservations:
           memory: 64M
-          cpus: '0.25'
+          cpus: '0.1'
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health" ]
       interval: 10s
@@ -109,6 +135,7 @@ services:
 volumes:
   postgres_socket:
   booqr_socket:
+  app_socket:
 
 networks:
   service-net:
