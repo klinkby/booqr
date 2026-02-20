@@ -19,7 +19,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - Infrastructure__ConnectionString=Host=/var/run/postgresql;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
-      - Kestrel__UnixSocketPath=/var/run/booqr/sock
+      - Infrastructure__Kestrel__UnixSocketPath=/var/run/booqr/sock
     restart: unless-stopped
     stop_grace_period: 5s
     security_opt:
