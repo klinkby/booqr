@@ -8,23 +8,24 @@ services:
       - ../.env
     image: klinkby/booqr:latest
     networks:
-      - egress
+      - service-net
     read_only: true
     volumes:
       - postgres_socket:/var/run/postgresql
-      - booqr_socket:/tmp/booqr.sock
+      - booqr_socket:/var/run/booqr
     tmpfs:
       - /tmp
       - /home/app/.aspnet/DataProtection-Keys
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - Infrastructure__ConnectionString=Host=/var/run/postgresql;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
+      - Kestrel__UnixSocketPath=/var/run/booqr/sock
     restart: unless-stopped
     stop_grace_period: 5s
     security_opt:
       - no-new-privileges:true
     healthcheck:
-      test: [ "CMD-SHELL", "test -S /tmp/booqr.sock/socket" ]
+      test: [ "CMD-SHELL", "test -S /var/run/booqr/sock" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -79,7 +80,9 @@ services:
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
       - /root/certs.pem:/etc/ssl/certs/certs.pem:ro
-      - booqr_socket:/tmp/booqr.sock
+      - booqr_socket:/var/run/booqr
+    networks:
+      - gateway-net
     env_file:
       - ./gateway.env
     tmpfs:
@@ -105,10 +108,8 @@ services:
 
 volumes:
   postgres_socket:
-    driver: local
   booqr_socket:
-    driver: local
 
 networks:
-  egress:
-    driver: bridge
+  service-net:
+  gateway-net:
