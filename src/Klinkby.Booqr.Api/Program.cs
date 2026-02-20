@@ -3,6 +3,7 @@ using System.Reflection;
 using Klinkby.Booqr.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.OpenApi;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.OpenApi;
 using NLog.Web;
 
@@ -51,7 +52,26 @@ static void ConfigureServices(WebApplicationBuilder builder, bool isMockServer)
         builder.Services
             .AddSingleton<TimeProvider>(static _ => TimeProvider.System)
             .AddInfrastructure(configuration.GetRequiredSection("Infrastructure"));
-        builder.WebHost.UseKestrelCore();
+        builder.WebHost
+            .UseKestrelCore()
+            .ConfigureKestrel(options =>
+            {
+                // Optional Unix socket endpoint (typically for container/proxy scenarios)
+                var unixSocketPath = configuration["Kestrel:UnixSocketPath"];
+                if (!string.IsNullOrWhiteSpace(unixSocketPath))
+                {
+                    options.ListenUnixSocket(unixSocketPath, listenOptions =>
+                    {
+                        listenOptions.Protocols = HttpProtocols.Http2;
+                    });
+                }
+
+                // TCP endpoint for direct access (e.g., local/dev) supporting HTTP/1.1 and HTTP/2
+                options.ListenAnyIP(5000, listenOptions =>
+                {
+                    listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+                });
+            });
     }
 }
 

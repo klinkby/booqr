@@ -12,18 +12,20 @@ services:
     read_only: true
     volumes:
       - postgres_socket:/var/run/postgresql
+      - booqr_socket:/var/run/booqr
     tmpfs:
       - /tmp
       - /home/app/.aspnet/DataProtection-Keys
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - Infrastructure__ConnectionString=Host=/var/run/postgresql;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
+      - Infrastructure__Kestrel__UnixSocketPath=/var/run/booqr/sock
     restart: unless-stopped
     stop_grace_period: 5s
     security_opt:
       - no-new-privileges:true
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:8080/api/health" ]
+      test: [ "CMD-SHELL", "test -S /var/run/booqr/sock" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -51,8 +53,7 @@ services:
       - postgres_socket:/var/run/postgresql
     tmpfs:
       - /tmp
-    networks:
-      - database-net
+    network_mode: none
     restart: unless-stopped
     stop_grace_period: 30s
     security_opt:
@@ -79,6 +80,9 @@ services:
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
       - /root/certs.pem:/etc/ssl/certs/certs.pem:ro
+      - booqr_socket:/var/run/booqr
+    networks:
+      - gateway-net
     env_file:
       - ./gateway.env
     tmpfs:
@@ -88,9 +92,6 @@ services:
     security_opt:
       - no-new-privileges:true
     stop_grace_period: 5s
-    networks:
-      - service-net
-      - dmz-net
     deploy:
       resources:
         limits:
@@ -107,10 +108,8 @@ services:
 
 volumes:
   postgres_socket:
-    driver: local
+  booqr_socket:
 
 networks:
-  database-net:
-    internal: true
   service-net:
-  dmz-net:
+  gateway-net:
