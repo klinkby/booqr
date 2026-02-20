@@ -14,5 +14,6 @@ RUN --mount=type=cache,target=/root/.nuget \
 FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-alpine3.22
 WORKDIR /app
 COPY --from=build /app .
+ENV DOTNET_SYSTEM_NET_SOCKETS_IO_URING=1
 USER $APP_UID
 ENTRYPOINT ["/app/Klinkby.Booqr.Api"]
