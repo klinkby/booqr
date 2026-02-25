@@ -2,6 +2,8 @@
 
     <ItemGroup Label="Nuget references">
         <PackageReference Include="AutoFixture.Xunit3" Version="4.19.0" />
+        <PackageReference Update="Microsoft.NET.Test.Sdk" Version="18.3.0" />
+        <PackageReference Update="xunit.v3" Version="3.2.2" />
     </ItemGroup>
 
     <ItemGroup Label="Project references">
