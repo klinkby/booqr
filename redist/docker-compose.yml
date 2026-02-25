@@ -1,56 +1,56 @@
 services:
   app:
-    image: "klinkby/booqr-app:107"
+    image: 'klinkby/booqr-app:107'
     read_only: true
     tmpfs:
-      - "/tmp:mode=1777,noexec,nosuid"
+      - '/tmp:mode=1777,noexec,nosuid'
     volumes:
-      - app-sock:/var/run/lighttpd
+      - 'app-sock:/var/run/lighttpd'
     cap_drop:
       - ALL
     security_opt:
-      - no-new-privileges:true
+      - 'no-new-privileges:true'
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "test -S /var/run/lighttpd/sock" ]
+      test:
+        - CMD-SHELL
+        - test -S /var/run/lighttpd/sock
       interval: 10s
       timeout: 5s
       retries: 5
     deploy:
       resources:
         limits:
-          cpus: "1.0"
-          memory: "64M"
+          cpus: '1.0'
+          memory: 64M
         reservations:
-          memory: "16M"
-          cpus: "0.1"
-
+          memory: 16M
+          cpus: '0.1'
   api1:
-    build:
-      context: ..
-      dockerfile: Dockerfile
+    image: 'klinkby/booqr:88'
     env_file:
-      - ../.env
-    image: klinkby/booqr:latest
+      - ./.env
     networks:
       - service-net
     read_only: true
     volumes:
-      - postgres_socket:/var/run/postgresql
-      - booqr_socket:/var/run/booqr
+      - 'postgres_socket:/var/run/postgresql'
+      - './api_sock:/var/run/api'
     tmpfs:
-      - "/tmp:mode=1777,noexec,nosuid"
+      - '/tmp:mode=1777,noexec,nosuid'
       - /home/app/.aspnet/DataProtection-Keys
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - Infrastructure__ConnectionString=Host=/var/run/postgresql;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
-      - Infrastructure__Kestrel__UnixSocketPath=/var/run/booqr/sock
+      - Kestrel__UnixSocketPath=/var/run/api/sock
     restart: unless-stopped
     stop_grace_period: 5s
     security_opt:
-      - no-new-privileges:true
+      - 'no-new-privileges:true'
     healthcheck:
-      test: [ "CMD-SHELL", "test -S /var/run/booqr/sock" ]
+      test:
+        - CMD-SHELL
+        - test -S /var/run/api/sock
       interval: 10s
       timeout: 5s
       retries: 5
@@ -62,29 +62,30 @@ services:
         reservations:
           memory: 32M
           cpus: '0.1'
-
   postgres:
-    image: postgres:18-alpine3.22
+    image: 'postgres:18-alpine3.22'
     environment:
       - INSTANCE_UNIX_SOCKET=/var/run/postgresql
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - 'POSTGRES_DB=${POSTGRES_DB}'
+      - 'POSTGRES_USER=${POSTGRES_USER}'
+      - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD}'
       - POSTGRES_HOST_AUTH_METHOD=scram-sha-256
     read_only: true
     volumes:
-      - /mnt/postgres-hel1-1/booqr:/var/lib/postgresql/18/docker
-      - ./initdb.sql:/docker-entrypoint-initdb.d/DDL.sql:ro
-      - postgres_socket:/var/run/postgresql
+      - '/mnt/postgres-hel1-1/booqr:/var/lib/postgresql/18/docker'
+      - './initdb.sql:/docker-entrypoint-initdb.d/DDL.sql:ro'
+      - 'postgres_socket:/var/run/postgresql'
     tmpfs:
-      - "/tmp:mode=1777,noexec,nosuid"
+      - '/tmp:mode=1777,noexec,nosuid'
     network_mode: none
     restart: unless-stopped
     stop_grace_period: 30s
     security_opt:
-      - no-new-privileges:true
+      - 'no-new-privileges:true'
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test:
+        - CMD-SHELL
+        - 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'
       interval: 10s
       timeout: 5s
       retries: 5
@@ -96,27 +97,26 @@ services:
         reservations:
           memory: 64M
           cpus: '0.25'
-
   proxy:
     ports:
       - '80:8080/tcp'
       - '443:8443/tcp'
-    image: haproxy:3.2-alpine3.22
+    image: 'haproxy:3.2-alpine3.22'
     volumes:
-      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-      - /root/certs.pem:/etc/ssl/certs/certs.pem:ro
-      - booqr_socket:/var/run/booqr
-      - app_socket:/var/run/app
+      - './web-gateway/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro'
+      - '/root/certs.pem:/etc/ssl/certs/certs.pem:ro'
+      - 'booqr_socket:/var/run/booqr'
+      - 'app_socket:/var/run/app'
     networks:
       - gateway-net
     env_file:
-      - ./gateway.env
+      - ./web-gateway/gateway.env
     tmpfs:
-      - "/tmp:mode=1777,noexec,nosuid"
+      - '/tmp:mode=1777,noexec,nosuid'
     restart: unless-stopped
     read_only: true
     security_opt:
-      - no-new-privileges:true
+      - 'no-new-privileges:true'
     stop_grace_period: 5s
     deploy:
       resources:
@@ -127,16 +127,16 @@ services:
           memory: 64M
           cpus: '0.1'
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health" ]
+      test:
+        - CMD-SHELL
+        - 'wget -qO- http://127.0.0.1:8080/health'
       interval: 10s
       timeout: 5s
       retries: 5
-
 volumes:
-  postgres_socket:
-  booqr_socket:
-  app_socket:
-
+  postgres_socket: null
+  booqr_socket: null
+  app_socket: null
 networks:
-  service-net:
-  gateway-net:
+  service-net: null
+  gateway-net: null
