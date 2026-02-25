@@ -3,6 +3,7 @@ using System.Reflection;
 using Klinkby.Booqr.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.OpenApi;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.OpenApi;
 using NLog.Web;
 
