@@ -265,7 +265,7 @@ internal static class Routing
 
         group.MapGet("",
                 static (GetUserCollectionCommand command,
-                        [AsParameters] PageQuery request,
+                        [AsParameters] GetUserCollectionRequest request,
                         CancellationToken cancellation) =>
                     command.GetCollection(request, cancellation))
             .RequireAuthorization(UserRole.Employee)
