@@ -23,7 +23,7 @@ public sealed class UpdateLocationCommand(
     : UpdateCommand<UpdateLocationRequest, Location>(locations, activityRecorder, logger)
 {
     protected override Location Map(UpdateLocationRequest query) =>
-        new(query.Name, null, null, null, null)
+        new(query.Name.Trim(), query.Address1?.Trim(), query.Address2?.Trim(), query.Zip?.Trim(), query.City?.Trim())
         {
             Id = query.Id,
             Version = etagProvider.Version

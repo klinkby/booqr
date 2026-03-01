@@ -21,9 +21,9 @@ public sealed class AddLocationCommand(
     : AddCommand<AddLocationRequest, Location>(locations, activityRecorder, logger)
 {
     protected override Location Map(AddLocationRequest query) =>
-        new(query.Name,
-            query.Address1,
-            query.Address2,
-            query.Zip,
-            query.City);
+        new(query.Name.Trim(),
+            query.Address1?.Trim(),
+            query.Address2?.Trim(),
+            query.Zip?.Trim(),
+            query.City?.Trim());
 }

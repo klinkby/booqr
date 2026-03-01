@@ -25,6 +25,10 @@ public sealed class GetUserCollectionCommand(
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        return users.Find(query.K, query.Role, query, cancellation);
+        return users.Find(
+            query.K is {Length: 0} ? null : query.K ,
+            query.Role is {Length: 0} ? null : query.Role,
+            query,
+            cancellation);
     }
 };
