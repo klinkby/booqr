@@ -2,7 +2,7 @@
 
 public sealed record GetUserCollectionRequest : IPageQuery
 {
-    [MaxLength(0xff)]
+    [StringLength(0xff)]
     public string? K { get; init; }
 
     [RegularExpression($"{UserRole.Admin}|{UserRole.Employee}|{UserRole.Customer}")]
