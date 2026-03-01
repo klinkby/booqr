@@ -99,6 +99,30 @@ public static class UserRole
 public interface IUserRepository : IRepository<User>
 {
     /// <summary>
+    /// Finds users matching the specified query and role criteria.
+    /// </summary>
+    /// <param name="query">
+    /// A search query used to filter users. Can be <c>null</c> or empty to retrieve all users.
+    /// </param>
+    /// <param name="role">
+    /// The role used to filter users. Can be <c>null</c> or empty to include all roles.
+    /// </param>
+    /// <param name="pageQuery">
+    /// Defines the pagination criteria for the query.
+    /// </param>
+    /// <param name="cancellation">
+    /// A token to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// An asynchronous enumerable that yields <see cref="User"/> objects matching the specified criteria.
+    /// </returns>
+    IAsyncEnumerable<User> Find(
+        string? query,
+        string? role,
+        IPageQuery pageQuery,
+        CancellationToken cancellation = default);
+
+    /// <summary>
     ///     Retrieves a user by their email address.
     /// </summary>
     /// <param name="email">The email address of the user to retrieve.</param>

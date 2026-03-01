@@ -6,6 +6,27 @@ internal sealed partial class UserRepository(IConnectionProvider connectionProvi
 {
     private const string TableName = "users";
 
+    public async IAsyncEnumerable<User> Find(string? query, string? role, IPageQuery pageQuery,
+        [EnumeratorCancellation] CancellationToken cancellation = default)
+    {
+        DbConnection connection = await connectionProvider.GetConnection(cancellation);
+        IAsyncEnumerable<User> result = connection.QueryUnbufferedAsync<User>(
+            $"""
+             SELECT id,{CommaSeparated},created,modified
+             FROM {TableName}
+             WHERE deleted IS NULL
+               AND (@query IS NULL OR email ILIKE '%' || @query || '%' OR name ILIKE '%' || @query || '%')
+               AND (@role IS NULL OR role = @role OR (@role = 'Employee' AND role = 'Admin'))
+             ORDER BY created DESC
+             LIMIT @Num OFFSET @Start
+             """, new { query, role, pageQuery.Start, pageQuery.Num });
+
+        await foreach (User user in result.WithCancellation(cancellation))
+        {
+           yield return user;
+        }
+    }
+
     public async Task<User?> GetByEmail(string email, CancellationToken cancellation)
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
