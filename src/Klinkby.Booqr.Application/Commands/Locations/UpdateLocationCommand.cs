@@ -4,7 +4,16 @@ namespace Klinkby.Booqr.Application.Commands.Locations;
 
 public sealed record UpdateLocationRequest(
     [property: IgnoreDataMember] int Id,
-    string Name) : AddLocationRequest(Name), IId;
+    string Name,
+    string? Address1,
+    string? Address2,
+    string? Zip,
+    string? City) : AddLocationRequest(
+        Name,
+        Address1,
+        Address2,
+        Zip,
+        City), IId;
 
 public sealed class UpdateLocationCommand(
     ILocationRepository locations,

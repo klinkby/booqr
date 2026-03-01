@@ -16,7 +16,7 @@ public class LocationCommandsTests
         ClaimsPrincipal user)
     {
         AddLocationCommand command = new(_mockRepo.Object, _activityRecorder.Object, NullLogger<AddLocationCommand>.Instance);
-        AddLocationRequest request = new(location.Name) { User = user };
+        AddLocationRequest request = new(location.Name, location.Address1, location.Address2, location.Zip, location.City) { User = user };
 
         var newId = await command.Execute(request);
 
@@ -34,7 +34,7 @@ public class LocationCommandsTests
 
         UpdateLocationCommand command = new(_mockRepo.Object, _mockEtag.Object, _activityRecorder.Object,
             NullLogger<UpdateLocationCommand>.Instance);
-        UpdateLocationRequest request = new(ExpectedId, location.Name) { User = user };
+        UpdateLocationRequest request = new(ExpectedId, location.Name, location.Address1, location.Address2, location.Zip, location.City) { User = user };
 
         await command.Execute(request);
 
