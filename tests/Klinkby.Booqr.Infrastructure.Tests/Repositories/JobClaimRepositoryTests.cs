@@ -8,12 +8,12 @@ public sealed class JobClaimRepositoryTests(ServiceProviderFixture serviceProvid
 
     [Theory]
     [IntegrationAutoData]
-    public async Task GIVEN_NoClaim_WHEN_TryClaim_THEN_ReturnsTrue(string jobName)
+    public async Task GIVEN_NoClaim_WHEN_TryClaim_THEN_ReturnsTrue(string jobName, DateTime t0)
     {
         await _transaction.Begin();
         try
         {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var today = DateOnly.FromDateTime(t0);
 
             var result = await _sut.TryClaimAsync(jobName, today);
 
@@ -27,12 +27,12 @@ public sealed class JobClaimRepositoryTests(ServiceProviderFixture serviceProvid
 
     [Theory]
     [IntegrationAutoData]
-    public async Task GIVEN_ExistingClaim_WHEN_TryClaimSameDate_THEN_ReturnsFalse(string jobName)
+    public async Task GIVEN_ExistingClaim_WHEN_TryClaimSameDate_THEN_ReturnsFalse(string jobName, DateTime t0)
     {
         await _transaction.Begin();
         try
         {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var today = DateOnly.FromDateTime(t0);
             await _sut.TryClaimAsync(jobName, today);
 
             var result = await _sut.TryClaimAsync(jobName, today);
@@ -47,12 +47,12 @@ public sealed class JobClaimRepositoryTests(ServiceProviderFixture serviceProvid
 
     [Theory]
     [IntegrationAutoData]
-    public async Task GIVEN_ExistingClaim_WHEN_TryClaimDifferentDate_THEN_ReturnsTrue(string jobName)
+    public async Task GIVEN_ExistingClaim_WHEN_TryClaimDifferentDate_THEN_ReturnsTrue(string jobName, DateTime t0)
     {
         await _transaction.Begin();
         try
         {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var today = DateOnly.FromDateTime(t0);
             var tomorrow = today.AddDays(1);
             await _sut.TryClaimAsync(jobName, today);
 
@@ -68,16 +68,16 @@ public sealed class JobClaimRepositoryTests(ServiceProviderFixture serviceProvid
 
     [Theory]
     [IntegrationAutoData]
-    public async Task GIVEN_OldClaims_WHEN_DeleteOldClaims_THEN_ReturnsDeletedCount(string jobName)
+    public async Task GIVEN_OldClaims_WHEN_DeleteOldClaims_THEN_ReturnsDeletedCount(string jobName, DateTime t0)
     {
         await _transaction.Begin();
         try
         {
-            var oldDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-40);
-            var recentDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            var today = DateOnly.FromDateTime(t0);
+            var oldDate = today.AddDays(-40);
+            var cutoff = today.AddDays(-30);
             await _sut.TryClaimAsync(jobName, oldDate);
-            await _sut.TryClaimAsync(jobName, recentDate);
-            var cutoff = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-30);
+            await _sut.TryClaimAsync(jobName, today);
 
             var deleted = await _sut.DeleteOldClaimsAsync(cutoff);
 
