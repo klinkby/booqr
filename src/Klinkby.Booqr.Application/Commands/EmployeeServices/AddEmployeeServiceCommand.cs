@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Klinkby.Booqr.Application.Commands.EmployeeServices;
 
 public sealed record AddEmployeeServiceRequest(
@@ -21,7 +23,7 @@ public sealed partial class AddEmployeeServiceCommand(
         activityRecorder.Add<EmployeeService>(new(query.AuthenticatedUserId, EmployeeService.CompositeId(query.EmployeeId, query.ServiceId)));
     }
 
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
         [LoggerMessage(201, LogLevel.Information,
