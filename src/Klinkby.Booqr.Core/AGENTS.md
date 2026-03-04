@@ -45,10 +45,21 @@ Examples include:
 - `Service` - Service offering entity
 - `Location` - Physical location entity
 - `CalendarEvent` - Calendar/availability entity
+- `EmployeeService` - Join entity (employee ↔ service assignment, no audit columns)
+
+**Note on join-table entities**: Records that map many-to-many join tables without audit columns do **not** inherit `Audit`. They may expose a `static CompositeId(...)` method using `HashCode.Combine` when other layers need a single integer to represent the composite key (e.g. for activity recording):
+```csharp
+public sealed record EmployeeService(int EmployeeId, int ServiceId)
+{
+    public static int CompositeId(int employeeId, int serviceId) =>
+        HashCode.Combine(employeeId, serviceId);
+}
+```
 
 ### Repository Interfaces
 - `IRepository` - Base repository contract
-- Specific repository interfaces (e.g., `IUserRepository`, `IBookingRepository`)
+- Specific repository interfaces (e.g., `IUserRepository`, `IBookingRepository`, `IEmployeeServiceRepository`)
+- Join-table repositories extend `IRepository` directly with bespoke methods (no `IRepository<T, TKey>` since there is no single primary key)
 
 ### Infrastructure Interfaces
 - `ITransaction` - Transaction management contract
