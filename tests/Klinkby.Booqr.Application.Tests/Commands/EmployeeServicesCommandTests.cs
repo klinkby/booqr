@@ -97,7 +97,9 @@ public class EmployeeServicesCommandTests
         // Assert
         _repo.Verify(x => x.Add(EmployeeUserId, ServiceId, CancellationToken.None), Times.Once);
         _activityRecorder.Verify(x => x.Add<EmployeeService>(
-            It.Is<ActivityQuery<EmployeeService>>(q => q.UserId == EmployeeUserId && q.EntityId == EmployeeUserId)),
+            It.Is<ActivityQuery<EmployeeService>>(q =>
+                q.UserId == EmployeeUserId &&
+                q.EntityId == HashCode.Combine(EmployeeUserId, ServiceId))),
             Times.Once);
     }
 
