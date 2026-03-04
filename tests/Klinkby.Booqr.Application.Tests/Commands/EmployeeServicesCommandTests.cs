@@ -122,7 +122,9 @@ public class EmployeeServicesCommandTests
         // Assert
         _repo.Verify(x => x.Delete(EmployeeUserId, ServiceId, CancellationToken.None), Times.Once);
         _activityRecorder.Verify(x => x.Delete<EmployeeService>(
-            It.Is<ActivityQuery<EmployeeService>>(q => q.UserId == EmployeeUserId && q.EntityId == EmployeeUserId)),
+            It.Is<ActivityQuery<EmployeeService>>(q =>
+                q.UserId == EmployeeUserId &&
+                q.EntityId == HashCode.Combine(EmployeeUserId, ServiceId))),
             Times.Once);
     }
 
