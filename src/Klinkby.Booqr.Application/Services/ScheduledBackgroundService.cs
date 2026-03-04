@@ -1,18 +1,24 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Klinkby.Booqr.Application.Services;
 
 /// <summary>
 ///     Abstract base class for services that run on a daily schedule.
+///     Before executing the scheduled task each instance attempts to claim the execution slot via
+///     <see cref="IJobClaim"/>, ensuring only one instance runs the task when scaled out.
 /// </summary>
 internal abstract partial class ScheduledBackgroundService(
     TimeProvider timeProvider,
+    IServiceProvider serviceProvider,
     ILogger logger) : BackgroundService
 {
     private readonly LoggerMessages _log = new(logger);
 
     protected DateTime Now => timeProvider.GetUtcNow().UtcDateTime;
     protected abstract TimeSpan TriggerTimeOfDay { get; }
+    protected abstract string JobName { get; }
+    protected IServiceProvider ServiceProvider => serviceProvider;
 
     internal DateTime GetNext(DateTime now)
     {
@@ -43,7 +49,22 @@ internal abstract partial class ScheduledBackgroundService(
                 break;
             }
 
+            await ExecuteIfClaimedAsync(stoppingToken);
+        }
+    }
+
+    private async Task ExecuteIfClaimedAsync(CancellationToken stoppingToken)
+    {
+        await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
+        IJobClaim jobClaim = scope.ServiceProvider.GetRequiredService<IJobClaim>();
+
+        if (await jobClaim.TryClaimAsync(JobName, DateOnly.FromDateTime(Now), stoppingToken))
+        {
             await ExecuteScheduledTaskAsync(stoppingToken);
+        }
+        else
+        {
+            _log.Skipped(JobName);
         }
     }
 
@@ -55,5 +76,8 @@ internal abstract partial class ScheduledBackgroundService(
 
         [LoggerMessage(290, LogLevel.Information, "Sleep for {Duration} until {Next}")]
         public partial void Sleep(TimeSpan duration, DateTime next);
+
+        [LoggerMessage(291, LogLevel.Information, "Skipping {JobName}: already claimed by another instance")]
+        public partial void Skipped(string jobName);
     }
 }

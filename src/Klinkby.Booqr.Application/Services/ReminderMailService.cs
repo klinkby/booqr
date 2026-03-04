@@ -24,15 +24,16 @@ internal sealed partial class ReminderMailService(
     TimeProvider timeProvider,
     IServiceProvider serviceProvider,
     IOptions<ReminderMailSettings> reminderMailSettings,
-    ILogger<ReminderMailService> logger) : ScheduledBackgroundService(timeProvider, logger)
+    ILogger<ReminderMailService> logger) : ScheduledBackgroundService(timeProvider, serviceProvider, logger)
 {
     private readonly LoggerMessages _log = new(logger);
     protected override TimeSpan TriggerTimeOfDay => reminderMailSettings.Value.TimeOfDay;
+    protected override string JobName => "reminder-mail";
 
     protected override async Task ExecuteScheduledTaskAsync(CancellationToken stoppingToken)
     {
         var timestamp = DateOnly.FromDateTime(Now);
-        await using AsyncServiceScope serviceScope = serviceProvider.CreateAsyncScope();
+        await using AsyncServiceScope serviceScope = ServiceProvider.CreateAsyncScope();
         var sw = Stopwatch.StartNew();
         var messageCount =
             await FetchBookingDetailsAndSendReminders(serviceScope.ServiceProvider, timestamp, _log, stoppingToken);
