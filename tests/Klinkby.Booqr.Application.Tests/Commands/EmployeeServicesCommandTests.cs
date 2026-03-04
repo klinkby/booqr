@@ -14,14 +14,13 @@ public class EmployeeServicesCommandTests
     // GetEmployeeServicesCommand
 
     [Fact]
-    public void GIVEN_OwnerEmployee_WHEN_GetServices_THEN_RepositoryCalled()
+    public void GIVEN_AnyRequest_WHEN_GetServices_THEN_RepositoryCalled()
     {
         // Arrange
-        ClaimsPrincipal user = CreateUser(EmployeeUserId);
-        var request = new GetEmployeeServicesRequest(EmployeeUserId) { User = user };
+        var request = new GetEmployeeServicesRequest(EmployeeUserId);
         _repo.Setup(x => x.GetByEmployeeId(EmployeeUserId, request, It.IsAny<CancellationToken>()))
             .Returns(AsyncEnumerable.Empty<Service>());
-        var sut = new GetEmployeeServicesCommand(_repo.Object, NullLogger<GetEmployeeServicesCommand>.Instance);
+        var sut = new GetEmployeeServicesCommand(_repo.Object);
 
         // Act
         IAsyncEnumerable<Service> _ = sut.Execute(request);
@@ -30,53 +29,6 @@ public class EmployeeServicesCommandTests
         _repo.Verify(x => x.GetByEmployeeId(EmployeeUserId, request, It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    [Fact]
-    public void GIVEN_Employee_WHEN_GetServicesForOtherUser_THEN_RepositoryCalled()
-    {
-        // Arrange
-        ClaimsPrincipal user = CreateUser(OtherUserId, UserRole.Employee);
-        var request = new GetEmployeeServicesRequest(EmployeeUserId) { User = user };
-        _repo.Setup(x => x.GetByEmployeeId(EmployeeUserId, request, It.IsAny<CancellationToken>()))
-            .Returns(AsyncEnumerable.Empty<Service>());
-        var sut = new GetEmployeeServicesCommand(_repo.Object, NullLogger<GetEmployeeServicesCommand>.Instance);
-
-        // Act
-        IAsyncEnumerable<Service> _ = sut.Execute(request);
-
-        // Assert
-        _repo.Verify(x => x.GetByEmployeeId(EmployeeUserId, request, It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public void GIVEN_Admin_WHEN_GetServicesForOtherUser_THEN_RepositoryCalled()
-    {
-        // Arrange
-        ClaimsPrincipal user = CreateUser(OtherUserId, UserRole.Admin);
-        var request = new GetEmployeeServicesRequest(EmployeeUserId) { User = user };
-        _repo.Setup(x => x.GetByEmployeeId(EmployeeUserId, request, It.IsAny<CancellationToken>()))
-            .Returns(AsyncEnumerable.Empty<Service>());
-        var sut = new GetEmployeeServicesCommand(_repo.Object, NullLogger<GetEmployeeServicesCommand>.Instance);
-
-        // Act
-        IAsyncEnumerable<Service> _ = sut.Execute(request);
-
-        // Assert
-        _repo.Verify(x => x.GetByEmployeeId(EmployeeUserId, request, It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    [Fact]
-    public void GIVEN_CustomerNotOwner_WHEN_GetServices_THEN_ThrowsUnauthorized_And_DoesNotQueryRepo()
-    {
-        // Arrange
-        ClaimsPrincipal user = CreateUser(OtherUserId);
-        var request = new GetEmployeeServicesRequest(EmployeeUserId) { User = user };
-        var sut = new GetEmployeeServicesCommand(_repo.Object, NullLogger<GetEmployeeServicesCommand>.Instance);
-
-        // Act + Assert
-        Assert.Throws<UnauthorizedAccessException>(() => sut.Execute(request));
-        _repo.Verify(x => x.GetByEmployeeId(It.IsAny<int>(), It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()),
-            Times.Never);
-    }
 
     // AddEmployeeServiceCommand
 

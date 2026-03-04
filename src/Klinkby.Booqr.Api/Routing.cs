@@ -323,10 +323,9 @@ internal static class Routing
         group.MapGet("",
                 static (GetEmployeeServicesCommand command,
                         [AsParameters] GetEmployeeServicesRequest request,
-                        ClaimsPrincipal user,
                         CancellationToken cancellation) =>
-                    command.GetCollection(request with { User = user }, cancellation))
-            .RequireAuthorization(UserRole.Employee)
+                    command.GetCollection(request, cancellation))
+            .AllowAnonymous()
             .WithName("getEmployeeServices")
             .WithSummary("List services for an employee");
 
