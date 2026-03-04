@@ -5,7 +5,10 @@ namespace Klinkby.Booqr.Core;
 /// </summary>
 /// <param name="EmployeeId">The identifier of the employee.</param>
 /// <param name="ServiceId">The identifier of the service the employee can provide.</param>
-public sealed record EmployeeService(int EmployeeId, int ServiceId);
+public sealed record EmployeeService(int EmployeeId, int ServiceId)
+{
+    public static int CompositeId(int employeeId, int serviceId) => HashCode.Combine(employeeId, serviceId);
+}
 
 /// <summary>
 ///     Provides data access operations for the employee-service assignments.

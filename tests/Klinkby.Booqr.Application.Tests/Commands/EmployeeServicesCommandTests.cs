@@ -99,7 +99,7 @@ public class EmployeeServicesCommandTests
         _activityRecorder.Verify(x => x.Add<EmployeeService>(
             It.Is<ActivityQuery<EmployeeService>>(q =>
                 q.UserId == EmployeeUserId &&
-                q.EntityId == HashCode.Combine(EmployeeUserId, ServiceId))),
+                q.EntityId == EmployeeService.CompositeId(EmployeeUserId, ServiceId))),
             Times.Once);
     }
 
@@ -124,7 +124,7 @@ public class EmployeeServicesCommandTests
         _activityRecorder.Verify(x => x.Delete<EmployeeService>(
             It.Is<ActivityQuery<EmployeeService>>(q =>
                 q.UserId == EmployeeUserId &&
-                q.EntityId == HashCode.Combine(EmployeeUserId, ServiceId))),
+                q.EntityId == EmployeeService.CompositeId(EmployeeUserId, ServiceId))),
             Times.Once);
     }
 

@@ -18,7 +18,7 @@ public sealed partial class DeleteEmployeeServiceCommand(
         ArgumentNullException.ThrowIfNull(query);
         _log.UnassignService(query.AuthenticatedUserId, query.EmployeeId, query.ServiceId);
         var deleted = await employeeServices.Delete(query.EmployeeId, query.ServiceId, cancellation);
-        if (deleted) activityRecorder.Delete<EmployeeService>(new(query.AuthenticatedUserId, HashCode.Combine(query.EmployeeId, query.ServiceId)));
+        if (deleted) activityRecorder.Delete<EmployeeService>(new(query.AuthenticatedUserId, EmployeeService.CompositeId(query.EmployeeId, query.ServiceId)));
     }
 
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]

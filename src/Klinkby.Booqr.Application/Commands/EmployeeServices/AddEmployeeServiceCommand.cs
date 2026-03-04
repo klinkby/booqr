@@ -18,8 +18,7 @@ public sealed partial class AddEmployeeServiceCommand(
         ArgumentNullException.ThrowIfNull(query);
         _log.AssignService(query.AuthenticatedUserId, query.EmployeeId, query.ServiceId);
         await employeeServices.Add(query.EmployeeId, query.ServiceId, cancellation);
-        var employeeServiceId = HashCode.Combine(query.EmployeeId, query.ServiceId);
-        activityRecorder.Add<EmployeeService>(new(query.AuthenticatedUserId, employeeServiceId));
+        activityRecorder.Add<EmployeeService>(new(query.AuthenticatedUserId, EmployeeService.CompositeId(query.EmployeeId, query.ServiceId)));
     }
 
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
