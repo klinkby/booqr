@@ -78,6 +78,13 @@ public sealed class BookingRepository(NpgsqlDataSource dataSource) : IBookingRep
 - Return `null` for not-found, not exceptions
 - Respect soft-delete (`deleted IS NULL` in queries)
 
+### Join-Table Repositories (no audit columns)
+For many-to-many join tables without `created`/`modified`/`deleted` columns (e.g. `employeeservices`):
+- Do **not** extend `AuditRepository<T>` — there are no audit fields to set
+- Implement the bespoke `IRepository` sub-interface directly (e.g. `IEmployeeServiceRepository`)
+- Use hard `DELETE` instead of soft-delete (`UPDATE … SET deleted = …`)
+- SQL still uses string interpolation so Dapper.AOT can intercept at compile time
+
 ## Testing Guidelines
 
 See `tests/Klinkby.Booqr.Infrastructure.Tests/Repositories/AGENTS.md` for detailed testing practices.
