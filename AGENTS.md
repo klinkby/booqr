@@ -70,7 +70,9 @@ Architectural policies are validated automatically via `TngTech.ArchUnitNET` tes
 
 ### Testing
 
-- **xUnit v3**: Test framework
+- **Microsoft.Testing.Platform (MTP)**: Native .NET 10 test runner (configured via `global.json`)
+- **xUnit v3**: Test framework (with MTP v2 integration via `xunit.v3.mtp-v2`)
+- **Microsoft.Testing.Extensions.CodeCoverage**: MTP-native code coverage collection
 - **Moq**: Behavior verification for Application layer unit tests
 - **AutoFixture**: Data generation via `[AutoData]` and `[IntegrationAutoData]`
 - **Testcontainers**: Real PostgreSQL instance for Infrastructure integration tests
