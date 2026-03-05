@@ -61,6 +61,13 @@ public class ReminderMailServiceTest
         ServiceCollection services = new();
         services.AddSingleton<ILogger<GetBookingDetailsCommand>>(NullLogger<GetBookingDetailsCommand>.Instance);
         services.AddTransient<GetBookingDetailsCommand>();
+
+        Mock<IJobClaim> jobClaimMock = new();
+        jobClaimMock
+            .Setup(m => m.TryClaimAsync(It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        services.AddSingleton(jobClaimMock.Object);
+
         return services;
     }
 
