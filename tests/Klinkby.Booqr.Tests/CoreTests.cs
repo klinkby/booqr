@@ -9,7 +9,7 @@ public class CoreTests(ArchitectureTestFixture fixture)
         CoreTypes
             .Should()
             .NotDependOnAnyTypesThat()
-            .DoNotResideInNamespaceMatching($"^(System\\.*|{Regex.Escape(ArchitectureTestFixture.Core)|Microsoft\\.CodeCoverage\\.*)")
+            .DoNotResideInNamespaceMatching($"^(System\\.*|{Regex.Escape(ArchitectureTestFixture.Core)}|Microsoft\\.CodeCoverage\\.*)")
             .Because("Core should only reference BCL types")
             .Check(fixture.Architecture);
     }
