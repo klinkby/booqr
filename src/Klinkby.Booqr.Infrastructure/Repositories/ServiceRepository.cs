@@ -10,7 +10,7 @@ internal sealed partial class ServiceRepository(IConnectionProvider connectionPr
         """
         SELECT s.id, s.name, s.duration, s.created, s.modified, s.deleted,
                array_remove(array_agg(es.employeeid), NULL) AS employees
-        FROM {TableName} s
+        FROM services s
         LEFT JOIN employeeservices es ON es.serviceid = s.id
         WHERE s.deleted IS NULL
         GROUP BY s.id
@@ -22,7 +22,7 @@ internal sealed partial class ServiceRepository(IConnectionProvider connectionPr
         """
         SELECT s.id, s.name, s.duration, s.created, s.modified, s.deleted,
                array_remove(array_agg(es.employeeid), NULL) AS employees
-        FROM {TableName}
+        FROM services s
         LEFT JOIN employeeservices es ON es.serviceid = s.id
         WHERE s.deleted IS NULL AND s.id = @Id
         GROUP BY s.id
