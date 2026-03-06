@@ -5,7 +5,6 @@ namespace Klinkby.Booqr.Application.Tests.Commands;
 public class EmployeeServicesCommandTests
 {
     private const int EmployeeUserId = 42;
-    private const int OtherUserId = 99;
     private const int ServiceId = 7;
 
     private readonly Mock<IEmployeeServiceRepository> _repo = new();

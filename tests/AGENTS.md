@@ -141,6 +141,8 @@ Each project has detailed, project-specific guidelines in its `AGENTS.md` file.
 
 ## Running Tests
 
+Tests run on Microsoft.Testing.Platform (MTP) via the native .NET 10 integration configured in `global.json`.
+
 ```bash
 # Run all tests in solution
 dotnet test
@@ -149,13 +151,16 @@ dotnet test
 dotnet test tests/Klinkby.Booqr.Application.Tests
 
 # Run with detailed output
-dotnet test --logger "console;verbosity=detailed"
+dotnet test --verbosity normal
 
 # Run specific test by name
 dotnet test --filter "FullyQualifiedName~TestName"
 
 # Run by category
 dotnet test --filter Category=Architecture
+
+# Run with code coverage (cobertura format)
+dotnet test --coverage --coverage-output-format cobertura
 ```
 
 ## Test Independence
