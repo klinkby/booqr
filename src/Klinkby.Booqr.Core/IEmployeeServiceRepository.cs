@@ -18,10 +18,10 @@ public sealed record EmployeeService(int EmployeeId, int ServiceId)
 public interface IEmployeeServiceRepository : IRepository
 {
     /// <summary>
-    ///     Assigns services to an employee.
+    ///     Assigns employees to a service.
     /// </summary>
-    /// <param name="serviceId">The identifier of the service.</param>
-    /// <param name="employeeIds">The identifier of the employees to assign.</param>
+    /// <param name="serviceId">The identifier of the service to assign employees to.</param>
+    /// <param name="employeeIds">The identifiers of the employees to assign.</param>
     /// <param name="cancellation">A token to cancel the operation.</param>
     Task Assign(int serviceId, int[] employeeIds, CancellationToken cancellation = default);
 }
