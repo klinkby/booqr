@@ -19,9 +19,9 @@
       },
       "Microsoft.AspNetCore.OpenApi": {
         "type": "Direct",
-        "requested": "[10.0.0-preview.7.25380.108, 10.0.0-preview.7.25380.108]",
-        "resolved": "10.0.0-preview.7.25380.108",
-        "contentHash": "pxdr69OAbH/IB8+vkJAi3aZzlmsrbhqQQcsc6J7C23X5lA/RiW03OhGc+5IQxUc+21QcCR0aGHz759VWllet1w==",
+        "requested": "[10.0.3, 10.0.3]",
+        "resolved": "10.0.3",
+        "contentHash": "SAvSrKDgnY5GDjDAngOXxPhUvEKlTU/0zIq8zidqHvh/xnZBPs0Vc4LqwyvnmnafNnyUaivtRABz4K4wodXfSg==",
         "dependencies": {
           "Microsoft.OpenApi": "2.0.0"
         }
@@ -275,22 +275,6 @@
           "Microsoft.Extensions.Http.Resilience": "[10.3.0, )",
           "Npgsql.DependencyInjection": "[10.0.1, )"
         }
-      }
-    },
-    "net10.0/linux-musl-x64": {
-      "Microsoft.DotNet.ILCompiler": {
-        "type": "Direct",
-        "requested": "[10.0.3, )",
-        "resolved": "10.0.3",
-        "contentHash": "H9kuN7egYzW5JAn5CMK8uJdJDVnPEDpZHzjOXyz1iAgvxNgVSoAiTNkCBeY2jaXcHlruF5fRUrZoUHUHXftDDA==",
-        "dependencies": {
-          "runtime.linux-musl-x64.Microsoft.DotNet.ILCompiler": "10.0.3"
-        }
-      },
-      "runtime.linux-musl-x64.Microsoft.DotNet.ILCompiler": {
-        "type": "Transitive",
-        "resolved": "10.0.3",
-        "contentHash": "O66Mgx36ZGumILXBs8XYscMSajD2MZQxjzas4Ek4HzmybWrP209V3W0lVlD75uxMsVO3JD2bhIljL+OWRw5p6A=="
       }
     }
   }
