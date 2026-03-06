@@ -30,6 +30,7 @@ public sealed class UpdateServiceCommand(
                 await employeeServiceRepository.Assign(query.Id, query.Employees, cancellation);
             }
             await base.Execute(query, cancellation);
+            await transaction.Commit(cancellation);
         }
         catch
         {
