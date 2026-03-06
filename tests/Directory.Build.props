@@ -4,6 +4,7 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <IsPackable>false</IsPackable>
+        <IsPublishable>false</IsPublishable>
         <NoWarn>$(NoWarn);CA1707;CA1062;xUnit1051</NoWarn>
     </PropertyGroup>
 

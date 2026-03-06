@@ -50,7 +50,7 @@ public class AddVacancyRequestTests
 
         var events = new List<CalendarEvent> { e1, e2, outside };
 
-        var result = request.TryGetCompletelyOverlapped(events, out IReadOnlyList<CalendarEvent>? obsolete);
+        var result = request.TryGetCompletelyOverlapped(events, out List<CalendarEvent>? obsolete);
 
         Assert.True(result);
         Assert.NotNull(obsolete);

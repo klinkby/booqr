@@ -6,13 +6,35 @@ internal sealed partial class ServiceRepository(IConnectionProvider connectionPr
 {
     private const string TableName = "services";
 
+    private const string GetWithEmployeesAllQuery =
+        """
+        SELECT s.id, s.name, s.duration, s.created, s.modified, s.deleted,
+               array_remove(array_agg(es.employeeid), NULL) AS employees
+        FROM {TableName} s
+        LEFT JOIN employeeservices es ON es.serviceid = s.id
+        WHERE s.deleted IS NULL
+        GROUP BY s.id
+        ORDER BY s.name
+        LIMIT @Num OFFSET @Start
+        """;
+
+    private const string GetWithEmployeesByIdQuery =
+        """
+        SELECT s.id, s.name, s.duration, s.created, s.modified, s.deleted,
+               array_remove(array_agg(es.employeeid), NULL) AS employees
+        FROM {TableName}
+        LEFT JOIN employeeservices es ON es.serviceid = s.id
+        WHERE s.deleted IS NULL AND s.id = @Id
+        GROUP BY s.id
+        """;
+
     #region IRepository
 
     public async IAsyncEnumerable<Service> GetAll(IPageQuery pageQuery,
         [EnumeratorCancellation] CancellationToken cancellation)
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
-        IAsyncEnumerable<Service> query = connection.QueryUnbufferedAsync<Service>($"{GetAllQuery}", pageQuery);
+        IAsyncEnumerable<Service> query = connection.QueryUnbufferedAsync<Service>($"{GetWithEmployeesAllQuery}", pageQuery);
         await foreach (Service item in query.WithCancellation(cancellation))
         {
             yield return item;
@@ -22,7 +44,7 @@ internal sealed partial class ServiceRepository(IConnectionProvider connectionPr
     public async Task<Service?> GetById(int id, CancellationToken cancellation)
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
-        return await connection.QuerySingleOrDefaultAsync<Service>($"{GetByIdQuery}", new GetByIdParameters(id));
+        return await connection.QuerySingleOrDefaultAsync<Service>($"{GetWithEmployeesByIdQuery}", new GetByIdParameters(id));
     }
 
     public async Task<int> Add(Service newItem, CancellationToken cancellation)

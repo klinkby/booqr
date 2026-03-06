@@ -49,8 +49,8 @@ public sealed record AddVacancyRequest(
     ///     any of those are completely overlapped by the request can be deleted
     /// </summary>
     internal bool TryGetCompletelyOverlapped(
-        IReadOnlyList<CalendarEvent> events,
-        [NotNullWhen(true)] out IReadOnlyList<CalendarEvent>? obsoleteCollection)
+        List<CalendarEvent> events,
+        [NotNullWhen(true)] out List<CalendarEvent>? obsoleteCollection)
     {
         var list = events
             .Where(e => e.CompletelyWithin(this))
@@ -64,7 +64,7 @@ public sealed record AddVacancyRequest(
     ///     and start overlaps with the new one
     /// </summary>
     internal (CalendarEvent? EndOf, CalendarEvent? StartOf) FindIntersecting(
-        IReadOnlyList<CalendarEvent> events)
+        List<CalendarEvent> events)
     {
         (List<CalendarEvent> EndOf, List<CalendarEvent> StartOf) intersects =
             (events
@@ -83,7 +83,7 @@ public sealed record AddVacancyRequest(
     /// <summary>
     ///     determine if the requested timespan is completely within an existing vacancy
     /// </summary>
-    internal bool TryGetCompletelyCovered(IReadOnlyList<CalendarEvent> events,
+    internal bool TryGetCompletelyCovered(List<CalendarEvent> events,
         [NotNullWhen(true)] out CalendarEvent? completelyWithin)
     {
         completelyWithin = events.FirstOrDefault(e => this.CompletelyWithin(e) && !e.BookingId.HasValue);
@@ -93,7 +93,7 @@ public sealed record AddVacancyRequest(
     /// <summary>
     ///     determine if conflicting events are on another location
     /// </summary>
-    internal bool TryGetEventWithConflictingLocation(IReadOnlyList<CalendarEvent> events,
+    internal bool TryGetEventWithConflictingLocation(List<CalendarEvent> events,
         [NotNullWhen(true)] out CalendarEvent? locationConflict)
     {
         locationConflict = events.FirstOrDefault(e =>
@@ -169,7 +169,7 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
             return completelyWithin.Id;
         }
 
-        if (query.TryGetCompletelyOverlapped(events, out IReadOnlyList<CalendarEvent>? overlapped))
+        if (query.TryGetCompletelyOverlapped(events, out List<CalendarEvent>? overlapped))
         {
             foreach (CalendarEvent obsolete in overlapped)
             {
@@ -223,7 +223,7 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
     /// <summary>
     ///     ensure none of the events has bookings
     /// </summary>
-    private static bool TryGetEventWithBooking(IReadOnlyList<CalendarEvent> events,
+    private static bool TryGetEventWithBooking(List<CalendarEvent> events,
         [NotNullWhen(true)] out CalendarEvent? bookingConflict)
     {
         bookingConflict = events.FirstOrDefault(x => x.BookingId.HasValue);
