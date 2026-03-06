@@ -14,5 +14,5 @@ public sealed class AddServiceCommand(
     : AddCommand<AddServiceRequest, Service>(services, activityRecorder, logger)
 {
     protected override Service Map(AddServiceRequest query) =>
-        new(query.Name, query.Duration);
+        new(query.Name, query.Duration, []);
 }

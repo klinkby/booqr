@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Klinkby.Booqr.Core;
 
 /// <summary>
@@ -16,29 +18,10 @@ public sealed record EmployeeService(int EmployeeId, int ServiceId)
 public interface IEmployeeServiceRepository : IRepository
 {
     /// <summary>
-    ///     Retrieves all services assigned to a specific employee.
+    ///     Assigns services to an employee.
     /// </summary>
-    /// <param name="employeeId">The identifier of the employee.</param>
-    /// <param name="pageQuery">The pagination parameters.</param>
+    /// <param name="serviceId">The identifier of the service.</param>
+    /// <param name="employeeIds">The identifier of the employees to assign.</param>
     /// <param name="cancellation">A token to cancel the operation.</param>
-    /// <returns>An asynchronous stream of <see cref="Service"/> instances.</returns>
-    IAsyncEnumerable<Service> GetByEmployeeId(int employeeId, IPageQuery pageQuery,
-        CancellationToken cancellation = default);
-
-    /// <summary>
-    ///     Assigns a service to an employee.
-    /// </summary>
-    /// <param name="employeeId">The identifier of the employee.</param>
-    /// <param name="serviceId">The identifier of the service to assign.</param>
-    /// <param name="cancellation">A token to cancel the operation.</param>
-    Task Add(int employeeId, int serviceId, CancellationToken cancellation = default);
-
-    /// <summary>
-    ///     Removes a service assignment from an employee.
-    /// </summary>
-    /// <param name="employeeId">The identifier of the employee.</param>
-    /// <param name="serviceId">The identifier of the service to remove.</param>
-    /// <param name="cancellation">A token to cancel the operation.</param>
-    /// <returns><c>true</c> if the assignment was removed; otherwise <c>false</c>.</returns>
-    Task<bool> Delete(int employeeId, int serviceId, CancellationToken cancellation = default);
+    Task Assign(int serviceId, int[] employeeIds, CancellationToken cancellation = default);
 }

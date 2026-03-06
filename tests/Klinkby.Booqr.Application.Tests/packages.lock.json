@@ -435,6 +435,41 @@
       "klinkby.booqr.core": {
         "type": "Project"
       }
+    },
+    "net10.0/linux-musl-x64": {
+      "Microsoft.Testing.Extensions.CodeCoverage": {
+        "type": "Direct",
+        "requested": "[18.3.2, )",
+        "resolved": "18.3.2",
+        "contentHash": "EQ/Xt/zJzbFUfY9XFYjdPcKIPcSmE7xUS57CiiBK8tQ4LO1l2zs37ZXqCTYukBQbaGN0yT/OT5HIE+hJnNwkcw==",
+        "dependencies": {
+          "Microsoft.DiaSymReader": "2.0.0",
+          "Microsoft.Extensions.DependencyModel": "6.0.2",
+          "Microsoft.Testing.Platform": "2.0.2"
+        }
+      },
+      "System.Net.Http": {
+        "type": "Direct",
+        "requested": "[4.3.4, )",
+        "resolved": "4.3.4",
+        "contentHash": "aOa2d51SEbmM+H+Csw7yJOuNZoHkrP2XnAurye5HWYgGVVU54YZDvsLUYRv6h18X3sPnjNCANmN7ZhIPiqMcjA==",
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "1.1.1",
+          "runtime.native.System": "4.3.0",
+          "runtime.native.System.Net.Http": "4.3.0",
+          "runtime.native.System.Security.Cryptography.OpenSsl": "4.3.2"
+        }
+      },
+      "Microsoft.Win32.Registry": {
+        "type": "Transitive",
+        "resolved": "5.0.0",
+        "contentHash": "dDoKi0PnDz31yAyETfRntsLArTlVAVzUzCIvvEDsDsucrl33Dl8pIJG06ePTJTI3tGpeyHS9Cq7Foc/s4EeKcg=="
+      },
+      "System.Diagnostics.EventLog": {
+        "type": "Transitive",
+        "resolved": "6.0.0",
+        "contentHash": "lcyUiXTsETK2ALsZrX+nWuHSIQeazhqPphLfaRxzdGaG93+0kELqpgEHtwWOlQe7+jSFnKwaCAgL4kjeZCQJnw=="
+      }
     }
   }
 }

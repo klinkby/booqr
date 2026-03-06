@@ -20,7 +20,6 @@ internal static class Routing
         MapLocations(baseRoute);
         MapServices(baseRoute);
         MapUsers(baseRoute);
-        MapEmployeeServices(baseRoute);
         MapVacancies(baseRoute);
     }
 
@@ -309,47 +308,6 @@ internal static class Routing
             .RequireAuthorization(UserRole.Admin)
             .WithName("deleteUser")
             .WithSummary("Delete a user");
-    }
-
-    private static void MapEmployeeServices(IEndpointRouteBuilder app)
-    {
-        const string serviceIdRoutePattern = "{serviceId:int}";
-
-        RouteGroupBuilder group = app
-            .MapGroup($"users/{IdRoutePattern}/services")
-            .WithTags(nameof(EmployeeService))
-            .WithDescription(nameof(EmployeeService));
-
-        group.MapGet("",
-                static (GetEmployeeServicesCommand command,
-                        [AsParameters] GetEmployeeServicesRequest request,
-                        CancellationToken cancellation) =>
-                    command.GetCollection(request, cancellation))
-            .AllowAnonymous()
-            .WithName("getEmployeeServices")
-            .WithSummary("List services for an employee");
-
-        group.MapPost(serviceIdRoutePattern,
-                static (AddEmployeeServiceCommand command,
-                        int id,
-                        int serviceId,
-                        ClaimsPrincipal user,
-                        CancellationToken cancellation) =>
-                    command.NoContent(new AddEmployeeServiceRequest(id, serviceId), user, cancellation))
-            .RequireAuthorization(UserRole.Admin)
-            .WithName("addEmployeeService")
-            .WithSummary("Assign a service to an employee");
-
-        group.MapDelete(serviceIdRoutePattern,
-                static (DeleteEmployeeServiceCommand command,
-                        int id,
-                        int serviceId,
-                        ClaimsPrincipal user,
-                        CancellationToken cancellation) =>
-                    command.NoContent(new DeleteEmployeeServiceRequest(id, serviceId), user, cancellation))
-            .RequireAuthorization(UserRole.Admin)
-            .WithName("deleteEmployeeService")
-            .WithSummary("Remove a service assignment from an employee");
     }
 
     private static void MapVacancies(IEndpointRouteBuilder app)
