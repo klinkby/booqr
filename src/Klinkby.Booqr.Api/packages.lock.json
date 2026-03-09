@@ -52,9 +52,9 @@
       },
       "NLog": {
         "type": "Direct",
-        "requested": "[6.1.0, )",
-        "resolved": "6.1.0",
-        "contentHash": "K4UdxS4fuJeCM0sm+JTXWoJgOtcXX7X5kvE94bR07UB8JOB6A2+ski7q1tf2qdv+N0H3gsoWtteScJCHa3+zpw=="
+        "requested": "[6.1.1, )",
+        "resolved": "6.1.1",
+        "contentHash": "TCIwfAQX2IpZDnqs/+c5jCPnveCG8M6/wFmUk2odjRl0xiocfe4B+4qIvRbVbazSxcS28+Zu14pFeRJE9yAQAQ=="
       },
       "NLog.Schema": {
         "type": "Direct",
@@ -275,22 +275,6 @@
           "Microsoft.Extensions.Http.Resilience": "[10.3.0, )",
           "Npgsql.DependencyInjection": "[10.0.1, )"
         }
-      }
-    },
-    "net10.0/linux-musl-x64": {
-      "Microsoft.DotNet.ILCompiler": {
-        "type": "Direct",
-        "requested": "[10.0.3, )",
-        "resolved": "10.0.3",
-        "contentHash": "H9kuN7egYzW5JAn5CMK8uJdJDVnPEDpZHzjOXyz1iAgvxNgVSoAiTNkCBeY2jaXcHlruF5fRUrZoUHUHXftDDA==",
-        "dependencies": {
-          "runtime.linux-musl-x64.Microsoft.DotNet.ILCompiler": "10.0.3"
-        }
-      },
-      "runtime.linux-musl-x64.Microsoft.DotNet.ILCompiler": {
-        "type": "Transitive",
-        "resolved": "10.0.3",
-        "contentHash": "O66Mgx36ZGumILXBs8XYscMSajD2MZQxjzas4Ek4HzmybWrP209V3W0lVlD75uxMsVO3JD2bhIljL+OWRw5p6A=="
       }
     }
   }
