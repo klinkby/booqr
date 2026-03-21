@@ -184,7 +184,6 @@
       "klinkby.booqr.core": {
         "type": "Project"
       }
-    },
-    "net10.0/linux-musl-x64": {}
+    }
   }
 }

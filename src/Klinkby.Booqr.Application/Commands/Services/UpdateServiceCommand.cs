@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 
 namespace Klinkby.Booqr.Application.Commands.Services;
@@ -7,9 +6,8 @@ public sealed record UpdateServiceRequest(
     [property: IgnoreDataMember] int Id,
     string Name,
     TimeSpan Duration,
-    [SuppressMessage("Performance", "CA1819:Properties should not return arrays", Justification = "Performance")]
     int[]? Employees
-    ) : AddServiceRequest(Name, Duration), IId;
+    ) : AddServiceRequest(Name, Duration, Employees), IId;
 
 public sealed class UpdateServiceCommand(
     IServiceRepository services,
@@ -25,11 +23,11 @@ public sealed class UpdateServiceCommand(
         await transaction.Begin(cancellation);
         try
         {
+            await base.Execute(query, cancellation);
             if (query.Employees != null)
             {
                 await employeeServiceRepository.Assign(query.Id, query.Employees, cancellation);
             }
-            await base.Execute(query, cancellation);
             await transaction.Commit(cancellation);
         }
         catch

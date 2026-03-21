@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\src\Klinkby.Booqr.Application\Klinkby.Booqr.Application.csproj" />
         <ProjectReference Include="..\..\src\Klinkby.Booqr.Infrastructure\Klinkby.Booqr.Infrastructure.csproj"/>
     </ItemGroup>
 

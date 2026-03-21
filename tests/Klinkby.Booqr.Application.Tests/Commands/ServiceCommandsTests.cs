@@ -16,8 +16,9 @@ public class ServiceCommandsTests
         Service service,
         ClaimsPrincipal user)
     {
-        AddServiceCommand command = new(_mockServiceRepo.Object, _activityRecorder.Object, NullLogger<AddServiceCommand>.Instance);
-        AddServiceRequest request = new(service.Name, service.Duration) { User = user };
+        var mockTransaction = new Mock<ITransaction>();
+        AddServiceCommand command = new(_mockServiceRepo.Object, _mockEmpSvcRepo.Object, mockTransaction.Object, _activityRecorder.Object, NullLogger<AddServiceCommand>.Instance);
+        AddServiceRequest request = new(service.Name, service.Duration, service.Employees) { User = user };
 
         var newId = await command.Execute(request);
 

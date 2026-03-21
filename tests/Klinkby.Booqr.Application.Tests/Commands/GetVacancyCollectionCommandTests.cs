@@ -14,7 +14,7 @@ public class GetVacancyCollectionCommandTests
     public async Task GIVEN_PageQueryAndRange_WHEN_Execute_THEN_CallsRepositoryWithFlags_And_ReturnsItems(DateTime t0, CalendarEvent e1, CalendarEvent e2)
     {
         // Arrange
-        var page = new GetVacanciesRequest(t0.AddDays(-2), t0.AddDays(2), 5, 10);
+        var page = new GetVacanciesRequest(t0.AddDays(-2), t0.AddDays(2)) { Start = 5, Num = 10 };
         CalendarEvent[] expected = new[]
         {
             e1 with { EmployeeId = 1, LocationId = 10, BookingId = null, StartTime = t0, EndTime = t0.AddHours(1), Id = 11 },
