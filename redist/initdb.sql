@@ -153,6 +153,16 @@ create index idx_refreshtokens_expires
 
 -------------------------------------------------------------
 
+create table public.scheduled_job_executions
+(
+    job_name       varchar(50)              not null,
+    execution_date date                     not null,
+    claimed_at     timestamp with time zone not null,
+    primary key (job_name, execution_date)
+);
+
+-------------------------------------------------------------
+
 create view public.mybookings
             (id, starttime, endtime, customerid, serviceid, locationid, employeeid, hasnote, created, modified,
              deleted) as

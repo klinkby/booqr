@@ -48,6 +48,8 @@ public class ReminderMailServiceTest
             Options.Create(settings),
             NullLogger<ReminderMailService>.Instance);
         await sut.StartAsync(CancellationToken.None);
+        await Task.Delay(100); // let ExecuteAsync reach Task.Delay
+        timeProvider.Advance(TimeSpan.FromSeconds(5));
         cde.Wait(TimeSpan.FromSeconds(20));
         await sut.StopAsync(CancellationToken.None);
 
@@ -61,6 +63,13 @@ public class ReminderMailServiceTest
         ServiceCollection services = new();
         services.AddSingleton<ILogger<GetBookingDetailsCommand>>(NullLogger<GetBookingDetailsCommand>.Instance);
         services.AddTransient<GetBookingDetailsCommand>();
+
+        Mock<IJobClaim> jobClaimMock = new();
+        jobClaimMock
+            .Setup(m => m.TryClaimAsync(It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        services.AddSingleton(jobClaimMock.Object);
+
         return services;
     }
 
