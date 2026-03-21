@@ -37,7 +37,7 @@ internal abstract partial class ScheduledBackgroundService(
 
             try
             {
-                await Task.Delay(timeToNext, stoppingToken);
+                await Task.Delay(timeToNext, timeProvider, stoppingToken);
             }
             catch (OperationCanceledException)
             {

@@ -48,6 +48,8 @@ public class ReminderMailServiceTest
             Options.Create(settings),
             NullLogger<ReminderMailService>.Instance);
         await sut.StartAsync(CancellationToken.None);
+        await Task.Delay(100); // let ExecuteAsync reach Task.Delay
+        timeProvider.Advance(TimeSpan.FromSeconds(5));
         cde.Wait(TimeSpan.FromSeconds(20));
         await sut.StopAsync(CancellationToken.None);
 
