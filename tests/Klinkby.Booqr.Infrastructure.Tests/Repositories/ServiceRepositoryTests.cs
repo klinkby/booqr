@@ -32,7 +32,8 @@ public sealed class ServiceRepositoryTests(ServiceProviderFixture serviceProvide
                 Id = actual!.Id,
                 Created = actual.Created,
                 Modified = actual.Modified,
-                Version = actual.Version
+                Version = actual.Version,
+                Employees = actual.Employees,
             },
             actual);
     }

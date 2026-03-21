@@ -54,6 +54,7 @@ public static partial class ServiceCollectionExtensions
                 InfrastructureSettings settings =
                     serviceProvider.GetRequiredService<IOptions<InfrastructureSettings>>().Value;
                 builder.ConnectionStringBuilder.ConnectionString = settings.ConnectionString;
+                builder.EnableArrays();
                 PostgreSql(
                     serviceProvider.GetRequiredService<ILogger<InfrastructureSettings>>(),
                     builder.ConnectionStringBuilder.Host);

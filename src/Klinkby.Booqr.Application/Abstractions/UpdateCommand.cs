@@ -28,7 +28,7 @@ public abstract partial class UpdateCommand<TRequest, TItem>(
     /// <param name="cancellation">A token to monitor for cancellation requests.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
     /// <exception cref="MidAirCollisionException">Thrown when the entity was modified by another operation (optimistic concurrency failure).</exception>
-    public async Task Execute(TRequest query, CancellationToken cancellation = default)
+    public virtual async Task Execute(TRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
@@ -49,7 +49,6 @@ public abstract partial class UpdateCommand<TRequest, TItem>(
     /// <param name="query">The request containing the data to map.</param>
     /// <returns>The mapped entity ready for persistence.</returns>
     protected abstract TItem Map(TRequest query);
-
 
     [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)

@@ -25,7 +25,7 @@ public abstract partial class AddCommand<TRequest, TItem>(
     /// <param name="query">The authenticated request containing the data to add.</param>
     /// <param name="cancellation">A token to monitor for cancellation requests.</param>
     /// <returns>A task that represents the asynchronous operation, containing the ID of the newly created entity.</returns>
-    public async Task<int> Execute(TRequest query, CancellationToken cancellation = default)
+    public virtual async Task<int> Execute(TRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 

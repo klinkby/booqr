@@ -30,11 +30,15 @@ public sealed class ArchitectureTestFixture
 
     internal static GivenTypesConjunctionWithDescription CoreTypes => Types()
         .That()
+        .ResideInNamespaceMatching("Klinkby\\.Booqr\\.")
+        .And()
         .ResideInAssemblyMatching(Regex.Escape(Core))
         .As("Core types");
 
     internal static GivenTypesConjunctionWithDescription ApplicationTypes => Types()
         .That()
+        .ResideInNamespaceMatching("Klinkby\\.Booqr\\.")
+        .And()
         .ResideInAssemblyMatching(Regex.Escape(Application))
         .And()
         .DoNotHaveNameMatching("(EmbeddedResource|ActivityBackgroundService)")
@@ -42,6 +46,8 @@ public sealed class ArchitectureTestFixture
 
     internal static GivenTypesConjunctionWithDescription InfrastructureTypes => Types()
         .That()
+        .ResideInNamespaceMatching("Klinkby\\.Booqr\\.")
+        .And()
         .ResideInAssemblyMatching(Regex.Escape(Infrastructure))
         .As("Infrastructure types");
 

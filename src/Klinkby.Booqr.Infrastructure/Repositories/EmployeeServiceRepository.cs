@@ -1,44 +1,36 @@
+using Npgsql;
+using NpgsqlTypes;
+
 namespace Klinkby.Booqr.Infrastructure.Repositories;
 
-internal sealed class EmployeeServiceRepository(IConnectionProvider connectionProvider)
+[QueryFields("employeeid", "serviceid")]
+internal sealed partial class EmployeeServiceRepository(IConnectionProvider connectionProvider)
     : IEmployeeServiceRepository
 {
     private const string TableName = "employeeservices";
-    private const string ServiceFields = "s.id, s.name, s.duration, s.created, s.modified, s.deleted";
 
-    public async IAsyncEnumerable<Service> GetByEmployeeId(int employeeId, IPageQuery pageQuery,
-        [EnumeratorCancellation] CancellationToken cancellation)
+    public async Task Assign(int serviceId, int[] employeeIds, CancellationToken cancellation)
     {
-        DbConnection connection = await connectionProvider.GetConnection(cancellation);
-        IAsyncEnumerable<Service> query = connection.QueryUnbufferedAsync<Service>(
-            $"""
-             SELECT {ServiceFields}
-             FROM services s
-             JOIN {TableName} es ON s.id = es.serviceid
-             WHERE es.employeeid = @employeeId
-               AND s.deleted IS NULL
-             ORDER BY s.name
-             LIMIT @Num OFFSET @Start
-             """, new { employeeId, pageQuery.Start, pageQuery.Num });
-        await foreach (Service item in query.WithCancellation(cancellation))
-        {
-            yield return item;
-        }
-    }
-
-    public async Task Add(int employeeId, int serviceId, CancellationToken cancellation)
-    {
-        DbConnection connection = await connectionProvider.GetConnection(cancellation);
-        await connection.ExecuteAsync(
-            $"INSERT INTO {TableName} (employeeid, serviceid) VALUES (@employeeId, @serviceId)",
-            new { employeeId, serviceId });
-    }
-
-    public async Task<bool> Delete(int employeeId, int serviceId, CancellationToken cancellation)
-    {
-        DbConnection connection = await connectionProvider.GetConnection(cancellation);
-        return 1 == await connection.ExecuteAsync(
-            $"DELETE FROM {TableName} WHERE employeeid = @employeeId AND serviceid = @serviceId",
-            new { employeeId, serviceId });
+        var connection = (NpgsqlConnection)await connectionProvider.GetConnection(cancellation);
+        await using NpgsqlCommand cmd = connection.CreateCommand();
+        cmd.CommandText = $"""
+            WITH new_employees AS (
+              SELECT unnest(@employeeIds) AS employeeid
+            ),
+            removed AS (
+              DELETE FROM {TableName} es
+              WHERE es.serviceid = @serviceId
+                AND NOT EXISTS (
+                    SELECT 1 FROM new_employees ne
+                    WHERE ne.employeeid = es.employeeid
+                )
+            )
+            INSERT INTO {TableName} ({CommaSeparated})
+            SELECT employeeid, @serviceId FROM new_employees
+            ON CONFLICT DO NOTHING;
+            """;
+        cmd.Parameters.Add("serviceId", NpgsqlDbType.Integer).Value = serviceId;
+        cmd.Parameters.Add("employeeIds", NpgsqlDbType.Array | NpgsqlDbType.Integer).Value = employeeIds.ToArray();
+        await cmd.ExecuteNonQueryAsync(cancellation);
     }
 }
