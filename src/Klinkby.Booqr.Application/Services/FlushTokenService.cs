@@ -12,17 +12,20 @@ namespace Klinkby.Booqr.Application.Services;
 internal sealed partial class FlushTokenService(
     TimeProvider timeProvider,
     IServiceProvider serviceProvider,
-    ILogger<FlushTokenService> logger) : ScheduledBackgroundService(timeProvider, logger)
+    ILogger<FlushTokenService> logger) : ScheduledBackgroundService(timeProvider, serviceProvider, logger)
 {
+    private const int ClaimRetentionDays = 30;
     private static readonly TimeSpan Window = TimeSpan.FromDays(7);
     private readonly LoggerMessages _log = new(logger);
     protected override TimeSpan TriggerTimeOfDay => TimeSpan.Zero; // midnight
+    protected override string JobName => "flush-tokens";
 
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Logging in background task")]
     protected override async Task ExecuteScheduledTaskAsync(CancellationToken cancellation)
     {
-        await using AsyncServiceScope serviceScope = serviceProvider.CreateAsyncScope();
+        await using AsyncServiceScope serviceScope = ServiceProvider.CreateAsyncScope();
         IRefreshTokenRepository repository = serviceScope.ServiceProvider.GetRequiredService<IRefreshTokenRepository>();
+        IJobClaim jobClaim = serviceScope.ServiceProvider.GetRequiredService<IJobClaim>();
 
         DateTime threshold = Now - Window;
         _log.FlushingTokens(threshold);
@@ -31,6 +34,9 @@ internal sealed partial class FlushTokenService(
         {
             var deletedCount = await repository.Delete(threshold, cancellation);
             _log.FlushComplete(deletedCount);
+
+            DateOnly retentionDate = DateOnly.FromDateTime(Now).AddDays(-ClaimRetentionDays);
+            await jobClaim.DeleteOldClaimsAsync(retentionDate, cancellation);
         }
         catch (Exception ex)
         {

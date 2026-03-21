@@ -28,6 +28,15 @@ public class FlushTokenServiceTests
             .Verifiable(Times.Once);
         services.AddSingleton(repoMock.Object);
 
+        Mock<IJobClaim> jobClaimMock = new();
+        jobClaimMock
+            .Setup(m => m.TryClaimAsync(It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        jobClaimMock
+            .Setup(m => m.DeleteOldClaimsAsync(It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+        services.AddSingleton(jobClaimMock.Object);
+
         await using ServiceProvider serviceProvider = services.BuildServiceProvider();
         using CountdownEvent cde = new(1);
 
@@ -77,6 +86,12 @@ public class FlushTokenServiceTests
             .ThrowsAsync(new InvalidOperationException("Database error"))
             .Callback(() => cde.Signal());
         services.AddSingleton(repoMock.Object);
+
+        Mock<IJobClaim> jobClaimMock = new();
+        jobClaimMock
+            .Setup(m => m.TryClaimAsync(It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        services.AddSingleton(jobClaimMock.Object);
 
         await using ServiceProvider serviceProvider = services.BuildServiceProvider();
 
