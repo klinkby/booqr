@@ -55,10 +55,15 @@ internal abstract partial class ScheduledBackgroundService(
 
     private async Task ExecuteIfClaimedAsync(CancellationToken stoppingToken)
     {
-        await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
-        IJobClaim jobClaim = scope.ServiceProvider.GetRequiredService<IJobClaim>();
+        bool claimed;
 
-        if (await jobClaim.TryClaimAsync(JobName, DateOnly.FromDateTime(Now), stoppingToken))
+        await using (AsyncServiceScope scope = serviceProvider.CreateAsyncScope())
+        {
+            IJobClaim jobClaim = scope.ServiceProvider.GetRequiredService<IJobClaim>();
+            claimed = await jobClaim.TryClaimAsync(JobName, DateOnly.FromDateTime(Now), stoppingToken);
+        }
+
+        if (claimed)
         {
             await ExecuteScheduledTaskAsync(stoppingToken);
         }
