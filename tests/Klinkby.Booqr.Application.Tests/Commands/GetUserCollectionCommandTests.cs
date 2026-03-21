@@ -9,7 +9,7 @@ public class GetUserCollectionCommandTests
     public async Task GIVEN_GetUserCollectionRequest_WHEN_Execute_THEN_CallsRepositoryAndReturnsItems(User u1, User u2, User u3)
     {
         // Arrange
-        var request = new GetUserCollectionRequest(5, 10) { K = "k", Role = "Customer" };
+        var request = new GetUserCollectionRequest { Start = 5, Num = 10, K = "k", Role = "Customer" };
         User[] expected = new[]
         {
             u1 with { Role = UserRole.Customer, Id = 1 },

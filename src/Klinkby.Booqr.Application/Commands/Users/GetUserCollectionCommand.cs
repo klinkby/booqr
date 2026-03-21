@@ -1,6 +1,6 @@
 ﻿namespace Klinkby.Booqr.Application.Commands.Users;
 
-public sealed record GetUserCollectionRequest(int? Start, int? Num) : PageQuery(Start, Num)
+public sealed record GetUserCollectionRequest : PageQuery
 {
     [StringLength(0xff)]
     public string? K { get; init; }
