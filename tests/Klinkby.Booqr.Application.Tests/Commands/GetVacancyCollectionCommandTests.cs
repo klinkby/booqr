@@ -44,7 +44,7 @@ public class GetVacancyCollectionCommandTests
     public void GIVEN_NullFromAndTo_WHEN_Execute_THEN_DefaultsApplied(DateTime t0)
     {
         // Arrange
-        var page = new GetVacanciesRequest(null, null);
+        var page = new GetVacanciesRequest(null, null, null, null);
 
         _calendar.Setup(x => x.GetRange(It.IsAny<DateTime>(), It.IsAny<DateTime>(), page, true, false,
                 It.IsAny<CancellationToken>()))

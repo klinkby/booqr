@@ -3,9 +3,8 @@
 public sealed record GetVacanciesRequest(
     DateTime? FromTime,
     DateTime? ToTime,
-    [Range(0, int.MaxValue)] int? Start = 0,
-    [Range(1, 1000)] int? Num = 100)
-    : IPageQuery;
+    int? Start,
+    int? Num) : PageQuery(Start, Num);
 
 public sealed class GetVacancyCollectionCommand(ICalendarRepository events, TimeProvider timeProvider)
     : ICommand<GetVacanciesRequest, IAsyncEnumerable<CalendarEvent>>
