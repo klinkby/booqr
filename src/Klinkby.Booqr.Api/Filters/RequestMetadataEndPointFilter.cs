@@ -49,16 +49,16 @@ internal sealed class RequestMetadataEndPointFilter : IEndpointFilter
         return version;
     }
 
-    private static bool TrySetETagResponse(HttpResponse httpResponse, Timestamped auditResponse, DateTime? version)
+    private static bool TrySetETagResponse(HttpResponse httpResponse, Timestamped timestamped, DateTime? version)
     {
-        DateTime etagValue = auditResponse.Modified;
+        DateTime etagValue = timestamped.Modified;
         if (etagValue == version)
         {
             httpResponse.StatusCode = StatusCodes.Status304NotModified;
             return true;
         }
 
-        httpResponse.Headers.Append("ETag", auditResponse!.ETag);
+        httpResponse.Headers.Append("ETag", timestamped.ETag);
         return false;
     }
 }
