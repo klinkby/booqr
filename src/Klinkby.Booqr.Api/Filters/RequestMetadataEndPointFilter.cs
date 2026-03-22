@@ -24,7 +24,7 @@ internal sealed class RequestMetadataEndPointFilter : IEndpointFilter
 
         Timestamped? timestamped = response as Timestamped
                                    ?? ((response as INestedHttpResult)?.Result as IValueHttpResult)?.Value as Timestamped;
-        if (timestamped is null) return null;
+        if (timestamped is null) return response;
         return TrySetETagResponse(httpContext.Response, timestamped, version) ? null : response;
     }
 
