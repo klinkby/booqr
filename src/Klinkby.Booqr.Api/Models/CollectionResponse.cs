@@ -8,16 +8,20 @@ internal static class CollectionResponse
         IAsyncEnumerable<T> stream,
         CancellationToken cancellation) where T : Timestamped
     {
-        List<T> items = await stream.ToListAsync(cancellation);
-        return new CollectionResponse<T>(items);
+        var items = new List<T>();
+        var maxModified = DateTime.MinValue;
+        await foreach (var item in stream.WithCancellation(cancellation))
+        {
+            items.Add(item);
+            if (item.Modified > maxModified)
+                maxModified = item.Modified;
+        }
+        return new CollectionResponse<T>(items) { Modified = maxModified };
     }
 }
 
 internal sealed record CollectionResponse<T>(List<T> Items) : Timestamped where T : Timestamped
 {
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
-    public override DateTime Modified { get; init; } = Items
-        .Select(x => x.Modified)
-        .Concat([DateTime.MinValue])
-        .Max();
+    public override DateTime Modified { get; init; }
 }
