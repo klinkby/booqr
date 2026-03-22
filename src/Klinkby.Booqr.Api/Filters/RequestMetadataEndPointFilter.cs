@@ -22,7 +22,10 @@ internal sealed class RequestMetadataEndPointFilter : IEndpointFilter
             return null;
         }
 
-        return TrySetETagResponse(httpContext.Response, response as Audit, version) ? null : response;
+        Timestamped? timestamped = response as Timestamped
+                                   ?? ((response as INestedHttpResult)?.Result as IValueHttpResult)?.Value as Timestamped;
+        if (timestamped is null) return null;
+        return TrySetETagResponse(httpContext.Response, timestamped, version) ? null : response;
     }
 
     private static DateTime? GetVersion(HttpContext httpContext)
@@ -46,20 +49,16 @@ internal sealed class RequestMetadataEndPointFilter : IEndpointFilter
         return version;
     }
 
-    private static bool TrySetETagResponse(HttpResponse httpResponse, Audit? auditResponse, DateTime? version)
+    private static bool TrySetETagResponse(HttpResponse httpResponse, Timestamped auditResponse, DateTime? version)
     {
-        DateTime? etagValue = auditResponse?.Modified;
-        if (etagValue is not null)
+        DateTime etagValue = auditResponse.Modified;
+        if (etagValue == version)
         {
-            if (etagValue == version)
-            {
-                httpResponse.StatusCode = StatusCodes.Status304NotModified;
-                return true;
-            }
-
-            httpResponse.Headers.Append("ETag", auditResponse!.ETag);
+            httpResponse.StatusCode = StatusCodes.Status304NotModified;
+            return true;
         }
 
+        httpResponse.Headers.Append("ETag", auditResponse!.ETag);
         return false;
     }
 }

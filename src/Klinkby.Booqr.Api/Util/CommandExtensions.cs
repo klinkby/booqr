@@ -23,11 +23,11 @@ internal static class CommandExtensions
             ? TypedResults.Ok(result)
             : TypedResults.NotFound();
 
-    internal static Task<Results<Ok<CollectionResponse<TResult>>, BadRequest>> GetCollection<TQuery, TResult>(
+    internal static async Task<Results<Ok<CollectionResponse<TResult>>, BadRequest>> GetCollection<TQuery, TResult>(
         this ICommand<TQuery, IAsyncEnumerable<TResult>> command, TQuery query, CancellationToken cancellationToken)
+        where TResult : Timestamped
         where TQuery : IPageQuery =>
-        Task.FromResult<Results<Ok<CollectionResponse<TResult>>, BadRequest>>(
-            TypedResults.Ok(new CollectionResponse<TResult>(command.Execute(query, cancellationToken))));
+            TypedResults.Ok(await CollectionResponse.FromStream(command.Execute(query, cancellationToken), cancellationToken));
 
     internal static async Task<Results<Ok<OAuthTokenResponse>, UnauthorizedHttpResult, BadRequest>> GetAuthenticationTokenWithCookie<T>(
         this ICommand<T, Task<OAuthTokenResponse?>> command, T query, HttpContext context,

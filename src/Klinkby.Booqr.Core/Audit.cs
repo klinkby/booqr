@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Klinkby.Booqr.Core;
 
@@ -14,7 +13,7 @@ namespace Klinkby.Booqr.Core;
 ///     - Modification timestamp.
 ///     - Optional deletion timestamp.
 /// </remarks>
-public abstract record Audit : IId
+public abstract record Audit : Timestamped, IId
 {
     /// <summary>
     ///     Gets or initializes the unique identifier for the entity.
@@ -29,28 +28,11 @@ public abstract record Audit : IId
     public DateTime Created { get; init; }
 
     /// <summary>
-    ///     Gets or initializes the date and time when the entity was last modified.
-    /// </summary>
-    /// <value>The last modification timestamp.</value>
-    public DateTime Modified { get; init; }
-
-    /// <summary>
     ///     Gets or initializes the date and time when the entity was soft-deleted.
     /// </summary>
     /// <value>The deletion timestamp, or <c>null</c> if the entity has not been deleted.</value>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DateTime? Deleted { get; init; }
-
-    /// <summary>
-    ///     Gets the entity tag (ETag) for concurrency control, derived from the modification timestamp.
-    /// </summary>
-    /// <value>A string representation of the modification timestamp ticks in invariant culture format.</value>
-    /// <remarks>
-    ///     This property is used for optimistic concurrency control to detect mid-air collisions.
-    ///     It is serialized as "_etag" in JSON format.
-    /// </remarks>
-    [JsonPropertyName("_etag"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string ETag => Modified.Ticks.ToString(CultureInfo.InvariantCulture);
 
     /// <summary>
     ///     Gets or initializes the version timestamp for optimistic concurrency control.
