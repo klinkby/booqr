@@ -1,4 +1,5 @@
 ﻿using System.Net.Mime;
+using Klinkby.Booqr.Application.Commands.Employees;
 using Klinkby.Booqr.Application.Models;
 
 namespace Klinkby.Booqr.Api;
@@ -17,6 +18,7 @@ internal static class Routing
         MapOpenApi(baseRoute);
         MapAuth(baseRoute);
         MapBookings(baseRoute);
+        MapEmployees(baseRoute);
         MapLocations(baseRoute);
         MapServices(baseRoute);
         MapUsers(baseRoute);
@@ -108,6 +110,23 @@ internal static class Routing
             .RequireAuthorization(UserRole.Customer)
             .WithName("deleteBooking")
             .WithSummary("Delete a booking");
+    }
+
+    private static void MapEmployees(IEndpointRouteBuilder app)
+    {
+        const string resourceName = "employees";
+
+        RouteGroupBuilder group = app
+            .MapGroup(resourceName)
+            .WithTags(nameof(Employee))
+            .WithDescription(nameof(Employee));
+
+        group.MapGet("",
+                static (GetEmployeeCollectionCommand command,
+                        CancellationToken cancellation) =>
+                    command.GetCollection(cancellation))
+            .WithName("getEmployees")
+            .WithSummary("List employees");
     }
 
     private static void MapLocations(IEndpointRouteBuilder app)

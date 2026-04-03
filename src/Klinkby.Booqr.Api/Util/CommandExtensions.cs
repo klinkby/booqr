@@ -1,4 +1,5 @@
-﻿using Klinkby.Booqr.Application.Models;
+﻿using Klinkby.Booqr.Application.Commands.Employees;
+using Klinkby.Booqr.Application.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Klinkby.Booqr.Api.Util;
@@ -28,6 +29,10 @@ internal static class CommandExtensions
         where TResult : Timestamped
         where TQuery : IPageQuery =>
             TypedResults.Ok(await CollectionResponse.FromStream(command.Execute(query, cancellationToken), cancellationToken));
+
+    internal static async Task<Ok<CollectionResponse<Employee>>> GetCollection(
+        this ICommand<GetEmployeesCollectionRequest, IAsyncEnumerable<Employee>> command, CancellationToken cancellationToken) =>
+        TypedResults.Ok(await CollectionResponse.FromStream(command.Execute(new(), cancellationToken), cancellationToken));
 
     internal static async Task<Results<Ok<OAuthTokenResponse>, UnauthorizedHttpResult, BadRequest>> GetAuthenticationTokenWithCookie<T>(
         this ICommand<T, Task<OAuthTokenResponse?>> command, T query, HttpContext context,
