@@ -58,8 +58,8 @@
       },
       "Dapper": {
         "type": "Transitive",
-        "resolved": "2.1.66",
-        "contentHash": "/q77jUgDOS+bzkmk3Vy9SiWMaetTw+NOoPAV0xPBsGVAyljd5S6P+4RUW7R3ZUGGr9lDRyPKgAMj2UAOwvqZYw=="
+        "resolved": "2.1.72",
+        "contentHash": "ns4mGqQd9a/MhP8m6w556vVlZIa0/MfUu03zrxjZC/jlr1uVCsUac8bkdB+Fs98Llbd56rRSo1eZH5VVmeGZyw=="
       },
       "Dapper.AOT": {
         "type": "Transitive",
@@ -78,8 +78,8 @@
       },
       "Microsoft.AspNetCore.Authentication.JwtBearer": {
         "type": "Transitive",
-        "resolved": "10.0.3",
-        "contentHash": "TBDs8e9y2vJHp14EwNfnIZUNrm6siw8PAAU5laOrYFuGgRxx8oCdxZyfTgp1Oy/icUk9h/XtpYBHPnXIG0f2/g==",
+        "resolved": "10.0.5",
+        "contentHash": "fZzXogChrwQ/SfifQJgeW7AtR8hUv5+LH9oLWjm5OqfnVt3N8MwcMHHMdawvqqdjP79lIZgetnSpj77BLsSI1g==",
         "dependencies": {
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "8.0.1"
         }
@@ -615,7 +615,7 @@
         "dependencies": {
           "Klinkby.Booqr.Application": "[1.0.0, )",
           "Klinkby.Booqr.Infrastructure": "[1.0.0, )",
-          "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.3, )",
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.5, )",
           "Microsoft.AspNetCore.OpenApi": "[10.0.0-preview.7.25380.108, 10.0.0-preview.7.25380.108]",
           "Microsoft.OpenApi": "[2.3.9, 2.3.9]",
           "NLog": "[6.1.1, )",
@@ -642,7 +642,7 @@
       "klinkby.booqr.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "Dapper": "[2.1.66, )",
+          "Dapper": "[2.1.72, )",
           "Dapper.AOT": "[1.0.48, )",
           "Klinkby.Booqr.Core": "[1.0.0, )",
           "Microsoft.Extensions.Configuration": "[10.0.3, )",
