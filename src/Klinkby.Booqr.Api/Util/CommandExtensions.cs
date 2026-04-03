@@ -30,7 +30,7 @@ internal static class CommandExtensions
         where TQuery : IPageQuery =>
             TypedResults.Ok(await CollectionResponse.FromStream(command.Execute(query, cancellationToken), cancellationToken));
 
-    internal static async Task<Results<Ok<CollectionResponse<Employee>>, BadRequest>> GetCollection(
+    internal static async Task<Ok<CollectionResponse<Employee>>> GetCollection(
         this ICommand<GetEmployeesCollectionRequest, IAsyncEnumerable<Employee>> command, CancellationToken cancellationToken) =>
         TypedResults.Ok(await CollectionResponse.FromStream(command.Execute(new(), cancellationToken), cancellationToken));
 
