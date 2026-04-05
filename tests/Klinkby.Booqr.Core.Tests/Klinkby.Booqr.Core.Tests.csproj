@@ -3,6 +3,7 @@
     <ItemGroup Label="Nuget references">
         <PackageReference Include="AutoFixture.Xunit3" Version="4.19.0" />
         <PackageReference Update="xunit.v3.mtp-v2" Version="3.2.2" />
+        <PackageReference Update="Microsoft.Testing.Extensions.CodeCoverage" Version="18.5.2" />
     </ItemGroup>
 
     <ItemGroup Label="Project references">

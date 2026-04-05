@@ -151,16 +151,16 @@ public partial class AddBookingCommand(
     async private Task UpdateVacancyCoversOnlyEnd(CalendarEvent vacancy, AddBookingRequest query, int newBookingId,
         CancellationToken cancellation)
     {
-        await calendar.Add(vacancy with { EndTime = query.StartTime }, cancellation);
         await calendar.Update(vacancy with { BookingId = newBookingId, StartTime = query.StartTime}, cancellation);
+        await calendar.Add(vacancy with { EndTime = query.StartTime }, cancellation);
     }
 
     async private Task UpdateVacancyInTheMiddle(CalendarEvent vacancy, int newBookingId, AddBookingRequest query,
         CancellationToken cancellation)
     {
+        await calendar.Update(vacancy with { BookingId = newBookingId, StartTime = query.StartTime, EndTime = query.EndTime }, cancellation);
         await calendar.Add(vacancy with { StartTime = query.EndTime }, cancellation);
         await calendar.Add(vacancy with { EndTime = query.StartTime }, cancellation);
-        await calendar.Update(vacancy with { BookingId = newBookingId, StartTime = query.StartTime, EndTime = query.EndTime }, cancellation);
     }
 
     private static Booking Map(AddBookingRequest query) =>
