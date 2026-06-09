@@ -43,6 +43,11 @@ public partial class AddBookingCommand(
         {
             query = query with { CustomerId = userId };
         }
+        else if (!query.IsOwnerOrEmployee(query.CustomerId.Value))
+        {
+            _log.CannotBookForOther(userId, query.CustomerId.Value);
+            throw new UnauthorizedAccessException("You cannot create a booking for another customer.");
+        }
 
         await transaction.Begin(cancellation);
         try
@@ -182,6 +187,9 @@ public partial class AddBookingCommand(
 
         [LoggerMessage(103, LogLevel.Warning, "User {UserId} booking {Id} use vacancy strategy {Covers}")]
         public partial void BookingStrategy(int userId, int id, Covers covers);
+
+        [LoggerMessage(104, LogLevel.Warning, "User {UserId} cannot create booking for customer {CustomerId}")]
+        public partial void CannotBookForOther(int userId, int customerId);
     }
 }
 
