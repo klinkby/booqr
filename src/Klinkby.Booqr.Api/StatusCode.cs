@@ -18,7 +18,7 @@ internal static class StatusCode
         return exception switch
         {
             ArgumentException => StatusCodes.Status400BadRequest,
-            UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
+            UnauthorizedAccessException => StatusCodes.Status403Forbidden,
             InvalidOperationException => StatusCodes.Status409Conflict,
             MidAirCollisionException => StatusCodes.Status412PreconditionFailed,
             SocketException => StatusCodes.Status502BadGateway,
