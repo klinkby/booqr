@@ -81,6 +81,73 @@ public class AddBookingCommandTest
 
     [Theory]
     [ApplicationAutoData]
+    public async Task GIVEN_CustomerBooksForAnotherUser_WHEN_Execute_THEN_ThrowsUnauthorized(
+        AddBookingRequest request)
+    {
+        ClaimsPrincipal customer = CreateUser(42, UserRole.Customer);
+        AddBookingRequest unauthorized = request with { CustomerId = 99, User = customer };
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _command.Execute(unauthorized));
+
+        _mockTransaction.Verify(x => x.Begin(It.IsAny<CancellationToken>()), Times.Never);
+        _mockBookingRepository.Verify(
+            x => x.Add(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_EmployeeBooksForAnotherCustomer_WHEN_Execute_THEN_BooksForThatCustomer(
+        AddBookingRequest request,
+        Service service,
+        CalendarEvent vacancy,
+        int newBookingId)
+    {
+        ClaimsPrincipal employee = CreateUser(7, UserRole.Employee);
+        AddBookingRequest onBehalf = request with { CustomerId = 99, User = employee };
+        CalendarEvent availableVacancy = vacancy with { BookingId = null };
+
+        _mockServiceRepository.Setup(x => x.GetById(onBehalf.ServiceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+        _mockCalendarRepository.Setup(x => x.GetById(onBehalf.VacancyId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(availableVacancy);
+        _mockBookingRepository.Setup(x => x.Add(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(newBookingId);
+
+        await _command.Execute(onBehalf);
+
+        _mockBookingRepository.Verify(x => x.Add(
+            It.Is<Booking>(b => b.CustomerId == 99),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_CustomerBooksWithOwnCustomerId_WHEN_Execute_THEN_Succeeds(
+        AddBookingRequest request,
+        Service service,
+        CalendarEvent vacancy,
+        int newBookingId)
+    {
+        ClaimsPrincipal customer = CreateUser(42, UserRole.Customer);
+        AddBookingRequest ownBooking = request with { CustomerId = 42, User = customer };
+        CalendarEvent availableVacancy = vacancy with { BookingId = null };
+
+        _mockServiceRepository.Setup(x => x.GetById(ownBooking.ServiceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+        _mockCalendarRepository.Setup(x => x.GetById(ownBooking.VacancyId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(availableVacancy);
+        _mockBookingRepository.Setup(x => x.Add(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(newBookingId);
+
+        await _command.Execute(ownBooking);
+
+        _mockBookingRepository.Verify(x => x.Add(
+            It.Is<Booking>(b => b.CustomerId == 42),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
     public async Task GIVEN_NonExistentService_WHEN_Execute_THEN_ThrowsArgumentException(
         AddBookingRequest request)
     {

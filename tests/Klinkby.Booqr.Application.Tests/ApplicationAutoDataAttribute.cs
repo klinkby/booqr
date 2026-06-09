@@ -39,6 +39,7 @@ internal sealed class ApplicationAutoDataAttribute : AutoDataAttribute
         fixture.Customize<Booking>(c => c
             .With(p => p.ServiceId, serviceId));
         fixture.Customize<AddBookingRequest>(c => c
+            .With(p => p.CustomerId, (int?)null)
             .With(p => p.ServiceId, serviceId)
             .With(p => p.StartTime, t0));
         fixture.Customize<JwtSettings>(c => c
