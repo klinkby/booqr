@@ -89,6 +89,26 @@ public class ExpiringQueryStringTests
         Assert.False(isValid);
     }
 
+    [Fact]
+    public void BuildAndValidate_ShouldReturnFalse_ForCaseMutatedParameter()
+    {
+        // Arrange
+        ExpiringQueryString sut = new(PasswordSettings, _timeProvider);
+        NameValueCollection parameters = new() { { "action", "ChangePassword" } };
+
+        // Act — flip the case of a signed value; the MAC must bind the exact bytes,
+        // so a case-only change must fail integrity (regression guard against a
+        // case-insensitive signature).
+        var queryString = sut
+            .Create(TimeSpan.FromHours(1), parameters)
+            .Replace("action=ChangePassword", "action=changepassword", StringComparison.Ordinal);
+        var isValid = sut.TryParse(queryString, out NameValueCollection? _, out QueryStringValidation status);
+
+        // Assert
+        Assert.False(isValid);
+        Assert.Equal(QueryStringValidation.IntegrityFailed, status);
+    }
+
     [Theory]
     [InlineData("&hash=invalidhash")]
     [InlineData("&hash=")]

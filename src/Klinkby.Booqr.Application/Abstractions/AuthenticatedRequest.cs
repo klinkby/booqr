@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Security.Claims;
@@ -12,6 +11,9 @@ namespace Klinkby.Booqr.Application.Abstractions;
 /// <remarks>User property MUST be set POST validation</remarks>
 public abstract record AuthenticatedRequest
 {
+    /// <summary>JWT registered claim name for the subject (user id), per RFC 7519.</summary>
+    private const string SubClaimType = "sub";
+
     [JsonIgnore] public ClaimsPrincipal? User { get; init; }
 
     [JsonIgnore]
@@ -19,9 +21,17 @@ public abstract record AuthenticatedRequest
     {
         get
         {
-            var nameIdValue = User?.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
-            Debug.Assert(nameIdValue is not null);
-            return int.Parse(nameIdValue, CultureInfo.InvariantCulture);
+            // Read the identity explicitly rather than relying on the JwtBearer handler's
+            // default sub->NameIdentifier inbound mapping. Guard at runtime so a missing or
+            // malformed claim fails closed instead of throwing FormatException (500) in Release.
+            var nameIdValue = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                              ?? User?.FindFirst(SubClaimType)?.Value;
+            if (!int.TryParse(nameIdValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var userId))
+            {
+                throw new UnauthorizedAccessException("Authenticated user identity claim is missing or invalid.");
+            }
+
+            return userId;
         }
     }
 

@@ -92,7 +92,12 @@ internal sealed class ExpiringQueryString(
 
         var computedHash = HashAndEncodeToBase64Url(originalQuery);
 
-        if (!string.Equals(computedHash, hashValue, StringComparison.Ordinal))
+        // Constant-time comparison so validation timing does not leak how much of
+        // the MAC matched. Both operands are Base64Url (ASCII); FixedTimeEquals
+        // safely returns false on length mismatch.
+        if (!CryptographicOperations.FixedTimeEquals(
+                Encoding.ASCII.GetBytes(computedHash),
+                Encoding.ASCII.GetBytes(hashValue)))
         {
             validationStatus = QueryStringValidation.IntegrityFailed;
             return false;
@@ -105,9 +110,12 @@ internal sealed class ExpiringQueryString(
 
     private string HashAndEncodeToBase64Url(string text)
     {
+        // Sign the exact bytes. Do NOT normalize case: upper-casing here would make
+        // the MAC case-insensitive, so two query strings differing only by case would
+        // share a signature and integrity could be bypassed for any case-sensitive value.
         var hashBytes = HMACSHA3_384.HashData(
             Convert.FromBase64String(_hmacKey),
-            Encoding.UTF8.GetBytes(text.ToUpperInvariant()));
+            Encoding.UTF8.GetBytes(text));
         var hashValue = Base64Url.EncodeToString(hashBytes);
         return hashValue;
     }
