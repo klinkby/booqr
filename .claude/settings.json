@@ -5,5 +5,15 @@
     "network": {
       "allowedDomains": ["api.nuget.org", "api.github.com"]
     }
+  },
+  "permissions": {
+    "deny": [
+      "Read(**/.env*)",
+      "Read(**/.ssh/**)",
+      "Write(**/.env*)",
+      "Write(**/.ssh/**)",
+      "Write(.github/workflows/*)",
+      "Write(**/.claude/**)"
+    ]
   }
 }
