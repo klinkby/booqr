@@ -25,6 +25,27 @@ public class LoginCommandTests
 
     [Theory]
     [ApplicationAutoData]
+    public async Task GIVEN_UnconfirmedUser_WHEN_Login_THEN_ReturnsNull(
+        User user,
+        string password,
+        OAuthTokenResponse expectedResponse)
+    {
+        // PasswordHash is null for an unconfirmed account; login must still run the
+        // dummy-hash verification path (and not throw) and return null.
+        User unconfirmed = user with { PasswordHash = null };
+        Mock<IUserRepository> userRepo = CreateUserRepositoryMock(unconfirmed);
+        Mock<IOAuth> oauth = CreateOAuthMock(expectedResponse);
+        var command = new LoginCommand(userRepo.Object, oauth.Object, NullLogger<LoginCommand>.Instance);
+        var request = new LoginRequest(user.Email, password);
+
+        OAuthTokenResponse? result = await command.Execute(request);
+
+        Assert.Null(result);
+        userRepo.Verify(x => x.GetByEmail(user.Email, CancellationToken.None), Times.Once);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
     public async Task GIVEN_WrongPassword_WHEN_Login_THEN_ReturnsNull(
         User user,
         string correctPassword,

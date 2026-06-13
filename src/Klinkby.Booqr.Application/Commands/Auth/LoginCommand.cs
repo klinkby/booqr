@@ -14,16 +14,24 @@ public sealed partial class LoginCommand(
 {
     private readonly LoggerMessages _log = new(logger);
 
-    [SuppressMessage("Security", "CA5394:Do not use insecure randomness", Justification = "Not for cryptography")]
-    private static int RandomDelayMs => 50 + Random.Shared.Next(100);
+    // A syntactically valid bcrypt hash (work factor 11, matching EnhancedHashPassword's
+    // default) used to run a verification even when no real hash exists. It never matches
+    // any password; its only purpose is to equalize timing across login outcomes.
+    private const string DummyPasswordHash =
+        "$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
 
     public async Task<OAuthTokenResponse?> Execute(LoginRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
-        await Task.Delay(RandomDelayMs, cancellation); // prevent timing attacks
 
         var userName = query.Email.Trim();
         User? user = await userRepository.GetByEmail(userName, cancellation);
+
+        // Always run bcrypt — for unknown and unconfirmed accounts against a dummy hash —
+        // so response time does not reveal whether an account exists (user enumeration).
+        var passwordHash = user?.PasswordHash ?? DummyPasswordHash;
+        var isPasswordValid = BCryptNet.EnhancedVerify(query.Password, passwordHash);
+
         if (user is null)
         {
             _log.NotFound(userName);
@@ -35,7 +43,7 @@ public sealed partial class LoginCommand(
             _log.NotConfirmed(user.Id);
             return null;
         }
-        var isPasswordValid = BCryptNet.EnhancedVerify(query.Password, user.PasswordHash);
+
         if (!isPasswordValid)
         {
             _log.WrongPassword(user.Email);

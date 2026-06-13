@@ -19,6 +19,7 @@ internal static class StatusCode
         {
             ArgumentException => StatusCodes.Status400BadRequest,
             UnauthorizedAccessException => StatusCodes.Status403Forbidden,
+            InvalidClaimException => StatusCodes.Status401Unauthorized,
             InvalidOperationException => StatusCodes.Status409Conflict,
             MidAirCollisionException => StatusCodes.Status412PreconditionFailed,
             SocketException => StatusCodes.Status502BadGateway,
