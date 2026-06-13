@@ -1,0 +1,9 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "network": {
+      "allowedDomains": ["api.nuget.org", "api.github.com"]
+    }
+  }
+}
