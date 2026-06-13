@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Klinkby.Booqr.Api.Tests;
 
-internal sealed class WebApiFixture : WebApplicationFactory<Program>
+internal sealed class WebApiFixture(string? allowedHosts = null) : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -35,9 +35,15 @@ internal sealed class WebApiFixture : WebApplicationFactory<Program>
         }
         """;
         using MemoryStream stream = new(Encoding.UTF8.GetBytes(jsonConfig));
-        var configuration = new ConfigurationBuilder()
-            .AddJsonStream(stream)
-            .Build();
+        IConfigurationBuilder configurationBuilder = new ConfigurationBuilder()
+            .AddJsonStream(stream);
+        if (allowedHosts is not null)
+        {
+            configurationBuilder.AddInMemoryCollection(
+                new Dictionary<string, string?> { ["AllowedHosts"] = allowedHosts });
+        }
+
+        IConfigurationRoot configuration = configurationBuilder.Build();
         builder.UseConfiguration(configuration);
         builder.ConfigureAppConfiguration(_ => { });
         builder.ConfigureTestServices(_ => { });
