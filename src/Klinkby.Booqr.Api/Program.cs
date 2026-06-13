@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Reflection;
 using Klinkby.Booqr.Api;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HostFiltering;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.OpenApi;
@@ -52,6 +53,20 @@ static void ConfigureServices(WebApplicationBuilder builder, bool isMockServer)
         builder.Services
             .AddSingleton<TimeProvider>(static _ => TimeProvider.System)
             .AddInfrastructure(configuration.GetRequiredSection("Infrastructure"));
+
+        // CreateSlimBuilder omits the default host-filtering startup filter, so wire it
+        // explicitly. The app emits its own authority (e.g. password-reset links) from the
+        // Host header, so constrain it here as defense-in-depth instead of trusting the proxy
+        // alone. An unset or "*" value allows all hosts (dev); production sets the real host.
+        builder.Services.Configure<HostFilteringOptions>(options =>
+        {
+            var allowedHosts = configuration["AllowedHosts"];
+            if (!string.IsNullOrWhiteSpace(allowedHosts) && allowedHosts != "*")
+            {
+                options.AllowedHosts = allowedHosts
+                    .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            }
+        });
         builder.WebHost
             .UseKestrelCore()
             .UseUrls()
@@ -85,6 +100,7 @@ static void ConfigureMiddleware(WebApplication app, bool isMockServer)
         return;
     }
 
+    app.UseHostFiltering();
     app.UseAuthorization();
     app.UseHealthChecks("/api/health");
 

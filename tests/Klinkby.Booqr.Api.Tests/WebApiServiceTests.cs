@@ -48,4 +48,30 @@ public class WebApiServiceTests
         Assert.Equal(MediaTypeNames.Text.Plain, response.Content.Headers.ContentType!.MediaType);
         Assert.Equal("Healthy", await response.Content.ReadAsStringAsync());
     }
+
+    [Fact]
+    public async Task GIVEN_AllowedHost_WHEN_Request_THEN_Succeeds()
+    {
+        await using WebApiFixture fixture = new("www.booqr.dk");
+        HttpClient client = fixture.CreateClient();
+        using HttpRequestMessage request = new(HttpMethod.Get, new Uri("/api/health", UriKind.Relative));
+        request.Headers.Host = "www.booqr.dk";
+
+        HttpResponseMessage response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GIVEN_DisallowedHost_WHEN_Request_THEN_BadRequest()
+    {
+        await using WebApiFixture fixture = new("www.booqr.dk");
+        HttpClient client = fixture.CreateClient();
+        using HttpRequestMessage request = new(HttpMethod.Get, new Uri("/api/health", UriKind.Relative));
+        request.Headers.Host = "evil.example.com";
+
+        HttpResponseMessage response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }
