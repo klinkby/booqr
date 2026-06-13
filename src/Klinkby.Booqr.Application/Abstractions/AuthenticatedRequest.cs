@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
+using Klinkby.Booqr.Core.Exceptions;
 
 namespace Klinkby.Booqr.Application.Abstractions;
 
@@ -28,7 +29,7 @@ public abstract record AuthenticatedRequest
                               ?? User?.FindFirst(SubClaimType)?.Value;
             if (!int.TryParse(nameIdValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var userId))
             {
-                throw new UnauthorizedAccessException("Authenticated user identity claim is missing or invalid.");
+                throw new InvalidClaimException("Authenticated user identity claim is missing or invalid.");
             }
 
             return userId;

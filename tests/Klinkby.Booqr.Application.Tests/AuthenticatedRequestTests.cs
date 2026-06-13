@@ -1,4 +1,5 @@
 using Klinkby.Booqr.Application.Abstractions;
+using Klinkby.Booqr.Core.Exceptions;
 
 namespace Klinkby.Booqr.Application.Tests;
 
@@ -25,28 +26,28 @@ public class AuthenticatedRequestTests
     }
 
     [Fact]
-    public void GIVEN_NoIdentityClaim_WHEN_AuthenticatedUserId_THEN_ThrowsUnauthorized()
+    public void GIVEN_NoIdentityClaim_WHEN_AuthenticatedUserId_THEN_ThrowsInvalidClaim()
     {
         var request = new TestRequest { User = new ClaimsPrincipal(new ClaimsIdentity("Test")) };
 
-        Assert.Throws<UnauthorizedAccessException>(() => request.AuthenticatedUserId);
+        Assert.Throws<InvalidClaimException>(() => request.AuthenticatedUserId);
     }
 
     [Fact]
-    public void GIVEN_NullUser_WHEN_AuthenticatedUserId_THEN_ThrowsUnauthorized()
+    public void GIVEN_NullUser_WHEN_AuthenticatedUserId_THEN_ThrowsInvalidClaim()
     {
         var request = new TestRequest();
 
-        Assert.Throws<UnauthorizedAccessException>(() => request.AuthenticatedUserId);
+        Assert.Throws<InvalidClaimException>(() => request.AuthenticatedUserId);
     }
 
     [Fact]
-    public void GIVEN_NonNumericClaim_WHEN_AuthenticatedUserId_THEN_ThrowsUnauthorized()
+    public void GIVEN_NonNumericClaim_WHEN_AuthenticatedUserId_THEN_ThrowsInvalidClaim()
     {
         var identity = new ClaimsIdentity("Test");
         identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, "not-a-number"));
         var request = new TestRequest { User = new ClaimsPrincipal(identity) };
 
-        Assert.Throws<UnauthorizedAccessException>(() => request.AuthenticatedUserId);
+        Assert.Throws<InvalidClaimException>(() => request.AuthenticatedUserId);
     }
 }
