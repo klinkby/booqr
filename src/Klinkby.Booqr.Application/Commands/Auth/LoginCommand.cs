@@ -20,13 +20,9 @@ public sealed partial class LoginCommand(
     private const string DummyPasswordHash =
         "$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
 
-    [SuppressMessage("Security", "CA5394:Do not use insecure randomness", Justification = "Not for cryptography")]
-    private static int RandomDelayMs => 50 + Random.Shared.Next(100);
-
     public async Task<OAuthTokenResponse?> Execute(LoginRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
-        await Task.Delay(RandomDelayMs, cancellation); // add jitter
 
         var userName = query.Email.Trim();
         User? user = await userRepository.GetByEmail(userName, cancellation);
