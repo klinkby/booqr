@@ -37,7 +37,7 @@
     </PropertyGroup>
 
     <ItemGroup Label="Friend test proj">
-      <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.5" />
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.8" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
         <InternalsVisibleTo Include="$(AssemblyName).Tests" />
     </ItemGroup>
