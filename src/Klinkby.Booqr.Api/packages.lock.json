@@ -34,9 +34,9 @@
       },
       "Microsoft.Extensions.ApiDescription.Server": {
         "type": "Direct",
-        "requested": "[10.0.5, )",
-        "resolved": "10.0.5",
-        "contentHash": "Lx8zu/RWUAuPuDfM4S3AeXGNu50G/oDMw2MIWRsZPm+giT0iChOGln6ezM5CEuI7SS2IKOPmAp+ry4pMBv/r/w=="
+        "requested": "[10.0.8, )",
+        "resolved": "10.0.8",
+        "contentHash": "fikrKwWqzn/72glL9bTNnuberYPrKldDdgyR1cnW9gbfUXN4oG4eg+uXkTUXuIPcEjwCeOTTTja0VpsHf50tWA=="
       },
       "Microsoft.NET.ILLink.Tasks": {
         "type": "Direct",
@@ -79,18 +79,18 @@
       },
       "BCrypt.Net-Next": {
         "type": "Transitive",
-        "resolved": "4.1.0",
-        "contentHash": "5YT3DKllmtkyW68PjURu/V1TOe4MKiByKwsRNVcfYE1S5KuFTeozdmKzyNzolKiQF391OXCaQtINvYT3j1ERzQ=="
+        "resolved": "4.2.0",
+        "contentHash": "gwLD2KfCuwQesP17aVh4h6lpiMPEVt5Lbpndo0ej903hNUUTtyxt3ARdDjmuydBRTAUICc7OVKVbaOvc6SQYXA=="
       },
       "Dapper": {
         "type": "Transitive",
-        "resolved": "2.1.72",
-        "contentHash": "ns4mGqQd9a/MhP8m6w556vVlZIa0/MfUu03zrxjZC/jlr1uVCsUac8bkdB+Fs98Llbd56rRSo1eZH5VVmeGZyw=="
+        "resolved": "2.1.79",
+        "contentHash": "8YijbzgTfmqmQOnVNorYM6K++pxqnW3nJ4aC1sRHzxUA2CcuoJ9gsTem3kgBnPRMc38zZHl4Esb6hAezXIEEuw=="
       },
       "Dapper.AOT": {
         "type": "Transitive",
-        "resolved": "1.0.48",
-        "contentHash": "rsLM3yKr4g+YKKox9lhc8D+kz67P7Q9+xdyn1LmCsoYr1kYpJSm+Nt6slo5UrfUrcTiGJ57zUlyO8XUdV7G7iA=="
+        "resolved": "1.0.52",
+        "contentHash": "2ZmljAW3tJ5wJZGva5ba2Tz9LMcvWMMl8O/NtpZ4GEBcnNbxCOMYFmhtbWnUBNADJLkDZp0lg5yTlu5Pg4i7xQ=="
       },
       "Microsoft.Extensions.AmbientMetadata.Application": {
         "type": "Transitive",
@@ -258,7 +258,7 @@
       "klinkby.booqr.application": {
         "type": "Project",
         "dependencies": {
-          "BCrypt.Net-Next": "[4.1.0, )",
+          "BCrypt.Net-Next": "[4.2.0, )",
           "Klinkby.Booqr.Core": "[1.0.0, )",
           "System.IdentityModel.Tokens.Jwt": "[8.17.0, )"
         }
@@ -269,8 +269,8 @@
       "klinkby.booqr.infrastructure": {
         "type": "Project",
         "dependencies": {
-          "Dapper": "[2.1.72, )",
-          "Dapper.AOT": "[1.0.48, )",
+          "Dapper": "[2.1.79, )",
+          "Dapper.AOT": "[1.0.52, )",
           "Klinkby.Booqr.Core": "[1.0.0, )",
           "Microsoft.Extensions.Http.Resilience": "[10.4.0, )",
           "Npgsql.DependencyInjection": "[10.0.2, )"
