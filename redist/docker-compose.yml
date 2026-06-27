@@ -102,7 +102,8 @@ services:
     ports:
       - '80:8080/tcp'
       - '443:8443/tcp'
-    image: 'haproxy:3.2-alpine3.22'
+      - '443:8443/udp'
+    image: 'haproxytech/haproxy-alpine:3.4.1'
     volumes:
       - './web-gateway/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro'
       - '/root/certs.pem:/etc/ssl/certs/certs.pem:ro'
