@@ -20,7 +20,7 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
     internal IServiceProvider Services => _services!;
 
     private PostgreSqlContainer SqlContainer { get; } =
-        new PostgreSqlBuilder("postgres:18-alpine3.22")
+        new PostgreSqlBuilder("postgres:18-alpine3.23")
         .Build();
 
     async ValueTask IAsyncLifetime.InitializeAsync()

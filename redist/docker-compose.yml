@@ -64,7 +64,7 @@ services:
           memory: 32M
           cpus: '0.1'
   postgres:
-    image: 'postgres:18-alpine3.22'
+    image: 'postgres:18-alpine3.23'
     environment:
       - INSTANCE_UNIX_SOCKET=/var/run/postgresql
       - 'POSTGRES_DB=${POSTGRES_DB}'
