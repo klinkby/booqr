@@ -10,21 +10,15 @@
     </ItemGroup>
 
     <ItemGroup Label="Nuget references">
-        <PackageReference Include="BCrypt.Net-Next" Version="4.2.0"/>
-        <PackageReference Include="Chorn.EmbeddedResourceAccessGenerator" Version="1.1.5">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
-        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.5" />
-        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.5" />
-        <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.5" />
-        <PackageReference Include="ServiceScan.SourceGenerator" Version="3.1.4">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.17.0" />
+        <PackageReference Include="BCrypt.Net-Next"/>
+        <PackageReference Include="Chorn.EmbeddedResourceAccessGenerator" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+        <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+        <PackageReference Include="ServiceScan.SourceGenerator" PrivateAssets="all"/>
+        <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     </ItemGroup>
 
     <ItemGroup Label="Friend test proj">
@@ -32,7 +26,7 @@
     </ItemGroup>
 
     <ItemGroup Label="Resources">
-      <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.9" />
+      <PackageReference Include="Microsoft.Extensions.Configuration" />
         <EmbeddedResource Update="Properties\StringResources.resx">
             <Generator>ResXFileCodeGenerator</Generator>
             <LastGenOutput>StringResources.Designer.cs</LastGenOutput>

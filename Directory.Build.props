@@ -1,5 +1,5 @@
 ﻿<Project>
-    <Sdk Name="DotNet.ReproducibleBuilds.Isolated" Version="1.2.39"/>
+    <Sdk Name="DotNet.ReproducibleBuilds.Isolated" Version="2.0.5"/>
 
     <PropertyGroup Label="Project settings">
         <TargetFramework>net10.0</TargetFramework>
@@ -25,14 +25,8 @@
     </PropertyGroup>
 
     <ItemGroup Label="Global package references">
-        <PackageReference Include="DotNet.ReproducibleBuilds" Version="2.0.5">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" Version="1.0.10">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
+        <PackageReference Include="DotNet.ReproducibleBuilds" PrivateAssets="all" />
+        <PackageReference Include="SmartAnalyzers.ExceptionAnalyzer" PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup Label="AGPL3 licensed">

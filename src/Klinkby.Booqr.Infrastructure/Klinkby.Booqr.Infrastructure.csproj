@@ -9,21 +9,15 @@
     </ItemGroup>
 
     <ItemGroup Label="Nuget references">
-        <PackageReference Include="Dapper" Version="2.1.79" />
-        <PackageReference Include="Dapper.AOT" Version="1.0.52" />
-        <PackageReference Include="Klinkby.Booqr.Infrastructure.Generators" Version="1.1.3">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
-        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.4.0" />
-        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.5" />
-        <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.5" />
-        <PackageReference Include="Npgsql.DependencyInjection" Version="10.0.2" />
-        <PackageReference Include="ServiceScan.SourceGenerator" Version="3.1.4">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
+        <PackageReference Include="Dapper" />
+        <PackageReference Include="Dapper.AOT" />
+        <PackageReference Include="Klinkby.Booqr.Infrastructure.Generators" PrivateAssets="all"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+        <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+        <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+        <PackageReference Include="Npgsql.DependencyInjection" />
+        <PackageReference Include="ServiceScan.SourceGenerator" PrivateAssets="all"/>
     </ItemGroup>
 
     <PropertyGroup Label="Dapper.AOT">
@@ -37,8 +31,8 @@
     </PropertyGroup>
 
     <ItemGroup Label="Friend test proj">
-      <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.5" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.9" />
+      <PackageReference Include="Microsoft.Extensions.Configuration" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
         <InternalsVisibleTo Include="$(AssemblyName).Tests" />
     </ItemGroup>
 
