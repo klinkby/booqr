@@ -50,6 +50,30 @@ public class AddVacancyCommandTests
 
     [Theory]
     [ApplicationAutoData]
+    public async Task GIVEN_AdjacentEventAtOtherLocation_WHEN_AddCalendarEvent_THEN_CreatesNewVacancy(CalendarEvent adjacent)
+    {
+        // Arrange - existing slot at location 2 ends exactly when the request starts
+        adjacent = adjacent with
+        {
+            Id = 501, EmployeeId = _query.EmployeeId ?? 0, LocationId = 2, BookingId = null,
+            StartTime = _query.StartTime.AddHours(-1), EndTime = _query.StartTime
+        };
+        List<CalendarEvent> events = [adjacent];
+        _repoMock.Setup(x => x.Add(It.IsAny<CalendarEvent>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(777);
+        var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object,
+            _activityRecorder.Object, NullLogger<AddVacancyCommand>.Instance);
+
+        // Act
+        var result = await sut.AddCalendarEvent(_query, events, _query.EmployeeId ?? 0, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(777, result);
+        _repoMock.Verify(x => x.Add(It.IsAny<CalendarEvent>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
     public async Task GIVEN_CompletelyCovered_WHEN_AddCalendarEvent_THEN_ReturnsExistingId(CalendarEvent coveringEvent)
     {
         // Arrange
