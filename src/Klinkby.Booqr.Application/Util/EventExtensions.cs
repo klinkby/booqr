@@ -24,7 +24,7 @@ internal static class EventExtensions
     public static bool Contains<TEvent1, TEvent2>(this TEvent1 current, TEvent2 other)
         where TEvent1 : notnull, IEvent
         where TEvent2 : notnull, IEvent =>
-        current.StartTime >= other.StartTime && current.StartTime <= other.EndTime || current.EndTime >= other.StartTime && current.EndTime <= other.EndTime;
+        current.StartTime < other.EndTime && other.StartTime < current.EndTime;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool CompletelyWithin<TEvent1, TEvent2>(this TEvent1 current, TEvent2 other)
