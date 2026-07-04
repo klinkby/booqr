@@ -68,7 +68,7 @@ For commands that accept FromTime/ToTime and use AutoData (e.g., GetVacancyColle
 
 - Null request -> ArgumentNullException.
 - Not found -> return null/false (per command) and verify no side effects.
-- Conflicts/business guards -> throws specific exception (e.g., InvalidOperationException), and verify no unintended calls.
+- Conflicts/business guards -> returns `Result<T>.Fault` with the matching `Problem` (e.g., `Problem.Conflict`), and verify no unintended calls.
 
 ## 9) Mapping and Side-Effects
 

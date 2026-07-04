@@ -15,7 +15,7 @@ public class DeleteVacancyCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_VacancyHasBooking_WHEN_Execute_THEN_Throws_And_DoesNotDelete(DateTime t0, CalendarEvent autoVacancy)
+    public async Task GIVEN_VacancyHasBooking_WHEN_Execute_THEN_ReturnsConflictFault_And_DoesNotDelete(DateTime t0, CalendarEvent autoVacancy)
     {
         // Arrange
         var request = new AuthenticatedByIdRequest(123) { User = CreateUser() };
@@ -25,9 +25,14 @@ public class DeleteVacancyCommandTests
 
         DeleteVacancyCommand sut = CreateSut();
 
-        // Act + Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => sut.Execute(request));
+        // Act
+        Result<bool> result = await sut.Execute(request);
+
+        // Assert
+        var fault = Assert.IsType<Result<bool>.Fault>(result);
+        Assert.Equal(Problem.Conflict.Type, fault.Problem.Type);
         _calendar.Verify(x => x.Delete(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        _activityRecorder.Verify(x => x.Delete(It.IsAny<ActivityQuery<CalendarEvent>>()), Times.Never);
     }
 
     [Fact]
