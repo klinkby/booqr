@@ -61,9 +61,10 @@ public class ServiceCommandsTests
         GetServiceByIdCommand command = new(_mockServiceRepo.Object);
         ByIdRequest request = new() { Id = ExpectedId };
 
-        Service? result = await command.Execute(request);
+        var result = await command.Execute(request);
 
-        Assert.Equal(service, result);
+        var success = Assert.IsType<Result<Service>.Success>(result);
+        Assert.Equal(service, success.Value);
         _mockServiceRepo.Verify(x => x.GetById(ExpectedId, CancellationToken.None), Times.Once);
     }
 
@@ -79,9 +80,7 @@ public class ServiceCommandsTests
         GetServiceCollectionCommand command = new(_mockServiceRepo.Object);
         PageQuery request = new();
 
-        IAsyncEnumerable<Service> result = command.Execute(request);
-
-        Service[] items = await result.ToArrayAsync();
+        var items = await command.Execute(request);
 
         Assert.Equal(expected, items);
         _mockServiceRepo.Verify(

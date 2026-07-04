@@ -12,29 +12,29 @@ public sealed record GetMyBookingsRequest(
 public sealed partial class GetMyBookingsCommand(
     IMyBookingRepository myBookingRepository,
     TimeProvider timeProvider,
-    ILogger<GetMyBookingsCommand> logger) : ICommand<GetMyBookingsRequest, IAsyncEnumerable<MyBooking>>
+    ILogger<GetMyBookingsCommand> logger) : ICommand<GetMyBookingsRequest, Task<Result<List<MyBooking>>>>
 {
     private readonly LoggerMessages _log = new(logger);
 
-    public IAsyncEnumerable<MyBooking> Execute(GetMyBookingsRequest query, CancellationToken cancellation = default)
+    public async Task<Result<List<MyBooking>>> Execute(GetMyBookingsRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
-        ValidateUserAccess(query);
 
-        return myBookingRepository.GetRangeByUserId(
-            query.Id,
-            query.FromTime ?? timeProvider.GetUtcNow().UtcDateTime.AddDays(-1),
-            query.ToTime ?? DateTime.MaxValue,
-            query,
-            cancellation);
-    }
+        if (!query.IsOwnerOrEmployee(query.Id))
+        {
+            _log.CannotInspectBooking(query.AuthenticatedUserId, query.Id);
+            return Problem.Forbidden;
+        }
 
-    private void ValidateUserAccess(GetMyBookingsRequest query)
-    {
-        if (query.IsOwnerOrEmployee(query.Id)) return;
+        List<MyBooking> bookings = await myBookingRepository.GetRangeByUserId(
+                query.Id,
+                query.FromTime ?? timeProvider.GetUtcNow().UtcDateTime.AddDays(-1),
+                query.ToTime ?? DateTime.MaxValue,
+                query,
+                cancellation)
+            .ToListAsync(cancellation);
 
-        _log.CannotInspectBooking(query.AuthenticatedUserId, query.Id);
-        throw new UnauthorizedAccessException("Cannot list another customer's bookings");
+        return bookings;
     }
 
     [ExcludeFromCodeCoverage]

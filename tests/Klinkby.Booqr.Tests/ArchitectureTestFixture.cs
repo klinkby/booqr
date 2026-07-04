@@ -3,6 +3,7 @@ using ArchUnitNET.Domain;
 using ArchUnitNET.Fluent.Syntax.Elements.Types;
 using ArchUnitNET.Fluent.Syntax.Elements.Types.Classes;
 using ArchUnitNET.Loader;
+using Klinkby.Booqr.Application.Abstractions;
 using static ArchUnitNET.Fluent.ArchRuleDefinition;
 using Assembly = System.Reflection.Assembly;
 
@@ -56,6 +57,7 @@ public sealed class ArchitectureTestFixture
         .Are(ApplicationTypes)
         .And()
         .HaveNameEndingWith("Request")
+        .And().AreNot([typeof(AuthenticatedRequest)]) // AuthenticatedRequestEndPointFilter sets the user
         .As("Request types");
 }
 

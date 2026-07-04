@@ -24,8 +24,7 @@ public class GetUserCollectionCommandTests
         var sut = new GetUserCollectionCommand(_users.Object);
 
         // Act
-        IAsyncEnumerable<User> result = sut.Execute(request);
-        List<User> list = await result.ToListAsync();
+        var list = await sut.Execute(request);
 
         // Assert
         Assert.Equal(expected.Length, list.Count);

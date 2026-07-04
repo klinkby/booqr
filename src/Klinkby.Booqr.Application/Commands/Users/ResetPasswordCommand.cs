@@ -25,12 +25,12 @@ public sealed partial class ResetPasswordCommand(
     ChannelWriter<Message> channelWriter,
     IOptions<PasswordSettings> passwordSettings,
     ILogger<ResetPasswordCommand> logger
-) : ICommand<ResetPasswordRequest>
+) : ICommand<ResetPasswordRequest, Task<Result<bool>>>
 {
     private readonly LoggerMessages _log = new(logger);
     private readonly PasswordSettings _settings = passwordSettings.Value;
 
-    public async Task Execute(ResetPasswordRequest query, CancellationToken cancellation = default)
+    public async Task<Result<bool>> Execute(ResetPasswordRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
@@ -44,8 +44,11 @@ public sealed partial class ResetPasswordCommand(
         }
         else
         {
+            // silently ignore that user was not found
             _log.UnknownUser(query.Email);
         }
+
+        return true;
     }
 
     private Message ComposeMessage(User user, string authority) =>

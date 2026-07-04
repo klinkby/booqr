@@ -103,11 +103,11 @@ public sealed record AddVacancyRequest(
 }
 
 public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITransaction transaction, IActivityRecorder activityRecorder, ILogger<AddVacancyCommand> logger)
-    : ICommand<AddVacancyRequest, Task<int>>
+    : ICommand<AddVacancyRequest, Task<Result<int>>>
 {
     private readonly LoggerMessages _log = new(logger);
 
-    public async Task<int> Execute(AddVacancyRequest query, CancellationToken cancellation = default)
+    public async Task<Result<int>> Execute(AddVacancyRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
         var userId = query.AuthenticatedUserId;
@@ -117,47 +117,54 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
             query = query with { EmployeeId = userId };
         }
 
-        int newId;
+        Result<int> result;
         await transaction.Begin(IsolationLevel.RepeatableRead, cancellation);
         try
         {
-            newId = await AddVacancyCore(query, userId, cancellation);
+            result = await AddVacancyCore(query, userId, cancellation);
         }
         catch
         {
             await transaction.Rollback(cancellation);
             throw;
         }
-        await transaction.Commit(cancellation);
-        activityRecorder.Add<CalendarEvent>(new(query.AuthenticatedUserId, newId));
-        return newId;
+
+        if (result is Result<int>.Success success)
+        {
+            await transaction.Commit(cancellation);
+            activityRecorder.Add<CalendarEvent>(new(query.AuthenticatedUserId, success.Value));
+        }
+        else
+        {
+            await transaction.Rollback(cancellation);
+        }
+        return result;
     }
 
-    async internal Task<int> AddVacancyCore(AddVacancyRequest query, int creatorUserId, CancellationToken cancellation)
+    internal async Task<Result<int>> AddVacancyCore(AddVacancyRequest query, int creatorUserId, CancellationToken cancellation)
     {
         List<CalendarEvent> events = await calendar
             .GetRange(query.StartTime, query.EndTime, new PageQuery(), true, true, cancellation)
             .Where(e => e.EmployeeId == query.EmployeeId)
             .ToListAsync(cancellation);
 
-        var newId = await AddCalendarEvent(query, events, creatorUserId, cancellation);
-        return newId;
+        return await AddCalendarEvent(query, events, creatorUserId, cancellation);
     }
 
-    async internal Task<int> AddCalendarEvent(AddVacancyRequest query, List<CalendarEvent> events, int creatorUserId,
+    async internal Task<Result<int>> AddCalendarEvent(AddVacancyRequest query, List<CalendarEvent> events, int creatorUserId,
         CancellationToken cancellation)
     {
         if (TryGetEventWithBooking(events, out CalendarEvent? bookingConflict))
         {
             _log.CannotAddVacancyWithBookingInIt(creatorUserId, query.EmployeeId, query.StartTime, query.EndTime, bookingConflict.Id);
-            throw new InvalidOperationException("There is already a booking within requested time");
+            return Problem.Conflict with { Detail = "There is already a booking within requested time" };
         }
 
         if (query.TryGetEventWithConflictingLocation(events, out CalendarEvent? locationConflict))
         {
             _log.CannotAddVacancyWithConflictingLocation(creatorUserId, query.EmployeeId, query.StartTime, query.EndTime,
                 locationConflict.Id);
-            throw new InvalidOperationException("There is already a vacancy at a different location");
+            return Problem.Conflict with { Detail = "There is already a vacancy within requested time" };
         }
 
         // now consider only events from this location

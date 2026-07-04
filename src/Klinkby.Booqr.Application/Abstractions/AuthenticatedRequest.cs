@@ -6,16 +6,38 @@ using Klinkby.Booqr.Core.Exceptions;
 
 namespace Klinkby.Booqr.Application.Abstractions;
 
+
+/// <summary>
+///     Middleware <see cref="AuthenticatedRequestEndPointFilter" /> inject User into request.
+/// </summary>
+public interface IAuthenticatedRequest
+{
+    void SetUser(ClaimsPrincipal user);
+}
+
 /// <summary>
 ///     Base class for authenticated requests with signed-in user information.
 /// </summary>
 /// <remarks>User property MUST be set POST validation</remarks>
-public abstract record AuthenticatedRequest
+public abstract record AuthenticatedRequest : IAuthenticatedRequest
 {
     /// <summary>JWT registered claim name for the subject (user id), per RFC 7519.</summary>
     private const string SubClaimType = "sub";
+    private static readonly ClaimsPrincipal DefaultClaimsPrincipal = new(new ClaimsIdentity());
+    private ClaimsPrincipal _user = DefaultClaimsPrincipal;
 
-    [JsonIgnore] public ClaimsPrincipal? User { get; init; }
+    [JsonIgnore]
+    public ClaimsPrincipal User
+    {
+        get => _user;
+        init => _user = value;
+    }
+
+    [SuppressMessage("Design", "CA1033:Interface methods should be callable by child types", Justification = "Callable by AuthenticatedRequestEndPointFilter only")]
+    void IAuthenticatedRequest.SetUser(ClaimsPrincipal user)
+    {
+        _user = user;
+    }
 
     [JsonIgnore]
     public int AuthenticatedUserId
@@ -45,13 +67,4 @@ public abstract record AuthenticatedRequest
                    user.IsInRole(UserRole.Admin) ||
                    ownerUserId == AuthenticatedUserId);
     }
-    //
-    // [MemberNotNullWhen(true, nameof(User))]
-    // public bool IsOwnerOrAdmin(int ownerUserId)
-    // {
-    //     ClaimsPrincipal? user = User;
-    //     return user is not null
-    //            && (user.IsInRole(UserRole.Admin) ||
-    //                ownerUserId == AuthenticatedUserId);
-    // }
 }

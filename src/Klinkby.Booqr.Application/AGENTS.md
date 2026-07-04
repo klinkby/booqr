@@ -51,13 +51,13 @@ public sealed class DeleteBookingCommand(
     IBookingRepository bookings,
     ICalendarRepository calendar,
     ITransaction transaction,
-    ILogger<DeleteBookingCommand> logger) : ICommand
+    ILogger<DeleteBookingCommand> logger) : ICommand<DeleteBookingRequest, Task<Result<bool>>>
 {
-    public async Task<bool> Execute(DeleteBookingRequest request, CancellationToken ct)
+    public async Task<Result<bool>> Execute(DeleteBookingRequest request, CancellationToken ct)
     {
         // 1. Authorize
         if (!IsAuthorized(request.User, booking.CustomerId))
-            throw new UnauthorizedAccessException();
+            return Problem.Forbidden with { Detail = "You do not have access to delete this booking" };
 
         // 2. Begin transaction
         await transaction.Begin(IsolationLevel.ReadCommitted, ct);
@@ -83,11 +83,30 @@ public sealed class DeleteBookingCommand(
 }
 ```
 
+### Result/Problem Pattern
+
+Commands report expected failures (not found, forbidden, unauthorized, validation, conflict) as data, not exceptions. `Execute` returns `Task<Result<T>>` (or `Task<Result<bool>>` for delete/update) instead of throwing.
+
+- **`Result<T>`** (`Result.cs`) is a closed discriminated union: `Result<T>.Success(T Value)` or `Result<T>.Fault(Problem Problem)`. `Result` (non-generic) is the `bool`-less equivalent used where there's no payload.
+- **`Problem`** (`Problem.cs`) is an RFC 7807-shaped record (`Type`, `Title`, `HttpStatusCode`, `Detail`). Reuse the static instances (`Problem.NotFound`, `.ValidationFailed`, `.Unauthorized`, `.Forbidden`, `.Conflict`, `.MidAirCollision`) and customize with `with { Detail = "..." }`.
+- **Implicit conversions** remove boilerplate: `return someValue;` becomes `Success`, and `return Problem.NotFound with { ... };` becomes `Fault` — no need to construct `new Result<T>.Success(...)` explicitly.
+- **API layer mapping**: `CommandExtensions` (`Klinkby.Booqr.Api/Util/CommandExtensions.cs`) pattern-matches `Result<T>` and calls `Problem.ToProblemHttpResult()` on `Fault`, turning it into a `ProblemHttpResult` via `TypedResults.Problem`. Endpoints never see raw exceptions for these cases.
+- Prefer returning a `Problem` over throwing whenever the failure is an expected outcome of the use case (not found, access denied, validation failed, optimistic-concurrency conflict, business-rule violation the caller can act on).
+
 ### Authorization Patterns
 - **Customers**: Only access their own resources (`user.Id == targetUserId`)
 - **Employees/Admins**: Access any resources
 - Check authorization BEFORE calling repositories
-- Throw `UnauthorizedAccessException` on access denied
+- Return `Problem.Forbidden` (already-authenticated user acting on a resource they don't own) or `Problem.Unauthorized` (failed/missing authentication) instead of throwing — see `Result/Problem Pattern` above
+
+### When to Still Throw
+
+Exceptions are reserved for truly exceptional, non-recoverable conditions the caller isn't expected to handle as a business outcome:
+- Programming/contract violations: `ArgumentNullException.ThrowIfNull(query)`, missing/invalid auth claims (`InvalidClaimException`)
+- Invariant violations that indicate a bug: `UnreachableException` for exhaustive switches, `InvalidOperationException` when a just-created entity can't be re-read
+- Anything genuinely unrecoverable at the use-case level (let it propagate to `StatusCode.FromException` in the API layer for a 5xx/502/504 mapping)
+
+Do not throw for conditions a caller can reasonably branch on (not found, forbidden, validation, conflict) — model those as a `Problem` instead.
 
 ### Background Services
 - **EmailWorker**: Processes email queue via channels
@@ -104,6 +123,7 @@ See `tests/Klinkby.Booqr.Application.Tests/Commands/AGENTS.md` for detailed test
 - Accept `DateTime t0` from `[ApplicationAutoData]` for deterministic time
 - Verify transaction lifecycle: `Begin` → `Commit` on success, `Rollback` on exception
 - Assert repository calls are skipped (`Times.Never`) when unauthorized
+- Assert on the `Result<T>` shape (`.IsSuccess`, `Result<T>.Fault { Problem: ... }`) rather than expecting exceptions for expected-failure paths
 
 ## Key Dependencies
 

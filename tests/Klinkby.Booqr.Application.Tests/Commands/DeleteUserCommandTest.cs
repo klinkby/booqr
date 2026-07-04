@@ -28,7 +28,7 @@ public class DeleteUserCommandTest
         // Assert
         _users.Verify(x => x.Delete(req.Id, It.IsAny<CancellationToken>()),
             expected ? Times.Once : Times.Never);
-        _activityRecorder.Verify(x => x.Delete<User>(
+        _activityRecorder.Verify(x => x.Delete(
                 It.Is<ActivityQuery<User>>(u => u.EntityId == req.Id)),
             expected ? Times.Once : Times.Never);
     }

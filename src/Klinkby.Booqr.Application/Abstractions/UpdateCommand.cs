@@ -15,7 +15,7 @@ public abstract partial class UpdateCommand<TRequest, TItem>(
     IRepository<TItem, int> repository,
     IActivityRecorder activityRecorder,
     ILogger logger)
-    : ICommand<TRequest>
+    : ICommand<TRequest, Task<Result<bool>>>
     where TRequest : AuthenticatedRequest, IId
     where TItem : notnull
 {
@@ -28,19 +28,22 @@ public abstract partial class UpdateCommand<TRequest, TItem>(
     /// <param name="cancellation">A token to monitor for cancellation requests.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
     /// <exception cref="MidAirCollisionException">Thrown when the entity was modified by another operation (optimistic concurrency failure).</exception>
-    public virtual async Task Execute(TRequest query, CancellationToken cancellation = default)
+    public virtual async Task<Result<bool>> Execute(TRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
         TItem item = Map(query);
         _log.UpdateItem(query.AuthenticatedUserId, item.GetType().Name, query.Id);
+
         var updated = await repository.Update(item, cancellation);
         if (!updated)
         {
-            throw new MidAirCollisionException($"{item.GetType().Name} {query.Id} was already updated.");
+            return Problem.MidAirCollision with { Detail = $"{item.GetType().Name} {query.Id} was not found or already updated." };
         }
 
         activityRecorder.Update<TItem>(new(query.AuthenticatedUserId, query.Id));
+
+        return new Result<bool>.Success(updated);
     }
 
     /// <summary>

@@ -5,19 +5,19 @@ public sealed record RefreshRequest : RefreshTokenDto;
 public sealed class RefreshCommand(
     IUserRepository userRepository,
     IOAuth oauth,
-    ITransaction transaction) : ICommand<RefreshRequest, Task<OAuthTokenResponse?>>
+    ITransaction transaction) : ICommand<RefreshRequest, Task<Result<OAuthTokenResponse>>>
 {
-    public async Task<OAuthTokenResponse?> Execute(RefreshRequest query, CancellationToken cancellation = default)
+    public async Task<Result<OAuthTokenResponse>> Execute(RefreshRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        if (string.IsNullOrEmpty(query.RefreshToken)) return null;
+        if (string.IsNullOrEmpty(query.RefreshToken)) return Problem.Unauthorized;
 
         var userId = await oauth.GetUserIdFromValidRefreshToken(query.RefreshToken, cancellation);
-        if (userId is null) return null;
+        if (userId is null) return Problem.Unauthorized;
 
         User? user = await userRepository.GetById(userId.Value, cancellation);
-        if (user is null) return null;
+        if (user is null) return Problem.Unauthorized;
 
         await transaction.Begin(cancellation);
         try

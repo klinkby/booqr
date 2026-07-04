@@ -7,11 +7,11 @@ public sealed record GetBookingDetailsRequest(
 public sealed partial class GetBookingDetailsCommand(
     IBookingDetailsRepository bookingsDetails,
     ILogger<GetBookingDetailsCommand> logger
-) : ICommand<GetBookingDetailsRequest, IAsyncEnumerable<BookingDetails>>
+) : ICommand<GetBookingDetailsRequest, ValueTask<List<BookingDetails>>>
 {
     private readonly LoggerMessages _logger = new(logger);
 
-    public IAsyncEnumerable<BookingDetails> Execute(GetBookingDetailsRequest query,
+    public async ValueTask<List<BookingDetails>>Execute(GetBookingDetailsRequest query,
         CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -21,7 +21,8 @@ public sealed partial class GetBookingDetailsCommand(
 
         _logger.GetBookingDetails(fromTime, toTime);
 
-        return bookingsDetails.GetRange(fromTime, toTime, new PageQuery(), cancellation);
+        return await bookingsDetails.GetRange(fromTime, toTime, new PageQuery(), cancellation)
+            .ToListAsync(cancellation);
     }
 
     [ExcludeFromCodeCoverage]

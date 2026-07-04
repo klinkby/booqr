@@ -8,42 +8,33 @@ public sealed record GetMyBookingByIdRequest(
 
 public sealed partial class GetMyBookingByIdCommand(
     IMyBookingRepository myBookingRepository,
-    ILogger<GetMyBookingByIdCommand> logger) : ICommand<GetMyBookingByIdRequest, Task<MyBooking?>>
+    ILogger<GetMyBookingByIdCommand> logger) : ICommand<GetMyBookingByIdRequest, Task<Result<MyBooking>>>
 {
     private readonly LoggerMessages _log = new(logger);
 
-    public async Task<MyBooking?> Execute(GetMyBookingByIdRequest query, CancellationToken cancellation = default)
+    public async Task<Result<MyBooking>> Execute(GetMyBookingByIdRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        ValidateUserAccess(query);
+        if (!query.IsOwnerOrEmployee(query.Id))
+        {
+            _log.CannotInspectBooking(query.AuthenticatedUserId, query.Id);
+            return Problem.Forbidden with { Detail = "You cannot inspect another customer's booking" };
+        }
+
         MyBooking? myBooking = await myBookingRepository.GetById(query.BookingId, cancellation);
-        if (myBooking is null) return null;
-        ValidateUserAccess(query, myBooking);
+
+        if (myBooking is null)
+            return Problem.NotFound with { Detail = $"Booking {query.BookingId} was not found"};
+
+        if (!query.IsOwnerOrEmployee(myBooking.CustomerId))
+        {
+            _log.CannotInspectBooking(query.AuthenticatedUserId, myBooking.CustomerId);
+            return Problem.Forbidden with { Detail = "You cannot inspect another customer's booking" };
+        }
 
         return myBooking;
     }
-
-    private void ValidateUserAccess(GetMyBookingByIdRequest query, MyBooking myBooking)
-    {
-        if (query.IsOwnerOrEmployee(myBooking.CustomerId)) return;
-        FailUnauthorized(query);
-    }
-
-
-    private void ValidateUserAccess(GetMyBookingByIdRequest query)
-    {
-        if (query.IsOwnerOrEmployee(query.Id)) return;
-
-        FailUnauthorized(query);
-    }
-
-    private void FailUnauthorized(GetMyBookingByIdRequest query)
-    {
-        _log.CannotInspectBooking(query.AuthenticatedUserId, query.Id);
-        throw new UnauthorizedAccessException("Cannot list another customer's bookings");
-    }
-
 
     [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)

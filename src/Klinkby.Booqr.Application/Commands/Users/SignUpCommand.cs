@@ -27,12 +27,12 @@ public sealed partial class SignUpCommand(
     IActivityRecorder activityRecorder,
     IOptions<PasswordSettings> passwordSettings,
     ILogger<SignUpCommand> logger
-) : ICommand<SignUpRequest, Task<int>>
+) : ICommand<SignUpRequest, Task<Result<int>>>
 {
     private readonly LoggerMessages _log = new(logger);
     private readonly PasswordSettings _settings = passwordSettings.Value;
 
-    public async Task<int> Execute(SignUpRequest query, CancellationToken cancellation = default)
+    public async Task<Result<int>> Execute(SignUpRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 

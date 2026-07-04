@@ -68,9 +68,10 @@ public class LocationCommandsTests
         GetLocationByIdCommand command = new(_mockRepo.Object);
         ByIdRequest request = new() { Id = ExpectedId };
 
-        Location? result = await command.Execute(request);
+        var result = await command.Execute(request);
 
-        Assert.Equal(location, result);
+        var success = Assert.IsType<Result<Location>.Success>(result);
+        Assert.Equal(location, success.Value);
         _mockRepo.Verify(x => x.GetById(ExpectedId, CancellationToken.None), Times.Once);
     }
 
@@ -86,9 +87,7 @@ public class LocationCommandsTests
         GetLocationCollectionCommand command = new(_mockRepo.Object);
         PageQuery request = new();
 
-        IAsyncEnumerable<Location> result = command.Execute(request);
-
-        Location[] items = await result.ToArrayAsync();
+        var items = await command.Execute(request);
 
         Assert.Equal(expected, items);
         _mockRepo.Verify(

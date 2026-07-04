@@ -13,7 +13,7 @@ public abstract partial class AddCommand<TRequest, TItem>(
     IRepository<TItem, int> repository,
     IActivityRecorder activityRecorder,
     ILogger logger)
-    : ICommand<TRequest, Task<int>>
+    : ICommand<TRequest, Task<Result<int>>>
     where TRequest : AuthenticatedRequest
     where TItem : notnull
 {
@@ -25,7 +25,7 @@ public abstract partial class AddCommand<TRequest, TItem>(
     /// <param name="query">The authenticated request containing the data to add.</param>
     /// <param name="cancellation">A token to monitor for cancellation requests.</param>
     /// <returns>A task that represents the asynchronous operation, containing the ID of the newly created entity.</returns>
-    public virtual async Task<int> Execute(TRequest query, CancellationToken cancellation = default)
+    public virtual async Task<Result<int>> Execute(TRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 

@@ -24,7 +24,7 @@ public class ChangePasswordCommandTests
     }
 
     [Fact]
-    public async Task GIVEN_UserNotFound_WHEN_Execute_THEN_ReturnsFalse_AndDoesNotUpdate()
+    public async Task GIVEN_InvalidQueryString_WHEN_Execute_THEN_ReturnsValidationFailed_AndDoesNotUpdate()
     {
         // Arrange
         var users = new Mock<IUserRepository>();
@@ -34,10 +34,11 @@ public class ChangePasswordCommandTests
         var request = new ChangePasswordRequest("old-pass", "NewPassw0rd!");
 
         // Act
-        bool result = await sut.Execute(request);
+        Result<bool> result = await sut.Execute(request);
 
         // Assert
-        Assert.False(result);
+        var error = Assert.IsType<Result<bool>.Fault>(result);
+        Assert.Equal(Problem.ValidationFailed.Type, error.Problem.Type);
         users.Verify(x => x.GetById(It.IsAny<int>(), CancellationToken.None), Times.Never);
         users.Verify(x => x.Update(It.IsAny<User>(), CancellationToken.None), Times.Never);
     }
@@ -68,10 +69,10 @@ public class ChangePasswordCommandTests
         var request = new ChangePasswordRequest($"  {newPassword}  ", queryString);
 
         // Act
-        bool result = await sut.Execute(request);
+        Result<bool> result = await sut.Execute(request);
 
         // Assert
-        Assert.True(result);
+        Assert.IsType<Result<bool>.Success>(result);
         users.Verify();
         Assert.NotNull(patchedUser);
         // Email must remain unchanged

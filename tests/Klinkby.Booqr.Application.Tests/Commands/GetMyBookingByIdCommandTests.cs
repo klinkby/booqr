@@ -25,11 +25,11 @@ public class GetMyBookingByIdCommandTests
         GetMyBookingByIdCommand sut = CreateSut();
 
         // Act
-        MyBooking? result = await sut.Execute(request);
+        var result = await sut.Execute(request);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(booking, result);
+        var success = Assert.IsType<Result<MyBooking>.Success>(result);
+        Assert.Equal(booking, success.Value);
     }
 
     [Fact]
@@ -42,7 +42,8 @@ public class GetMyBookingByIdCommandTests
         GetMyBookingByIdCommand sut = CreateSut();
 
         // Act + Assert
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => sut.Execute(request));
+        var result = await sut.Execute(request);
+        Assert.IsType<Result<MyBooking>.Fault>(result);
         _repo.Verify(x => x.GetById(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -59,11 +60,11 @@ public class GetMyBookingByIdCommandTests
         GetMyBookingByIdCommand sut = CreateSut();
 
         // Act
-        MyBooking? result = await sut.Execute(request);
+        var result = await sut.Execute(request);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(booking, result);
+        var success = Assert.IsType<Result<MyBooking>.Success>(result);
+        Assert.Equal(booking, success.Value);
     }
 
     [Theory]
@@ -79,15 +80,15 @@ public class GetMyBookingByIdCommandTests
         GetMyBookingByIdCommand sut = CreateSut();
 
         // Act
-        MyBooking? result = await sut.Execute(request);
+        var result = await sut.Execute(request);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(booking, result);
+        var success = Assert.IsType<Result<MyBooking>.Success>(result);
+        Assert.Equal(booking, success.Value);
     }
 
     [Fact]
-    public async Task GIVEN_BookingNotFound_WHEN_Execute_THEN_ReturnsNull()
+    public async Task GIVEN_BookingNotFound_WHEN_Execute_THEN_ReturnsNotFound()
     {
         // Arrange
         ClaimsPrincipal user = CreateUser();
@@ -98,9 +99,10 @@ public class GetMyBookingByIdCommandTests
         GetMyBookingByIdCommand sut = CreateSut();
 
         // Act
-        MyBooking? result = await sut.Execute(request);
+        var result = await sut.Execute(request);
 
         // Assert
-        Assert.Null(result);
+        var error = Assert.IsType<Result<MyBooking>.Fault>(result);
+        Assert.Equal(Problem.NotFound.Type, error.Problem.Type);
     }
 }

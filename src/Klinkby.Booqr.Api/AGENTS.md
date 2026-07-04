@@ -78,27 +78,58 @@ The API layer is the HTTP presentation layer, exposing the application via REST 
 
 ## Endpoint Patterns
 
+All routes are mapped in `Routing.cs`, grouped under `/api` via `MapApiRoutes`. The base
+route group carries endpoint filters applied to every request (`RequestMetadataEndPointFilter`
+for ETag handling, `AuthenticatedRequestEndPointFilter` to inject the authenticated
+`ClaimsPrincipal` into `IAuthenticatedRequest` arguments before the handler runs — see below).
+
 ### Example Structure
 ```csharp
-app.MapPost("/api/bookings", async (
-    CreateBookingRequest request,
-    ICreateBookingCommand command,
-    CancellationToken ct) =>
-{
-    var booking = await command.Execute(request, ct);
-    return Results.Created($"/api/bookings/{booking.Id}", booking);
-})
-.RequireAuthorization("Customer")
-.WithName("CreateBooking")
-.WithOpenApi();
+group.MapPost("",
+        static (AddBookingCommand command,
+                [FromBody] AddBookingRequest request,
+                ClaimsPrincipal user, CancellationToken cancellation) => command
+            .Execute(request, cancellation)
+            .ToCreated(resourceName))
+    .RequireAuthorization(UserRole.Customer)
+    .ProducesValidationProblem()
+    .ProducesProblem(StatusCodes.Status403Forbidden)
+    .Produces(StatusCodes.Status201Created)
+    .WithName("addBooking")
+    .WithSummary("Add a booking");
 ```
 
+Command dispatch is a chain: the endpoint lambda binds the request (`[FromBody]` or
+`[AsParameters]`), resolves the `ICommand` from DI, and calls `command.Execute(request, ct)`,
+which returns `Task<Result<T>>`. That task is piped directly into a `CommandExtensions`
+(`Util/CommandExtensions.cs`) mapping extension — `.ToOk()`, `.ToCreated(resourceName)`, or
+`.ToNoContent()` — which pattern-matches `Result<T>.Success`/`Result<T>.Fault` and produces the
+typed HTTP result (`TypedResults.Ok`/`Created`/`NoContent` on success, `TypedResults.Problem`
+via `MapFault` on fault). Handlers never construct `IResult`s directly or branch on success/failure
+themselves; that mapping lives entirely in `CommandExtensions`.
+
+### Authenticated user injection
+Request records that implement `IAuthenticatedRequest` (via the `AuthenticatedRequest` base
+record, e.g. `AddBookingRequest`, `AuthenticatedByIdRequest`) get their `User` property set
+**automatically** by `AuthenticatedRequestEndPointFilter` (`Filters/AuthenticatedRequestEndPointFilter.cs`),
+which runs on every `/api` request before the handler. The filter scans the bound endpoint
+arguments for an `IAuthenticatedRequest` and assigns `context.HttpContext.User` to it. Endpoint
+lambdas therefore do **not** need to (and should not) do `request with { User = user }` — just
+pass the bound `request` straight to `command.Execute(...)`. A `ClaimsPrincipal user` parameter
+may still be bound separately when a handler needs the principal directly outside of `Execute`
+(e.g. redirect construction), but it no longer needs to be spliced into the request.
+
 ### Key Patterns
-- Minimal route handlers with dependency injection
-- Authorization policies on endpoints
+- Minimal route handlers with dependency injection; `static` lambdas to avoid closures
+- Request binding via `[FromBody]` (body) or `[AsParameters]` (route/query); `Id` set
+  post-binding via `request with { Id = id }` where needed, `User` is injected automatically
+  (see above, do not set it manually)
+- Authorization policies on endpoints (`.RequireAuthorization(UserRole.X)`)
 - Cancellation token support
-- Typed responses (Results.Ok, Results.Created, Results.NotFound, etc.)
-- OpenAPI metadata via `.WithOpenApi()`
+- Command result chained straight into a `CommandExtensions` mapper (`ToOk`/`ToCreated`/`ToNoContent`)
+  for typed, `Result<T>`-aware HTTP responses — no manual `Results.*` construction
+- Cross-cutting concerns (ETag, authenticated-user injection) live in endpoint filters on the
+  base route group, not in individual handlers
 
 ## Configuration
 

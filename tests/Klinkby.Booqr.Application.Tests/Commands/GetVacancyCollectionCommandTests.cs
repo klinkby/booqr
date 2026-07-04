@@ -28,8 +28,7 @@ public class GetVacancyCollectionCommandTests
         GetVacancyCollectionCommand sut = CreateSut();
 
         // Act
-        IAsyncEnumerable<CalendarEvent> result = sut.Execute(page);
-        List<CalendarEvent> list = await result.ToListAsync();
+        var list = await sut.Execute(page);
 
         // Assert
         Assert.Equal(expected.Length, list.Count);
@@ -41,7 +40,7 @@ public class GetVacancyCollectionCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public void GIVEN_NullFromAndTo_WHEN_Execute_THEN_DefaultsApplied(DateTime t0)
+    public async Task GIVEN_NullFromAndTo_WHEN_Execute_THEN_DefaultsApplied(DateTime t0)
     {
         // Arrange
         var page = new GetVacanciesRequest(null, null);
@@ -53,7 +52,7 @@ public class GetVacancyCollectionCommandTests
         GetVacancyCollectionCommand sut = CreateSut();
 
         // Act
-        IAsyncEnumerable<CalendarEvent> _ = sut.Execute(page);
+        await sut.Execute(page);
 
         // Assert
         _calendar.Verify(x => x.GetRange(
@@ -66,12 +65,12 @@ public class GetVacancyCollectionCommandTests
     }
 
     [Fact]
-    public void GIVEN_NullRequest_WHEN_Execute_THEN_ThrowsArgumentNullException()
+    public async Task GIVEN_NullRequest_WHEN_Execute_THEN_ThrowsArgumentNullException()
     {
         // Arrange
         GetVacancyCollectionCommand sut = CreateSut();
 
         // Act + Assert
-        Assert.Throws<ArgumentNullException>(() => sut.Execute(null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await sut.Execute(null!));
     }
 }

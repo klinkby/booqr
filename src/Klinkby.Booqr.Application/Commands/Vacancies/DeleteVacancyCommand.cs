@@ -8,7 +8,7 @@ public sealed partial class DeleteVacancyCommand(
 {
     private readonly LoggerMessages _log = new(logger);
 
-    async internal override Task<bool> Delete(AuthenticatedByIdRequest query, CancellationToken cancellation)
+    async internal override Task<Result<bool>> Delete(AuthenticatedByIdRequest query, CancellationToken cancellation)
     {
         CalendarEvent? vacancy = await calendar.GetById(query.Id, cancellation);
 

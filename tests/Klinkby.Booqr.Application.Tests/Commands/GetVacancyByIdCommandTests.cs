@@ -15,16 +15,16 @@ public class GetVacancyByIdCommandTests
         var sut = new GetVacancyByIdCommand(_calendar.Object);
 
         // Act
-        CalendarEvent? result = await sut.Execute(new ByIdRequest(vacancy.Id));
+        var result = await sut.Execute(new ByIdRequest(vacancy.Id));
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(vacancy, result);
+        var success = Assert.IsType<Result<CalendarEvent>.Success>(result);
+        Assert.Equal(vacancy, success.Value);
         _calendar.Verify(x => x.GetById(vacancy.Id, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task GIVEN_VacancyNotFound_WHEN_Execute_THEN_ReturnsNull()
+    public async Task GIVEN_VacancyNotFound_WHEN_Execute_THEN_ReturnsNotFound()
     {
         // Arrange
         var id = 99999;
@@ -34,10 +34,11 @@ public class GetVacancyByIdCommandTests
         var sut = new GetVacancyByIdCommand(_calendar.Object);
 
         // Act
-        CalendarEvent? result = await sut.Execute(new ByIdRequest(id));
+        var result = await sut.Execute(new ByIdRequest(id));
 
         // Assert
-        Assert.Null(result);
+        var error = Assert.IsType<Result<CalendarEvent>.Fault>(result);
+        Assert.Equal(Problem.NotFound.Type, error.Problem.Type);
         _calendar.Verify(x => x.GetById(id, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

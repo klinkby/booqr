@@ -11,18 +11,20 @@ public sealed record GetUserCollectionRequest : PageQuery
 
 public sealed class GetUserCollectionCommand(
     IUserRepository users)
-    : ICommand<GetUserCollectionRequest, IAsyncEnumerable<User>>
+    : ICommand<GetUserCollectionRequest, Task<List<User>>>
 {
-    public IAsyncEnumerable<User> Execute(
+    public Task<List<User>> Execute(
         GetUserCollectionRequest query,
         CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
         return users.Find(
-            query.K is {Length: 0} ? null : query.K ,
-            query.Role is {Length: 0} ? null : query.Role,
-            query,
-            cancellation);
+                query.K is { Length: 0 } ? null : query.K,
+                query.Role is { Length: 0 } ? null : query.Role,
+                query,
+                cancellation)
+            .ToListAsync(cancellation)
+            .AsTask();
     }
 };

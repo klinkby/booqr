@@ -7,7 +7,7 @@ public class GetEmployeeCollectionCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_GetEmployeesCollectionRequest_WHEN_Execute_THEN_CallsRepositoryWithEmployeeRoleAndReturnsEmployees(GetEmployeesCollectionRequest request, User[] expected)
+    public async Task GIVEN_GetEmployeesCollectionRequest_WHEN_Execute_THEN_CallsRepositoryWithEmployeeRoleAndReturnsEmployees(PageQuery request, User[] expected)
     {
         // Arrange
         Mock<IUserRepository> userRepository = new();
@@ -19,8 +19,7 @@ public class GetEmployeeCollectionCommandTests
 
         // Act
         List<Employee> actual = await sut
-            .Execute(request, Current.CancellationToken)
-            .ToListAsync(Current.CancellationToken);
+            .Execute(request, Current.CancellationToken);
 
         // Assert
         Assert.Equal(expected.Length, actual.Count);
