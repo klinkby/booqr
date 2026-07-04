@@ -1,4 +1,5 @@
-﻿using Klinkby.Booqr.Application;
+﻿using System.Diagnostics;
+using Klinkby.Booqr.Application;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Klinkby.Booqr.Api.Util;
