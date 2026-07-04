@@ -21,11 +21,11 @@ public partial class ChangePasswordCommand(
     IExpiringQueryString expiringQueryString,
     IActivityRecorder activityRecorder,
     ILogger<ChangePasswordCommand> logger
-) : ICommand<ChangePasswordRequest, Task<bool>>
+) : ICommand<ChangePasswordRequest, Task<Result<bool>>>
 {
     private readonly LoggerMessages _log = new(logger);
 
-    public async Task<bool> Execute(ChangePasswordRequest query, CancellationToken cancellation = default)
+    public async Task<Result<bool>> Execute(ChangePasswordRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
@@ -35,41 +35,41 @@ public partial class ChangePasswordCommand(
                 out QueryStringValidation validation))
         {
             _log.InvalidQueryString(validation);
-            return false;
+            return Problem.ValidationFailed with { Detail = $"Invalid or expired link: {validation}" };
         }
 
         if (!int.TryParse(parameters[Query.Id], CultureInfo.InvariantCulture, out var userId))
         {
             _log.UserIdNotAnInteger(parameters[Query.Id]);
-            return false;
+            return Problem.ValidationFailed with { Detail = "User id is not an integer" };
         }
 
         if (parameters[Query.Action] != Query.ChangePasswordAction)
         {
             _log.InvalidAction(parameters[Query.Action]);
-            return false;
+            return Problem.ValidationFailed with { Detail = "Invalid action" };
         }
 
         User? user = await userRepository.GetById(userId, cancellation);
         if (user is null)
         {
             _log.UserNotFound(userId);
-            return false;
+            return Problem.NotFound with { Detail = $"User {userId} was not found" };
         }
 
         if (!user.ValidateETagParameter(parameters))
         {
             _log.Conflict(userId);
-            return false;
+            return Problem.MidAirCollision with { Detail = $"User {userId} was updated since the link was generated" };
         }
 
         _log.ChangePassword(userId);
 
-        await userRepository.Patch(new PartialUser(userId).WithPasswordHash(query.Password.Trim()), cancellation);
+        bool patched = await userRepository.Patch(new PartialUser(userId).WithPasswordHash(query.Password.Trim()), cancellation);
 
         _log.Changed(user.Email);
         activityRecorder.Update<User>(new(userId, user.Id));
-        return true;
+        return patched;
     }
 
     [ExcludeFromCodeCoverage]

@@ -1,5 +1,5 @@
-﻿using Klinkby.Booqr.Application.Commands.Employees;
-using Klinkby.Booqr.Application.Models;
+﻿using System.Diagnostics;
+using Klinkby.Booqr.Application;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Klinkby.Booqr.Api.Util;
@@ -8,97 +8,35 @@ internal static class CommandExtensions
 {
     internal const string RefreshTokenCookieName = "refresh_token";
 
-    private static CookieOptions CreateRefreshTokenCookieOptions(DateTimeOffset? expires = null) => new()
+    extension<T>(Task<Result<T>> commandResult) where T : notnull
     {
-        HttpOnly = true,
-        Secure = true,
-        SameSite = SameSiteMode.Strict,
-        Path = "/api/auth",
-        Expires = expires
-    };
+        internal ValueTask<Results<Ok<U>, ProblemHttpResult>> ToOk<U>(Func<T, U> mapSuccess) =>
+            commandResult.MapResult(x => TypedResults.Ok(mapSuccess(x)));
 
-    internal static async Task<Results<Ok<TResult>, BadRequest, NotFound>> GetSingle<TQuery, TResult>(
-        this ICommand<TQuery, Task<TResult?>> command, TQuery query, CancellationToken cancellationToken)
-        where TQuery : notnull =>
-        await command.Execute(query, cancellationToken) is { } result
-            ? TypedResults.Ok(result)
-            : TypedResults.NotFound();
+        internal ValueTask<Results<Ok<T>, ProblemHttpResult>> ToOk() =>
+            ToOk<T, T>(commandResult, x => x);
 
-    internal static async Task<Results<Ok<CollectionResponse<TResult>>, BadRequest>> GetCollection<TQuery, TResult>(
-        this ICommand<TQuery, IAsyncEnumerable<TResult>> command, TQuery query, CancellationToken cancellationToken)
-        where TResult : Timestamped
-        where TQuery : IPageQuery =>
-            TypedResults.Ok(await CollectionResponse.FromStream(command.Execute(query, cancellationToken), cancellationToken));
-
-    internal static async Task<Ok<CollectionResponse<Employee>>> GetCollection(
-        this ICommand<GetEmployeesCollectionRequest, IAsyncEnumerable<Employee>> command, CancellationToken cancellationToken) =>
-        TypedResults.Ok(await CollectionResponse.FromStream(command.Execute(new(), cancellationToken), cancellationToken));
-
-    internal static async Task<Results<Ok<OAuthTokenResponse>, UnauthorizedHttpResult, BadRequest>> GetAuthenticationTokenWithCookie<T>(
-        this ICommand<T, Task<OAuthTokenResponse?>> command, T query, HttpContext context,
-        CancellationToken cancellationToken) where T: RefreshTokenDto
-    {
-        OAuthTokenResponse? result = await command.Execute(query.WithRefreshToken(context), cancellationToken);
-        if (result?.RefreshToken is null)
-        {
-            return TypedResults.Unauthorized();
-        }
-
-        // Set refresh token in HttpOnly cookie
-        context.Response.Cookies.Append(RefreshTokenCookieName, result.RefreshToken,
-            CreateRefreshTokenCookieOptions(result.RefreshTokenExpiration));
-        context.Response.Headers.CacheControl = "no-store";
-        return TypedResults.Ok(result with { RefreshToken = string.Empty });
+        private async ValueTask<Results<U, ProblemHttpResult>> MapResult<U>(Func<T, U> mapSuccess) where U : IResult =>
+            await commandResult switch
+            {
+                Result<T>.Success s => mapSuccess(s.Value),
+                Result<T>.Fault e => MapFault(e.Problem),
+                _ => throw new UnreachableException("Result<T> has only Success and Fault subtypes")
+            };
     }
 
-    internal static async Task<Results<Created<CreatedResponse>, BadRequest>> Created<TQuery>(
-        this ICommand<TQuery, Task<int>> command, TQuery query, ClaimsPrincipal user, string resourceName,
-        CancellationToken cancellationToken)
-        where TQuery : AuthenticatedRequest
-    {
-        var newId = await command.Execute(query with { User = user }, cancellationToken);
-        return TypedResults.Created(
-            new Uri($"{resourceName}/{newId}", UriKind.Relative),
-            new CreatedResponse(newId));
-    }
+    internal static async ValueTask<Results<Ok<CollectionResponse<T>>, ProblemHttpResult>> ToOk<T>(this Task<List<T>> commandResult)
+        where T : Timestamped =>
+        TypedResults.Ok(new CollectionResponse<T>(await commandResult));
 
-    internal static async Task<Results<Created<CreatedResponse>, BadRequest>> CreatedAnonymous<TQuery>(
-        this ICommand<TQuery, Task<int>> command, TQuery query, string resourceName,
-        CancellationToken cancellationToken)
-        where TQuery : notnull
-    {
-        var newId = await command.Execute(query, cancellationToken);
-        return TypedResults.Created(
-            new Uri($"{resourceName}/{newId}", UriKind.Relative),
-            new CreatedResponse(newId));
-    }
+    internal static ValueTask<Results<Created<CreatedResponse>, ProblemHttpResult>> ToCreated(
+        this Task<Result<int>> commandResult, string resourceName)
+        => commandResult.MapResult(x => TypedResults.Created(new Uri($"{resourceName}/{x}", UriKind.Relative), new CreatedResponse(x)));
 
-    internal static Task<Results<NoContent, Conflict, BadRequest>> NoContent<TQuery>(
-        this ICommand<TQuery> command, TQuery query, ClaimsPrincipal user, CancellationToken cancellationToken)
-        where TQuery : AuthenticatedRequest =>
-        NoContent(command, query with { User = user }, cancellationToken);
+    internal static ValueTask<Results<NoContent, ProblemHttpResult>> ToNoContent(
+        this Task<Result<bool>> commandResult) =>
+        MapResult(commandResult, _ => TypedResults.NoContent());
 
-    internal static async Task<Results<NoContent, UnauthorizedHttpResult, BadRequest>> NoContent(
-        this ICommand<ChangePasswordRequest, Task<bool>> command, ChangePasswordRequest query,
-        CancellationToken cancellationToken) =>
-        await command.Execute(query, cancellationToken)
-            ? TypedResults.NoContent()
-            : TypedResults.Unauthorized();
-
-    internal static async Task<Results<NoContent, Conflict, BadRequest>> NoContent<TQuery>(
-        this ICommand<TQuery> command, TQuery query, CancellationToken cancellationToken)
-        where TQuery : notnull
-    {
-        await command.Execute(query, cancellationToken);
-        return TypedResults.NoContent();
-    }
-
-    internal static async Task<Results<NoContent, BadRequest>> NoContentWithCookieDelete<TQuery>(
-        this ICommand<TQuery> command, TQuery query, HttpContext context, CancellationToken cancellationToken)
-        where TQuery : RefreshTokenDto
-    {
-        await command.Execute(query.WithRefreshToken(context), cancellationToken);
-        context.Response.Cookies.Delete(RefreshTokenCookieName, CreateRefreshTokenCookieOptions());
-        return TypedResults.NoContent();
-    }
+    private static ProblemHttpResult MapFault(Problem p) =>
+        TypedResults.Problem(p.Detail, null, p.HttpStatusCode, p.Title, p.Type);
 }

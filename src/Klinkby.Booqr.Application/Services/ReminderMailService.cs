@@ -63,9 +63,9 @@ internal sealed partial class ReminderMailService(
         IMailClient mailClient = scopedServices.GetRequiredService<IMailClient>();
 
         var messageCount = 0;
-        IAsyncEnumerable<BookingDetails> items =
+        var items = await
             command.Execute(new GetBookingDetailsRequest(timestamp), cancellationToken);
-        await foreach (BookingDetails booking in items)
+        foreach (BookingDetails booking in items)
         {
             if (cancellationToken.IsCancellationRequested)
             {

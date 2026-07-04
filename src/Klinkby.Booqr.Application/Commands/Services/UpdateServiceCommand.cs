@@ -18,17 +18,26 @@ public sealed class UpdateServiceCommand(
     ILogger<UpdateServiceCommand> logger)
     : UpdateCommand<UpdateServiceRequest, Service>(services, activityRecorder, logger)
 {
-    public override async Task Execute(UpdateServiceRequest query, CancellationToken cancellation = default)
+    public override async Task<Result<bool>> Execute(UpdateServiceRequest query, CancellationToken cancellation = default)
     {
         await transaction.Begin(cancellation);
         try
         {
-            await base.Execute(query, cancellation);
+            Result<bool> result = await base.Execute(query, cancellation);
+            if (!result.IsSuccess)
+            {
+                await transaction.Rollback(cancellation);
+                return result;
+            }
+
             if (query.Employees != null)
             {
                 await employeeServiceRepository.Assign(query.Id, query.Employees, cancellation);
             }
+
             await transaction.Commit(cancellation);
+
+            return result;
         }
         catch
         {

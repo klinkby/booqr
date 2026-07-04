@@ -15,11 +15,11 @@ public class GetUserByIdCommandTests
         var sut = new GetUserByIdCommand(_users.Object);
 
         // Act
-        User? result = await sut.Execute(new ByIdRequest(user.Id));
+        var result = await sut.Execute(new ByIdRequest(user.Id));
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(user, result);
+        var success = Assert.IsType<Result<User>.Success>(result);
+        Assert.Equal(user, success.Value);
         _users.Verify(x => x.GetById(user.Id, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -34,10 +34,10 @@ public class GetUserByIdCommandTests
         var sut = new GetUserByIdCommand(_users.Object);
 
         // Act
-        User? result = await sut.Execute(new ByIdRequest(id));
+        var result = await sut.Execute(new ByIdRequest(id));
 
         // Assert
-        Assert.Null(result);
+        Assert.IsType<Result<User>.Fault>(result);
         _users.Verify(x => x.GetById(id, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

@@ -7,7 +7,7 @@
 /// <typeparam name="TItem">The type of the entities to retrieve from the repository.</typeparam>
 /// <param name="repository">The repository for retrieving entities.</param>
 public abstract class GetCollectionCommand<TRequest, TItem>(IRepository<TItem, int> repository)
-    : ICommand<TRequest, IAsyncEnumerable<TItem>>
+    : ICommand<TRequest, Task<List<TItem>>>
     where TRequest : IPageQuery
 {
     /// <summary>
@@ -16,8 +16,11 @@ public abstract class GetCollectionCommand<TRequest, TItem>(IRepository<TItem, i
     /// <param name="query">The request containing pagination parameters (start index and page size).</param>
     /// <param name="cancellation">A token to monitor for cancellation requests.</param>
     /// <returns>An asynchronous enumerable of entities.</returns>
-    public IAsyncEnumerable<TItem> Execute(TRequest query, CancellationToken cancellation = default)
+    public Task<List<TItem>> Execute(TRequest query, CancellationToken cancellation = default)
     {
-        return repository.GetAll(query, cancellation);
+        return repository
+            .GetAll(query, cancellation)
+            .ToListAsync(cancellation)
+            .AsTask();
     }
 }

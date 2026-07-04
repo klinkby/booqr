@@ -36,9 +36,10 @@ public class UpdateUserProfileCommandTests
         request = request with { User = user, Name = $"  {request.Name}  " };
 
         // Act
-        await sut.Execute(request);
+        Result<bool> result = await sut.Execute(request);
 
         // Assert
+        Assert.IsType<Result<bool>.Success>(result);
         _repo.Verify(
             x => x.Patch(
                 It.Is<PartialUser>(p =>
@@ -52,7 +53,7 @@ public class UpdateUserProfileCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_RepositoryUpdateFails_WHEN_Execute_THEN_ThrowsMidAirCollisionException(
+    public async Task GIVEN_RepositoryUpdateFails_WHEN_Execute_THEN_ReturnsMidAirCollisionFault(
         UpdateUserProfileRequest request)
     {
         // Arrange
@@ -63,9 +64,12 @@ public class UpdateUserProfileCommandTests
         UpdateUserProfileCommand sut = CreateSut();
         request = request with { User = user };
 
-        // Act + Assert
-        MidAirCollisionException ex = await Assert.ThrowsAsync<MidAirCollisionException>(() => sut.Execute(request));
-        Assert.Contains($"User {request.Id}", ex.Message, StringComparison.Ordinal);
+        // Act
+        Result<bool> result = await sut.Execute(request);
+
+        // Assert
+        Result<bool>.Fault err =  Assert.IsType<Result<bool>.Fault>(result);
+        Assert.Contains($"User {request.Id}", err.Problem.Detail, StringComparison.Ordinal);
     }
 
     [Theory]
@@ -82,9 +86,10 @@ public class UpdateUserProfileCommandTests
         request = request with { User = user };
 
         // Act
-        await sut.Execute(request);
+        Result<bool> result = await sut.Execute(request);
 
         // Assert
+        Assert.IsType<Result<bool>.Success>(result);
         _activityRecorder.Verify(
             x => x.Update(It.IsAny<ActivityQuery<User>>()),
             Times.Once);
@@ -103,8 +108,11 @@ public class UpdateUserProfileCommandTests
         UpdateUserProfileCommand sut = CreateSut();
         request = request with { User = user };
 
-        // Act + Assert
-        await Assert.ThrowsAsync<MidAirCollisionException>(() => sut.Execute(request));
+        // Act
+        Result<bool> result = await sut.Execute(request);
+
+        // Assert
+        Assert.IsType<Result<bool>.Fault>(result);
         _activityRecorder.Verify(
             x => x.Update(It.IsAny<ActivityQuery<User>>()),
             Times.Never);

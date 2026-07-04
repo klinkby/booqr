@@ -15,7 +15,7 @@ public class GetMyBookingsCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public void GIVEN_CustomerOwnsProfile_WHEN_Execute_THEN_RepositoryCalled(DateTime t0)
+    public async Task GIVEN_CustomerOwnsProfile_WHEN_Execute_THEN_RepositoryCalled(DateTime t0)
     {
         // Arrange
         var userId = 42;
@@ -29,31 +29,36 @@ public class GetMyBookingsCommandTests
         GetMyBookingsCommand sut = CreateSut();
 
         // Act
-        IAsyncEnumerable<MyBooking> _ = sut.Execute(request);
+        var result = await sut.Execute(request);
 
         // Assert
+        Assert.IsType<Result<List<MyBooking>>.Success>(result);
         _repo.Verify(
             x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request,
                 It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public void GIVEN_CustomerNotOwner_WHEN_Execute_THEN_ThrowsUnauthorized_And_DoesNotQueryRepo()
+    public async Task GIVEN_CustomerNotOwner_WHEN_Execute_THEN_ReturnsForbidden_And_DoesNotQueryRepo()
     {
         // Arrange
         ClaimsPrincipal user = CreateUser();
         var request = new GetMyBookingsRequest(99, null, null) { User = user };
         GetMyBookingsCommand sut = CreateSut();
 
-        // Act + Assert
-        Assert.Throws<UnauthorizedAccessException>(() => sut.Execute(request));
+        // Act
+        var result = await sut.Execute(request);
+
+        // Assert
+        var error = Assert.IsType<Result<List<MyBooking>>.Fault>(result);
+        Assert.Equal(Problem.Forbidden.Type, error.Problem.Type);
         _repo.Verify(
             x => x.GetRangeByUserId(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<IPageQuery>(),
                 It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
-    public void GIVEN_Employee_WHEN_Execute_THEN_CanViewAnyUsersBookings()
+    public async Task GIVEN_Employee_WHEN_Execute_THEN_CanViewAnyUsersBookings()
     {
         // Arrange
         ClaimsPrincipal user = CreateUser(7, UserRole.Employee);
@@ -66,16 +71,17 @@ public class GetMyBookingsCommandTests
         GetMyBookingsCommand sut = CreateSut();
 
         // Act
-        IAsyncEnumerable<MyBooking> _ = sut.Execute(request);
+        var result = await sut.Execute(request);
 
         // Assert
+        Assert.IsType<Result<List<MyBooking>>.Success>(result);
         _repo.Verify(
             x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request,
                 It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public void GIVEN_Admin_WHEN_Execute_THEN_CanViewAnyUsersBookings()
+    public async Task GIVEN_Admin_WHEN_Execute_THEN_CanViewAnyUsersBookings()
     {
         // Arrange
         ClaimsPrincipal user = CreateUser(8, UserRole.Admin);
@@ -88,9 +94,10 @@ public class GetMyBookingsCommandTests
         GetMyBookingsCommand sut = CreateSut();
 
         // Act
-        IAsyncEnumerable<MyBooking> _ = sut.Execute(request);
+        var result = await sut.Execute(request);
 
         // Assert
+        Assert.IsType<Result<List<MyBooking>>.Success>(result);
         _repo.Verify(
             x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request,
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -98,7 +105,7 @@ public class GetMyBookingsCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public void GIVEN_NullFromAndTo_WHEN_Execute_THEN_DefaultsApplied(DateTime t0)
+    public async Task GIVEN_NullFromAndTo_WHEN_Execute_THEN_DefaultsApplied(DateTime t0)
     {
         // Arrange
         ClaimsPrincipal user = CreateUser(77, UserRole.Employee);
@@ -111,9 +118,10 @@ public class GetMyBookingsCommandTests
         GetMyBookingsCommand sut = CreateSut();
 
         // Act
-        IAsyncEnumerable<MyBooking> _ = sut.Execute(request);
+        var result = await sut.Execute(request);
 
         // Assert
+        Assert.IsType<Result<List<MyBooking>>.Success>(result);
         _repo.Verify(x => x.GetRangeByUserId(
             request.Id,
             t0.AddDays(-1),

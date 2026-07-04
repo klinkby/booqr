@@ -61,7 +61,8 @@ public class DeleteBookingCommandTests
         DeleteBookingCommand sut = CreateSut();
 
         // Act + Assert
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => sut.Execute(request));
+        Result<bool> result = await sut.Execute(request);
+        Assert.IsType<Result<bool>.Fault>(result);
         _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
     }
 

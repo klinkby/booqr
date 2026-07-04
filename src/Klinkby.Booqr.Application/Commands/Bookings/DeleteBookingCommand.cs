@@ -18,8 +18,7 @@ public sealed partial class DeleteBookingCommand(
     private readonly LoggerMessages _log = new(logger);
     private readonly IActivityRecorder _activityRecorder = activityRecorder;
 
-    [SuppressMessage("Exceptions usages", "EX006:Do not write logic driven by exceptions.", Justification = "Unauthorized is an exceptional case")]
-    async internal override Task<bool> Delete(AuthenticatedByIdRequest query, CancellationToken cancellation)
+    internal override async Task<Result<bool>> Delete(AuthenticatedByIdRequest query, CancellationToken cancellation)
     {
         bool deleted;
 
@@ -32,14 +31,16 @@ public sealed partial class DeleteBookingCommand(
             if (!query.IsOwnerOrEmployee(booking.CustomerId))
             {
                 _log.CannotDeleteBooking(query.AuthenticatedUserId, booking.Id);
-                throw new UnauthorizedAccessException("You do not have access to delete this booking");
+                await transaction.Rollback(cancellation);
+
+                return Problem.Forbidden with { Detail = "You do not have access to delete this booking" };
             }
 
             CalendarEvent? calendarEvent = await calendar.GetByBookingId(query.Id, cancellation);
             Debug.Assert(calendarEvent is not null);
 
             await calendar.Delete(calendarEvent.Id, cancellation);
-            deleted = await base.Delete(query, cancellation);
+            deleted = (await base.Delete(query, cancellation)).ValueOrDefault();
 
             // reopen the vacancy, joining any adjacent vacancies
             AddVacancyCommand addVacancyCommand = new(calendar, transaction, _activityRecorder, addVacancyLogger);
@@ -56,14 +57,17 @@ public sealed partial class DeleteBookingCommand(
         return deleted;
     }
 
-    private static AddVacancyRequest Map(CalendarEvent calendarEvent, ClaimsPrincipal user) =>
-        new(calendarEvent.EmployeeId,
+    private static AddVacancyRequest Map(CalendarEvent calendarEvent, ClaimsPrincipal user)
+    {
+        var req = new AddVacancyRequest(calendarEvent.EmployeeId,
             calendarEvent.LocationId,
             calendarEvent.StartTime,
             calendarEvent.EndTime)
         {
             User = user
         };
+        return req;
+    }
 
 
     [ExcludeFromCodeCoverage]

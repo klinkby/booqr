@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
@@ -28,76 +27,98 @@ public partial class AddBookingCommand(
     ITransaction transaction,
     IActivityRecorder activityRecorder,
     ILogger<AddBookingCommand> logger)
-    : ICommand<AddBookingRequest, Task<int>>
+    : ICommand<AddBookingRequest, Task<Result<int>>>
 {
     private readonly LoggerMessages _log = new(logger);
 
-    [SuppressMessage("Exceptions usages", "EX006:Do not write logic driven by exceptions.", Justification = "Conflict is an exceptional case")]
-    public async Task<int> Execute(AddBookingRequest query, CancellationToken cancellation = default)
+    public async Task<Result<int>> Execute(AddBookingRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
         int userId = query.AuthenticatedUserId;
-        int newId;
 
-        if (!query.CustomerId.HasValue)
+        if (query.CustomerId is { } customerId && !query.IsOwnerOrEmployee(customerId))
         {
-            query = query with { CustomerId = userId };
+            _log.CannotBookForOther(userId, customerId);
+            return Problem.Forbidden with { Detail = "You cannot create a booking for another customer." };
         }
-        else if (!query.IsOwnerOrEmployee(query.CustomerId.Value))
-        {
-            _log.CannotBookForOther(userId, query.CustomerId.Value);
-            throw new UnauthorizedAccessException("You cannot create a booking for another customer.");
-        }
+        query = query with { CustomerId = query.CustomerId ?? userId };
 
         await transaction.Begin(cancellation);
+        Result<int> result;
+        bool commit;
         try
         {
-            Service service = await GetAndValidateService(query, userId, cancellation);
-
-            query = query with { EndTime = query.StartTime + service.Duration };
-
-            CalendarEvent vacancy = await GetAndValidateVacancy(query, userId, cancellation);
-
-            if (vacancy.BookingId.HasValue)
-            {
-                Booking? booking = await bookings.GetById(vacancy.BookingId.Value, cancellation);
-                Debug.Assert(booking != null);
-                if (booking.CustomerId == userId && booking.ServiceId == query.ServiceId)
-                {
-                    // this event is already booked by the customer
-                    await transaction.Rollback(cancellation);
-                    return vacancy.BookingId.Value;
-                }
-                _log.BookingConflict(userId, vacancy.BookingId.Value);
-                throw new InvalidOperationException("The requested vacancy was already booked.");
-            }
-
-            newId = await bookings.Add(Map(query), cancellation);
-            Covers strategy = GetCoverage(vacancy, query);
-
-            _log.BookingStrategy(userId, newId, strategy);
-            Task updateStrategy = strategy switch
-            {
-                Covers.EntireSlot => UpdateVacancyCoversEntireSlot(vacancy, newId, cancellation),
-                Covers.OnlyBeginning => UpdateVacancyCoversOnlyBeginning(vacancy, newId, query, cancellation),
-                Covers.OnlyEnd => UpdateVacancyCoversOnlyEnd(vacancy, query, newId, cancellation),
-                Covers.SomewhereInTheMiddle => UpdateVacancyInTheMiddle(vacancy, newId, query, cancellation),
-                _ => throw new InvalidEnumArgumentException("Unexpected Covers value")
-            };
-            await updateStrategy;
-            activityRecorder.Add<Booking>(new(query.AuthenticatedUserId, newId));
+            (result, commit) = await CreateBooking(query, userId, cancellation);
         }
         catch
         {
             await transaction.Rollback(cancellation);
             throw;
         }
-        await transaction.Commit(cancellation);
-        _log.CreateBooking(userId, nameof(Booking), newId);
-        return newId;
+
+        if (commit)
+        {
+            await transaction.Commit(cancellation);
+            _log.CreateBooking(userId, nameof(Booking), ((Result<int>.Success)result).Value);
+        }
+        else
+        {
+            await transaction.Rollback(cancellation);
+        }
+
+        return result;
     }
 
-    async private Task<CalendarEvent> GetAndValidateVacancy(AddBookingRequest query, int userId, CancellationToken cancellation)
+    private async Task<(Result<int> Result, bool Commit)> CreateBooking(AddBookingRequest query, int userId, CancellationToken cancellation)
+    {
+        Service? service = await GetAndValidateService(query, userId, cancellation);
+        if (service is null)
+        {
+            return (Problem.NotFound with { Detail = "The requested service was not found." }, false);
+        }
+
+        query = query with { EndTime = query.StartTime + service.Duration };
+
+        CalendarEvent? vacancy = await GetAndValidateVacancy(query, userId, cancellation);
+        if (vacancy is null)
+        {
+            return (Problem.NotFound with { Detail = "The requested vacancy was not found." }, false);
+        }
+
+        if (vacancy.BookingId.HasValue)
+        {
+            Booking? booking = await bookings.GetById(vacancy.BookingId.Value, cancellation);
+            Debug.Assert(booking != null);
+            return booking.CustomerId == userId && booking.ServiceId == query.ServiceId
+                ? (vacancy.BookingId.Value, false) // already booked by this customer, nothing to commit
+                : (GetConflict(userId, vacancy.BookingId.Value), false);
+        }
+
+        var newId = await bookings.Add(Map(query), cancellation);
+        Covers strategy = GetCoverage(vacancy, query);
+        _log.BookingStrategy(userId, newId, strategy);
+
+        Task updateStrategy = strategy switch
+        {
+            Covers.EntireSlot => UpdateVacancyCoversEntireSlot(vacancy, newId, cancellation),
+            Covers.OnlyBeginning => UpdateVacancyCoversOnlyBeginning(vacancy, newId, query, cancellation),
+            Covers.OnlyEnd => UpdateVacancyCoversOnlyEnd(vacancy, query, newId, cancellation),
+            Covers.SomewhereInTheMiddle => UpdateVacancyInTheMiddle(vacancy, newId, query, cancellation),
+            _ => throw new UnreachableException("Covers enum has no more values.")
+        };
+        await updateStrategy;
+        activityRecorder.Add<Booking>(new(query.AuthenticatedUserId, newId));
+
+        return (newId, true);
+    }
+
+    private Problem GetConflict(int userId, int vacancyBookingId)
+    {
+        _log.BookingConflict(userId, vacancyBookingId);
+        return Problem.Conflict with { Detail = "The requested vacancy was already booked." };
+    }
+
+    private async Task<CalendarEvent?> GetAndValidateVacancy(AddBookingRequest query, int userId, CancellationToken cancellation)
     {
         CalendarEvent? vacancy = await calendar.GetById(query.VacancyId, cancellation);
         if (vacancy is not null && query.CompletelyWithin(vacancy))
@@ -106,10 +127,10 @@ public partial class AddBookingCommand(
         }
 
         _log.BookingMissingItem(userId, nameof(CalendarEvent), query.VacancyId);
-        throw new ArgumentException("The requested vacancy was not found.", nameof(query));
+        return null;
     }
 
-    async private Task<Service> GetAndValidateService(AddBookingRequest query, int userId, CancellationToken cancellation)
+    private async Task<Service?> GetAndValidateService(AddBookingRequest query, int userId, CancellationToken cancellation)
     {
         Service? service = await services.GetById(query.ServiceId, cancellation);
         if (service is not null)
@@ -118,7 +139,7 @@ public partial class AddBookingCommand(
         }
 
         _log.BookingMissingItem(userId, nameof(Service), query.VacancyId);
-        throw new ArgumentException("The requested service was not found.", nameof(query));
+        return null;
     }
 
     internal static Covers GetCoverage(CalendarEvent vacancy, AddBookingRequest query)
@@ -139,28 +160,28 @@ public partial class AddBookingCommand(
         return Covers.SomewhereInTheMiddle;
     }
 
-    async private Task UpdateVacancyCoversEntireSlot(CalendarEvent vacancy, int newBookingId,
+    private async Task UpdateVacancyCoversEntireSlot(CalendarEvent vacancy, int newBookingId,
         CancellationToken cancellation)
     {
         vacancy = vacancy with { BookingId = newBookingId };
         await calendar.Update(vacancy, cancellation);
     }
 
-    async private Task UpdateVacancyCoversOnlyBeginning(CalendarEvent vacancy, int newBookingId, AddBookingRequest query,
+    private async Task UpdateVacancyCoversOnlyBeginning(CalendarEvent vacancy, int newBookingId, AddBookingRequest query,
         CancellationToken cancellation)
     {
         await calendar.Update(vacancy with { BookingId = newBookingId, EndTime = query.EndTime}, cancellation);
         await calendar.Add(vacancy with { StartTime = query.EndTime }, cancellation);
     }
 
-    async private Task UpdateVacancyCoversOnlyEnd(CalendarEvent vacancy, AddBookingRequest query, int newBookingId,
+    private async Task UpdateVacancyCoversOnlyEnd(CalendarEvent vacancy, AddBookingRequest query, int newBookingId,
         CancellationToken cancellation)
     {
         await calendar.Update(vacancy with { BookingId = newBookingId, StartTime = query.StartTime}, cancellation);
         await calendar.Add(vacancy with { EndTime = query.StartTime }, cancellation);
     }
 
-    async private Task UpdateVacancyInTheMiddle(CalendarEvent vacancy, int newBookingId, AddBookingRequest query,
+    private async Task UpdateVacancyInTheMiddle(CalendarEvent vacancy, int newBookingId, AddBookingRequest query,
         CancellationToken cancellation)
     {
         await calendar.Update(vacancy with { BookingId = newBookingId, StartTime = query.StartTime, EndTime = query.EndTime }, cancellation);

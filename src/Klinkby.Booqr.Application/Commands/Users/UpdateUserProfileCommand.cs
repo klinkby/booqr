@@ -19,7 +19,7 @@ public sealed partial class UpdateUserProfileCommand(
     IActivityRecorder activityRecorder,
     IRequestMetadata etagProvider,
     ILogger<UpdateUserProfileCommand> logger
-) : ICommand<UpdateUserProfileRequest>
+) : ICommand<UpdateUserProfileRequest, Task<Result<bool>>>
 {
     private readonly LoggerMessages _log = new(logger);
 
@@ -28,15 +28,15 @@ public sealed partial class UpdateUserProfileCommand(
     /// </summary>
     /// <param name="query">The authenticated request containing the patch data.</param>
     /// <param name="cancellation">A token to monitor for cancellation requests.</param>
-    /// <exception cref="MidAirCollisionException">Thrown when the entity was modified by another operation (optimistic concurrency failure).</exception>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    public async Task Execute(UpdateUserProfileRequest query, CancellationToken cancellation = default)
+    /// <returns>The result of the asynchronous operation.</returns>
+    public async Task<Result<bool>> Execute(UpdateUserProfileRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
         if (!query.IsOwnerOrEmployee(query.Id))
         {
-            FailUnauthorized(query);
+            _log.CannotChangeProfile(query.AuthenticatedUserId, query.Id);
+            return Problem.Forbidden with { Detail = $"You do not have access to update user {query.Id} profile." };
         }
 
         _log.PatchUser(query.AuthenticatedUserId, query.Id);
@@ -44,16 +44,11 @@ public sealed partial class UpdateUserProfileCommand(
         var updated = await repository.Patch(partialItem, cancellation);
         if (!updated)
         {
-            throw new MidAirCollisionException($"User {query.Id} was already updated.");
+            return Problem.MidAirCollision with { Detail = $"User {query.Id} was already updated." };
         }
 
         activityRecorder.Update<User>(new(query.AuthenticatedUserId, query.Id));
-    }
-
-    private void FailUnauthorized(UpdateUserProfileRequest query)
-    {
-        _log.CannotChangeProfile(query.AuthenticatedUserId, query.Id);
-        throw new UnauthorizedAccessException("You do not have access to update this user profile.");
+        return updated;
     }
 
     private PartialUser Map(UpdateUserProfileRequest request) => new(request.Id)

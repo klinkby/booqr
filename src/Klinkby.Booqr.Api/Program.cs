@@ -173,11 +173,18 @@ static void ConfigureBearerAuthentication(OpenApiOptions options)
 
     options.AddOperationTransformer((operation, context, _) =>
     {
-        if (context.Description.ActionDescriptor.EndpointMetadata.OfType<IAuthorizeData>().Any())
+        if (context.Description.ActionDescriptor.EndpointMetadata.OfType<IAuthorizeData>()
+            .Any())
         {
             operation.Security = [new() { { schemaReference, [] } }];
             operation.Responses ??= new OpenApiResponses();
             operation.Responses.Add("401", new OpenApiResponse { Description = "Unauthorized" });
+
+            if (context.Description.ActionDescriptor.EndpointMetadata.OfType<IAuthorizeData>()
+                .Any(x => x.Roles?.Length != 0))
+            {
+                operation.Responses.TryAdd("403", new OpenApiResponse { Description = "Forbidden" });
+            }
         }
 
         return Task.CompletedTask;

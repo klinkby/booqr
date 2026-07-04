@@ -85,8 +85,6 @@ public static partial class ServiceCollectionExtensions
     }
 
     [GenerateServiceRegistrations(
-        AssignableTo = typeof(ICommand<>), AsSelf = true)]
-    [GenerateServiceRegistrations(
         AssignableTo = typeof(ICommand<,>), AsSelf = true)]
     private static partial void AddCommands(this IServiceCollection services);
 }

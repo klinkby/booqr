@@ -1,20 +1,18 @@
 ﻿namespace Klinkby.Booqr.Application.Commands.Employees;
 
-public sealed record GetEmployeesCollectionRequest;
-
 public sealed class GetEmployeeCollectionCommand(
     IUserRepository users)
-    : ICommand<GetEmployeesCollectionRequest, IAsyncEnumerable<Employee>>
+    : ICommand<PageQuery, Task<List<Employee>>>
 {
-    public IAsyncEnumerable<Employee> Execute(
-        GetEmployeesCollectionRequest _,
+    public Task<List<Employee>> Execute(
+        PageQuery query,
         CancellationToken cancellation = default)
     {
-        return users.Find(
-            null,
-            UserRole.Employee,
-            new PageQuery(),
-            cancellation).Select(Map);
+        return users
+            .Find(null, UserRole.Employee, query, cancellation)
+            .Select(Map)
+            .ToListAsync(cancellation)
+            .AsTask();
     }
 
     private static Employee Map(User user) => new(user);

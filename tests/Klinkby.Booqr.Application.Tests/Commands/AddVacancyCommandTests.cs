@@ -27,8 +27,9 @@ public class AddVacancyCommandTests
         ];
         var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, _activityRecorder.Object,
             NullLogger<AddVacancyCommand>.Instance);
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            sut.AddCalendarEvent(_query, events, 0, CancellationToken.None));
+
+        Result<int> result = await sut.AddCalendarEvent(_query, events, 0, CancellationToken.None);
+        Assert.IsType<Result<int>.Fault>(result);
     }
 
     [Theory]
@@ -44,8 +45,9 @@ public class AddVacancyCommandTests
         ];
         var sut = new AddVacancyCommand(_repoMock.Object, _transactionMock.Object, _activityRecorder.Object,
             NullLogger<AddVacancyCommand>.Instance);
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            sut.AddCalendarEvent(_query, events, 0, CancellationToken.None));
+
+        Result<int> result = await sut.AddCalendarEvent(_query, events, 0, CancellationToken.None);
+        Assert.IsType<Result<int>.Fault>(result);
     }
 
     [Theory]

@@ -31,18 +31,19 @@ public class RefreshCommandTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public async Task GIVEN_EmptyRefreshToken_WHEN_Execute_THEN_ReturnsNull(string? refreshToken)
+    public async Task GIVEN_EmptyRefreshToken_WHEN_Execute_THEN_ReturnsUnauthorized(string? refreshToken)
     {
         var request = new RefreshRequest  { RefreshToken = refreshToken };
 
         var result = await _command.Execute(request);
 
-        Assert.Null(result);
+        var error = Assert.IsType<Result<OAuthTokenResponse>.Fault>(result);
+        Assert.Equal(Problem.Unauthorized.Type, error.Problem.Type);
     }
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_InvalidRefreshToken_WHEN_Execute_THEN_ReturnsNull(
+    public async Task GIVEN_InvalidRefreshToken_WHEN_Execute_THEN_ReturnsUnauthorized(
         string refreshToken)
     {
         var request = new RefreshRequest { RefreshToken = refreshToken };
@@ -51,12 +52,13 @@ public class RefreshCommandTests
 
         var result = await _command.Execute(request);
 
-        Assert.Null(result);
+        var error = Assert.IsType<Result<OAuthTokenResponse>.Fault>(result);
+        Assert.Equal(Problem.Unauthorized.Type, error.Problem.Type);
     }
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_UserNotFound_WHEN_Execute_THEN_ReturnsNull(
+    public async Task GIVEN_UserNotFound_WHEN_Execute_THEN_ReturnsUnauthorized(
         string refreshToken,
         int userId)
     {
@@ -68,7 +70,8 @@ public class RefreshCommandTests
 
         var result = await _command.Execute(request);
 
-        Assert.Null(result);
+        var error = Assert.IsType<Result<OAuthTokenResponse>.Fault>(result);
+        Assert.Equal(Problem.Unauthorized.Type, error.Problem.Type);
     }
 
     [Theory]
@@ -90,7 +93,8 @@ public class RefreshCommandTests
 
         var result = await _command.Execute(request);
 
-        Assert.Same(expectedResponse, result);
+        var success = Assert.IsType<Result<OAuthTokenResponse>.Success>(result);
+        Assert.Same(expectedResponse, success.Value);
         _transactionMock.Verify(x => x.Begin(It.IsAny<CancellationToken>()), Times.Once);
         _oauthMock.Verify(x => x.InvalidateToken(request.RefreshToken!, tokenHash, It.IsAny<CancellationToken>()), Times.Once);
         _transactionMock.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);

@@ -10,7 +10,7 @@ public sealed record LoginRequest(
 public sealed partial class LoginCommand(
     IUserRepository userRepository,
     IOAuth oauth,
-    ILogger<LoginCommand> logger) : ICommand<LoginRequest, Task<OAuthTokenResponse?>>
+    ILogger<LoginCommand> logger) : ICommand<LoginRequest, Task<Result<OAuthTokenResponse>>>
 {
     private readonly LoggerMessages _log = new(logger);
 
@@ -20,7 +20,7 @@ public sealed partial class LoginCommand(
     private const string DummyPasswordHash =
         "$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
 
-    public async Task<OAuthTokenResponse?> Execute(LoginRequest query, CancellationToken cancellation = default)
+    public async Task<Result<OAuthTokenResponse>> Execute(LoginRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
 
@@ -35,19 +35,19 @@ public sealed partial class LoginCommand(
         if (user is null)
         {
             _log.NotFound(userName);
-            return null;
+            return Problem.Unauthorized;
         }
 
         if (user.PasswordHash is null)
         {
             _log.NotConfirmed(user.Id);
-            return null;
+            return Problem.Unauthorized;
         }
 
         if (!isPasswordValid)
         {
             _log.WrongPassword(user.Email);
-            return null;
+            return Problem.Unauthorized;
         }
 
         if (!string.IsNullOrEmpty(query.RefreshToken))

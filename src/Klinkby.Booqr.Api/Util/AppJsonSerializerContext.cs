@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using Klinkby.Booqr.Application.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Klinkby.Booqr.Api.Util;
 
@@ -31,4 +32,5 @@ namespace Klinkby.Booqr.Api.Util;
 [JsonSerializable(typeof(UpdateServiceRequest))]
 [JsonSerializable(typeof(UpdateUserProfileRequest))]
 [JsonSerializable(typeof(User))]
+[JsonSerializable(typeof(ProblemHttpResult))]
 internal sealed partial class AppJsonSerializerContext : JsonSerializerContext;

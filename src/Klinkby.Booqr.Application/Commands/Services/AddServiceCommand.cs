@@ -19,18 +19,24 @@ public sealed class AddServiceCommand(
     ILogger<AddServiceCommand> logger)
     : AddCommand<AddServiceRequest, Service>(services, activityRecorder, logger)
 {
-    public override async Task<int> Execute(AddServiceRequest query, CancellationToken cancellation = default)
+    public override async Task<Result<int>> Execute(AddServiceRequest query, CancellationToken cancellation = default)
     {
         await transaction.Begin(cancellation);
         try
         {
-            var newId = await base.Execute(query, cancellation);
+            Result<int> result = await base.Execute(query, cancellation);
+            if (result is not Result<int>.Success success)
+            {
+                await transaction.Rollback(cancellation);
+                return result;
+            }
+
             if (query.Employees != null)
             {
-                await employeeServiceRepository.Assign(newId, query.Employees, cancellation);
+                await employeeServiceRepository.Assign(success.Value, query.Employees, cancellation);
             }
             await transaction.Commit(cancellation);
-            return newId;
+            return result;
         }
         catch
         {

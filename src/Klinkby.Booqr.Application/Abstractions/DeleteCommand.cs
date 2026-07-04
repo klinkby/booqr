@@ -12,7 +12,7 @@ public abstract partial class DeleteCommand<TItem>(
     IRepository<TItem, int> repository,
     IActivityRecorder activityRecorder,
     ILogger logger)
-    : ICommand<AuthenticatedByIdRequest>
+    : ICommand<AuthenticatedByIdRequest, Task<Result<bool>>>
 {
     private readonly LoggerMessages _log = new(logger);
 
@@ -22,17 +22,22 @@ public abstract partial class DeleteCommand<TItem>(
     /// <param name="query">The authenticated request containing the ID of the entity to delete.</param>
     /// <param name="cancellation">A token to monitor for cancellation requests.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    public async Task Execute(AuthenticatedByIdRequest query, CancellationToken cancellation = default)
+    public async Task<Result<bool>> Execute(AuthenticatedByIdRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
-        var deleted = await Delete(query, cancellation);
-        if (deleted) activityRecorder.Delete<TItem>(new (query.AuthenticatedUserId, query.Id));
+        Result<bool> result = await Delete(query, cancellation);
+        if (result.ValueOrDefault())
+        {
+            activityRecorder.Delete<TItem>(new(query.AuthenticatedUserId, query.Id));
+        }
+
+        return result;
     }
 
-    internal virtual Task<bool> Delete(AuthenticatedByIdRequest query, CancellationToken cancellation)
+    internal virtual async Task<Result<bool>> Delete(AuthenticatedByIdRequest query, CancellationToken cancellation)
     {
         _log.DeleteItem(query.AuthenticatedUserId, typeof(TItem).Name, query.Id);
-        return repository.Delete(query.Id, cancellation);
+        return await repository.Delete(query.Id, cancellation);
     }
 
     [ExcludeFromCodeCoverage]

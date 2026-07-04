@@ -5,9 +5,9 @@ public sealed record GetVacanciesRequest(
     DateTime? ToTime) : PageQuery;
 
 public sealed class GetVacancyCollectionCommand(ICalendarRepository events, TimeProvider timeProvider)
-    : ICommand<GetVacanciesRequest, IAsyncEnumerable<CalendarEvent>>
+    : ICommand<GetVacanciesRequest, Task<List<CalendarEvent>>>
 {
-    public IAsyncEnumerable<CalendarEvent> Execute(GetVacanciesRequest query,
+    public Task<List<CalendarEvent>> Execute(GetVacanciesRequest query,
         CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -18,6 +18,8 @@ public sealed class GetVacancyCollectionCommand(ICalendarRepository events, Time
             query,
             true,
             false,
-            cancellation);
+            cancellation)
+            .ToListAsync(cancellation)
+            .AsTask();
     }
 }

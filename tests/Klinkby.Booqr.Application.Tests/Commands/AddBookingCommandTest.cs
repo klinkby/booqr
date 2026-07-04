@@ -81,13 +81,14 @@ public class AddBookingCommandTest
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_CustomerBooksForAnotherUser_WHEN_Execute_THEN_ThrowsUnauthorized(
+    public async Task GIVEN_CustomerBooksForAnotherUser_WHEN_Execute_THEN_ReturnsForbiddenFault(
         AddBookingRequest request)
     {
         ClaimsPrincipal customer = CreateUser(42, UserRole.Customer);
         AddBookingRequest unauthorized = request with { CustomerId = 99, User = customer };
 
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _command.Execute(unauthorized));
+        var result = await _command.Execute(unauthorized);
+        var error = Assert.IsType<Result<int>.Fault>(result);
 
         _mockTransaction.Verify(x => x.Begin(It.IsAny<CancellationToken>()), Times.Never);
         _mockBookingRepository.Verify(
@@ -148,23 +149,24 @@ public class AddBookingCommandTest
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_NonExistentService_WHEN_Execute_THEN_ThrowsArgumentException(
+    public async Task GIVEN_NonExistentService_WHEN_Execute_THEN_ReturnsNotFound(
         AddBookingRequest request)
     {
         _mockServiceRepository.Setup(x => x.GetById(0, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Service?)null);
 
-        ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-            _command.Execute(request));
+        var result = await _command.Execute(request);
 
-        Assert.Contains("service", exception.Message, StringComparison.OrdinalIgnoreCase);
+        var error = Assert.IsType<Result<int>.Fault>(result);
+        Assert.Equal(Problem.NotFound.Type, error.Problem.Type);
+        Assert.Contains("service", error.Problem.Detail, StringComparison.OrdinalIgnoreCase);
 
         _mockTransaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_NonExistentVacancy_WHEN_Execute_THEN_ThrowsArgumentException(
+    public async Task GIVEN_NonExistentVacancy_WHEN_Execute_THEN_ReturnsNotFound(
         AddBookingRequest request,
         Service service)
     {
@@ -173,10 +175,11 @@ public class AddBookingCommandTest
         _mockCalendarRepository.Setup(x => x.GetById(request.VacancyId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((CalendarEvent?)null);
 
-        ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-            _command.Execute(request));
+        var result = await _command.Execute(request);
 
-        Assert.Contains("vacancy", exception.Message, StringComparison.OrdinalIgnoreCase);
+        var error = Assert.IsType<Result<int>.Fault>(result);
+        Assert.Equal(Problem.NotFound.Type, error.Problem.Type);
+        Assert.Contains("vacancy", error.Problem.Detail, StringComparison.OrdinalIgnoreCase);
 
         _mockTransaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -212,7 +215,7 @@ public class AddBookingCommandTest
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_VacancyBookedByDifferentUser_WHEN_Execute_THEN_ThrowsInvalidOperationException(
+    public async Task GIVEN_VacancyBookedByDifferentUser_WHEN_Execute_THEN_ReturnsConflict(
         AddBookingRequest request,
         Service service,
         CalendarEvent vacancy,
@@ -234,10 +237,11 @@ public class AddBookingCommandTest
         _mockBookingRepository.Setup(x => x.GetById(existingBookingId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(differentUserBooking);
 
-        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _command.Execute(request));
+        var result = await _command.Execute(request);
 
-        Assert.Equal("The requested vacancy was already booked.", exception.Message);
+        var error = Assert.IsType<Result<int>.Fault>(result);
+        Assert.Equal(Problem.Conflict.Type, error.Problem.Type);
+        Assert.Equal("The requested vacancy was already booked.", error.Problem.Detail);
         _mockTransaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
     }
 

@@ -10,15 +10,15 @@ public sealed partial class DeleteUserCommand(
 {
     private readonly LoggerMessages _log = new(logger);
 
-    internal override Task<bool> Delete(AuthenticatedByIdRequest query, CancellationToken cancellation)
+    internal override async Task<Result<bool>> Delete(AuthenticatedByIdRequest query, CancellationToken cancellation)
     {
         if (query.AuthenticatedUserId == query.Id)
         {
             _log.Harakiri(query.AuthenticatedUserId);
-            return Task.FromResult(false);
+            return false;
         }
 
-        return base.Delete(query, cancellation);
+        return await base.Delete(query, cancellation);
     }
 
     [ExcludeFromCodeCoverage]

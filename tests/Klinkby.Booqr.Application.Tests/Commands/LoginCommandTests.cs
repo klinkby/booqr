@@ -6,7 +6,7 @@ public class LoginCommandTests
 {
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_UserDoesNotExist_WHEN_Login_THEN_ReturnsNull(
+    public async Task GIVEN_UserDoesNotExist_WHEN_Login_THEN_ReturnsUnauthorized(
         string email,
         string password,
         OAuthTokenResponse expectedResponse)
@@ -17,15 +17,16 @@ public class LoginCommandTests
         var command = new LoginCommand(userRepo.Object, oauth.Object, NullLogger<LoginCommand>.Instance);
         var request = new LoginRequest(email, password);
 
-        OAuthTokenResponse? result = await command.Execute(request);
+        var result = await command.Execute(request);
 
-        Assert.Null(result);
+        var error = Assert.IsType<Result<OAuthTokenResponse>.Fault>(result);
+        Assert.Equal(Problem.Unauthorized.Type, error.Problem.Type);
         userRepo.Verify(x => x.GetByEmail(email, CancellationToken.None), Times.Once);
     }
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_UnconfirmedUser_WHEN_Login_THEN_ReturnsNull(
+    public async Task GIVEN_UnconfirmedUser_WHEN_Login_THEN_ReturnsUnauthorized(
         User user,
         string password,
         OAuthTokenResponse expectedResponse)
@@ -38,15 +39,16 @@ public class LoginCommandTests
         var command = new LoginCommand(userRepo.Object, oauth.Object, NullLogger<LoginCommand>.Instance);
         var request = new LoginRequest(user.Email, password);
 
-        OAuthTokenResponse? result = await command.Execute(request);
+        var result = await command.Execute(request);
 
-        Assert.Null(result);
+        var error = Assert.IsType<Result<OAuthTokenResponse>.Fault>(result);
+        Assert.Equal(Problem.Unauthorized.Type, error.Problem.Type);
         userRepo.Verify(x => x.GetByEmail(user.Email, CancellationToken.None), Times.Once);
     }
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_WrongPassword_WHEN_Login_THEN_ReturnsNull(
+    public async Task GIVEN_WrongPassword_WHEN_Login_THEN_ReturnsUnauthorized(
         User user,
         string correctPassword,
         string wrongPassword,
@@ -59,9 +61,10 @@ public class LoginCommandTests
         var command = new LoginCommand(userRepo.Object, oauth.Object,  NullLogger<LoginCommand>.Instance);
         var request = new LoginRequest(user.Email, wrongPassword);
 
-        OAuthTokenResponse? result = await command.Execute(request);
+        var result = await command.Execute(request);
 
-        Assert.Null(result);
+        var error = Assert.IsType<Result<OAuthTokenResponse>.Fault>(result);
+        Assert.Equal(Problem.Unauthorized.Type, error.Problem.Type);
         userRepo.Verify(x => x.GetByEmail(user.Email, CancellationToken.None), Times.Once);
     }
 
@@ -79,10 +82,11 @@ public class LoginCommandTests
         var request = new LoginRequest(userWithHashedPassword.Email, password) { RefreshToken = refreshToken };
 
         // Act
-        OAuthTokenResponse? response = await command.Execute(request);
+        var result = await command.Execute(request);
 
         // Assert basic response
-        Assert.NotNull(response);
+        var success = Assert.IsType<Result<OAuthTokenResponse>.Success>(result);
+        OAuthTokenResponse response = success.Value;
         Assert.False(string.IsNullOrWhiteSpace(response.AccessToken));
         Assert.Equal(expectedResponse.TokenType, response.TokenType);
 
