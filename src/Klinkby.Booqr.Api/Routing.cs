@@ -1,6 +1,7 @@
 ﻿using System.Net.Mime;
 using Klinkby.Booqr.Application.Commands.Employees;
 using Klinkby.Booqr.Application.Models;
+using Klinkby.Booqr.Api.Util;
 
 namespace Klinkby.Booqr.Api;
 
@@ -441,7 +442,6 @@ internal static class Routing
 
 file static class ResultMapperExtensions
 {
-    private const string RefreshTokenCookieName = "refresh_token";
 
     private static CookieOptions CreateRefreshTokenCookieOptions(DateTimeOffset? expires = null)
     {
@@ -457,13 +457,13 @@ file static class ResultMapperExtensions
 
     internal static bool DeleteRefreshTokenCookie(this bool result, HttpContext context)
     {
-        context.Response.Cookies.Delete(RefreshTokenCookieName, CreateRefreshTokenCookieOptions());
+        context.Response.Cookies.Delete(CommandExtensions.RefreshTokenCookieName, CreateRefreshTokenCookieOptions());
         return result;
     }
 
     internal static OAuthTokenResponse AddRefreshTokenCookie(this OAuthTokenResponse response, HttpContext context)
     {
-        context.Response.Cookies.Append(RefreshTokenCookieName, response.RefreshToken!,
+        context.Response.Cookies.Append(CommandExtensions.RefreshTokenCookieName, response.RefreshToken!,
             CreateRefreshTokenCookieOptions(response.RefreshTokenExpiration));
         context.Response.Headers.CacheControl = "no-store";
         return response with { RefreshToken = string.Empty };

@@ -53,7 +53,7 @@ public class UpdateUserProfileCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_RepositoryUpdateFails_WHEN_Execute_THEN_ThrowsMidAirCollisionException(
+    public async Task GIVEN_RepositoryUpdateFails_WHEN_Execute_THEN_ReturnsMidAirCollisionFault(
         UpdateUserProfileRequest request)
     {
         // Arrange

@@ -21,9 +21,4 @@ public record Problem(string Type, string Title, int HttpStatusCode, string? Det
 
     public static Problem MidAirCollision { get; } =
         new(Prefix + "mid-air-collision", "State changed during operation", 412);
-    // 11 +     internal const string MidAirCollision = Prefix + "mid-air-collision";
-    // 12 +     internal const string DependencyUnavailable = Prefix + "dependency-unavailable";
-    // 13 +     internal const string DependencyTimeout = Prefix + "dependency-timeout";
-    // 14 +     internal const string NotImplemented = Prefix + "not-implemented";
-    // 15 +     internal const string InternalError = Prefix + "internal-error";
 }

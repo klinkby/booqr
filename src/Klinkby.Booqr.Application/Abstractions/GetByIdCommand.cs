@@ -19,7 +19,7 @@ public abstract class GetByIdCommand<TItem>(IRepository<TItem, int> repository)
         TItem? value = await repository.GetById(query.Id, cancellation);
         return value switch
         {
-            null => Problem.NotFound with { Detail = $"{typeof(TItem).Name} {query.Id} was not found"},
+            null => Problem.NotFound with { Detail = $"{typeof(TItem).Name} {query.Id} was not found" },
             _ => value
         };
     }

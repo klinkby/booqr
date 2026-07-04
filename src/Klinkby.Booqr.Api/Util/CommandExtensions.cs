@@ -16,13 +16,12 @@ internal static class CommandExtensions
             ToOk<T, T>(commandResult, x => x);
 
         private async ValueTask<Results<U, ProblemHttpResult>> MapResult<U>(Func<T, U> mapSuccess) where U : IResult =>
-#pragma warning disable CS8509 // The switch expression does not handle all possible values of its input type (it is not exhaustive).
             await commandResult switch
             {
                 Result<T>.Success s => mapSuccess(s.Value),
-                Result<T>.Fault e => MapFault(e.Problem)
+                Result<T>.Fault e => MapFault(e.Problem),
+                _ => throw new UnreachableException("Result<T> has only Success and Fault subtypes")
             };
-#pragma warning restore CS8509 // The switch expression does not handle all possible values of its input type (it is not exhaustive).
     }
 
     internal static async ValueTask<Results<Ok<CollectionResponse<T>>, ProblemHttpResult>> ToOk<T>(this Task<List<T>> commandResult)

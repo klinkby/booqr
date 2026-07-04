@@ -81,7 +81,7 @@ public class AddBookingCommandTest
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_CustomerBooksForAnotherUser_WHEN_Execute_THEN_ThrowsUnauthorized(
+    public async Task GIVEN_CustomerBooksForAnotherUser_WHEN_Execute_THEN_ReturnsForbiddenFault(
         AddBookingRequest request)
     {
         ClaimsPrincipal customer = CreateUser(42, UserRole.Customer);

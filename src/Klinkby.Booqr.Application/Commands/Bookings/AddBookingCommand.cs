@@ -123,7 +123,7 @@ public partial class AddBookingCommand(
         return Problem.Conflict with { Detail = "The requested vacancy was already booked." };
     }
 
-    async private Task<CalendarEvent?> GetAndValidateVacancy(AddBookingRequest query, int userId, CancellationToken cancellation)
+    private async Task<CalendarEvent?> GetAndValidateVacancy(AddBookingRequest query, int userId, CancellationToken cancellation)
     {
         CalendarEvent? vacancy = await calendar.GetById(query.VacancyId, cancellation);
         if (vacancy is not null && query.CompletelyWithin(vacancy))
@@ -135,7 +135,7 @@ public partial class AddBookingCommand(
         return null;
     }
 
-    async private Task<Service?> GetAndValidateService(AddBookingRequest query, int userId, CancellationToken cancellation)
+    private async Task<Service?> GetAndValidateService(AddBookingRequest query, int userId, CancellationToken cancellation)
     {
         Service? service = await services.GetById(query.ServiceId, cancellation);
         if (service is not null)
@@ -165,28 +165,28 @@ public partial class AddBookingCommand(
         return Covers.SomewhereInTheMiddle;
     }
 
-    async private Task UpdateVacancyCoversEntireSlot(CalendarEvent vacancy, int newBookingId,
+    private async Task UpdateVacancyCoversEntireSlot(CalendarEvent vacancy, int newBookingId,
         CancellationToken cancellation)
     {
         vacancy = vacancy with { BookingId = newBookingId };
         await calendar.Update(vacancy, cancellation);
     }
 
-    async private Task UpdateVacancyCoversOnlyBeginning(CalendarEvent vacancy, int newBookingId, AddBookingRequest query,
+    private async Task UpdateVacancyCoversOnlyBeginning(CalendarEvent vacancy, int newBookingId, AddBookingRequest query,
         CancellationToken cancellation)
     {
         await calendar.Update(vacancy with { BookingId = newBookingId, EndTime = query.EndTime}, cancellation);
         await calendar.Add(vacancy with { StartTime = query.EndTime }, cancellation);
     }
 
-    async private Task UpdateVacancyCoversOnlyEnd(CalendarEvent vacancy, AddBookingRequest query, int newBookingId,
+    private async Task UpdateVacancyCoversOnlyEnd(CalendarEvent vacancy, AddBookingRequest query, int newBookingId,
         CancellationToken cancellation)
     {
         await calendar.Update(vacancy with { BookingId = newBookingId, StartTime = query.StartTime}, cancellation);
         await calendar.Add(vacancy with { EndTime = query.StartTime }, cancellation);
     }
 
-    async private Task UpdateVacancyInTheMiddle(CalendarEvent vacancy, int newBookingId, AddBookingRequest query,
+    private async Task UpdateVacancyInTheMiddle(CalendarEvent vacancy, int newBookingId, AddBookingRequest query,
         CancellationToken cancellation)
     {
         await calendar.Update(vacancy with { BookingId = newBookingId, StartTime = query.StartTime, EndTime = query.EndTime }, cancellation);

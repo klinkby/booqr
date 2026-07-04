@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Serialization;
 
 namespace Klinkby.Booqr.Application;
 
@@ -8,9 +7,6 @@ namespace Klinkby.Booqr.Application;
 ///     records to top level, declare `public union Result&lt;T&gt;(Success&lt;T&gt;,
 ///     Error);` — switch arms stay, the `_` arms get deleted.
 /// </summary>
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
-[JsonDerivedType(typeof(Result<>.Success), "success")]
-[JsonDerivedType(typeof(Result<>.Fault), "fault")]
 [SuppressMessage("Usage", "CA2225:Operator overloads have named alternates")]
 [SuppressMessage("Design", "CA1034:Nested types should not be visible")]
 public abstract record Result<T> where T : notnull

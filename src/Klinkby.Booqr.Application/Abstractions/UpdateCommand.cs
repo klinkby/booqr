@@ -27,7 +27,6 @@ public abstract partial class UpdateCommand<TRequest, TItem>(
     /// <param name="query">The authenticated request containing the update data.</param>
     /// <param name="cancellation">A token to monitor for cancellation requests.</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    /// <exception cref="MidAirCollisionException">Thrown when the entity was modified by another operation (optimistic concurrency failure).</exception>
     public virtual async Task<Result<bool>> Execute(TRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -43,7 +42,7 @@ public abstract partial class UpdateCommand<TRequest, TItem>(
 
         activityRecorder.Update<TItem>(new(query.AuthenticatedUserId, query.Id));
 
-        return new Result<bool>.Success(updated);
+        return updated;
     }
 
     /// <summary>

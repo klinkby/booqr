@@ -11,6 +11,7 @@ internal sealed class AuthenticatedRequestEndPointFilter : IEndpointFilter
     public ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
         IList<object?> arguments = context.Arguments;
+        // Iterate in reverse: request parameters tend to be at the end of the argument list.
         for (var i = arguments.Count - 1; i >= 0; i--)
         {
             if (arguments[i] is not IAuthenticatedRequest request)
