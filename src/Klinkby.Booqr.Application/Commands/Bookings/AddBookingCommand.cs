@@ -50,11 +50,6 @@ public partial class AddBookingCommand(
         {
             (result, commit) = await CreateBooking(query, userId, cancellation);
         }
-        catch (InvalidOperationException ex)
-        {
-            result = Problem.Conflict with { Detail = ex.Message };
-            commit = false;
-        }
         catch
         {
             await transaction.Rollback(cancellation);

@@ -435,6 +435,7 @@ internal static class Routing
                     .Execute(request, cancellation)
                     .ToNoContent())
             .RequireAuthorization(UserRole.Employee)
+            .ProducesProblem(StatusCodes.Status409Conflict)
             .WithName("deleteVacancy")
             .WithSummary("Delete a vacancy");
     }
