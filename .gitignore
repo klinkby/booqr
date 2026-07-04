@@ -4,6 +4,7 @@ bin/
 obj/
 .idea/
 wwwroot/openapi/
+src/Klinkby.Booqr.Api/openapi/
 NLog.xsd
 certs/
 dpkeys/
