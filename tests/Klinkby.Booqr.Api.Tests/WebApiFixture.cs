@@ -1,13 +1,16 @@
 ﻿using System.Text;
 using System.Text.Unicode;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Klinkby.Booqr.Api.Tests;
 
-internal sealed class WebApiFixture(string? allowedHosts = null) : WebApplicationFactory<Program>
+internal sealed class WebApiFixture(string? allowedHosts = null, bool withThrowingEndpoint = false)
+    : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -46,6 +49,33 @@ internal sealed class WebApiFixture(string? allowedHosts = null) : WebApplicatio
         IConfigurationRoot configuration = configurationBuilder.Build();
         builder.UseConfiguration(configuration);
         builder.ConfigureAppConfiguration(_ => { });
-        builder.ConfigureTestServices(_ => { });
+
+        if (withThrowingEndpoint)
+        {
+            // Force the non-Development branch so GlobalExceptionHandler (not the developer
+            // exception page) handles the throw, regardless of the ambient environment.
+            builder.UseEnvironment("Production");
+            builder.ConfigureTestServices(static services =>
+                services.AddSingleton<IStartupFilter, ThrowingStartupFilter>());
+        }
+        else
+        {
+            builder.ConfigureTestServices(_ => { });
+        }
+    }
+
+    /// <summary>
+    ///     Appends a terminal middleware that always throws, placed <em>after</em> the application
+    ///     pipeline so it runs downstream of <c>UseExceptionHandler</c>. Any unmatched request (e.g.
+    ///     <c>GET /api/test-throw</c>) reaches it and surfaces an unhandled exception through the
+    ///     real pipeline.
+    /// </summary>
+    private sealed class ThrowingStartupFilter : IStartupFilter
+    {
+        public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>
+        {
+            next(app);
+            app.Run(static _ => throw new TimeoutException("Simulated unhandled exception"));
+        };
     }
 }

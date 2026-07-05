@@ -110,11 +110,7 @@ static void ConfigureMiddleware(WebApplication app, bool isMockServer)
     }
     else
     {
-        app.UseExceptionHandler(new ExceptionHandlerOptions
-        {
-            AllowStatusCode404Response = true,
-            StatusCodeSelector = StatusCode.FromException
-        });
+        app.UseExceptionHandler(new ExceptionHandlerOptions { AllowStatusCode404Response = true });
     }
 
     app.UseSecurityHeaders();
