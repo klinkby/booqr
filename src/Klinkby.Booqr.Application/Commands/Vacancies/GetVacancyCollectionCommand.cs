@@ -2,7 +2,9 @@
 
 public sealed record GetVacanciesRequest(
     DateTime? FromTime,
-    DateTime? ToTime) : PageQuery;
+    DateTime? ToTime,
+    int? Start = 0,
+    int? Num = 100) : PageQuery(Start, Num);
 
 public sealed class GetVacancyCollectionCommand(ICalendarRepository events, TimeProvider timeProvider)
     : ICommand<GetVacanciesRequest, Task<List<CalendarEvent>>>
