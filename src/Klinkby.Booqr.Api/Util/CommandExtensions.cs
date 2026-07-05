@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Klinkby.Booqr.Application;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -16,7 +17,10 @@ internal static class CommandExtensions
         internal ValueTask<Results<Ok<T>, ProblemHttpResult>> ToOk() =>
             ToOk<T, T>(commandResult, x => x);
 
-        private async ValueTask<Results<U, ProblemHttpResult>> MapResult<U>(Func<T, U> mapSuccess) where U : IResult =>
+        private async ValueTask<Results<U, ProblemHttpResult>> MapResult<
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods |
+                                        DynamicallyAccessedMemberTypes.NonPublicMethods)] U>(
+            Func<T, U> mapSuccess) where U : IResult =>
             await commandResult switch
             {
                 Result<T>.Success s => mapSuccess(s.Value),
