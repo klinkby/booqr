@@ -526,12 +526,12 @@
       },
       "NLog.Extensions.Logging": {
         "type": "Transitive",
-        "resolved": "6.1.2",
-        "contentHash": "CDak9fN3yqDrmFth5OX/8WpRdEhHOHDK9O4Lej4oWG0r9MygEKfwZXgl1F5ixSnz0Sk3aW/3a/irjtttJUGDDw==",
+        "resolved": "6.1.3",
+        "contentHash": "e47ew/O3uHBANPDnI0RAaBbVEpOsuF8rhKedQLdJunwEB+7EnUSjT/kEODKPD3wrlkjoeCxTXrOXD7l1EB7HNQ==",
         "dependencies": {
           "Microsoft.Extensions.Configuration.Abstractions": "10.0.0",
           "Microsoft.Extensions.Logging": "10.0.0",
-          "NLog": "6.1.1"
+          "NLog": "6.1.3"
         }
       },
       "Npgsql": {
@@ -642,7 +642,7 @@
           "Microsoft.AspNetCore.OpenApi": "[10.0.0-preview.7.25380.108, 10.0.0-preview.7.25380.108]",
           "Microsoft.OpenApi": "[2.9.0, 2.9.0]",
           "NLog": "[6.1.3, )",
-          "NLog.Web.AspNetCore": "[6.1.2, )"
+          "NLog.Web.AspNetCore": "[6.1.3, )"
         }
       },
       "klinkby.booqr.application": {
@@ -807,11 +807,11 @@
       },
       "NLog.Web.AspNetCore": {
         "type": "CentralTransitive",
-        "requested": "[6.1.2, )",
-        "resolved": "6.1.2",
-        "contentHash": "PLXSRq7SYKhneMMd7+Ds4/gOVg++CDNpdN67ke6gp837aW4e70aQWuhMFHVL4YnFpO1UL+5QGEHP4w9wKZfwtg==",
+        "requested": "[6.1.3, )",
+        "resolved": "6.1.3",
+        "contentHash": "EPbrb/qZYgKe+eXN5KrR5PlEzbli08RdUT9QB5/E+CqR9Bci+vEImpcZTXUXxNm7z2XNBFOtz1WAaOh+cuBj7g==",
         "dependencies": {
-          "NLog.Extensions.Logging": "6.1.2"
+          "NLog.Extensions.Logging": "6.1.3"
         }
       },
       "Npgsql.DependencyInjection": {

@@ -308,7 +308,7 @@ internal static class Routing
                     [AsParameters] GetMyBookingsRequest request,
                     CancellationToken cancellation) => command
                     .Execute(request, cancellation)
-                    .ToOk())
+                    .ToOk(x => new CollectionResponse<MyBooking>(x)))
             .RequireAuthorization(UserRole.Customer)
             .ProducesValidationProblem()
             .WithName("getMyBookings")
