@@ -19,7 +19,7 @@ internal sealed partial class MyBookingRepository(IConnectionProvider connection
              WHERE ( starttime BETWEEN @fromTime AND @toTime OR endtime BETWEEN @fromTime AND @toTime )
                AND ( customerid=@userId OR employeeid=@userId )
                AND deleted IS NULL
-             ORDER BY starttime
+             ORDER BY starttime, id
              LIMIT @Num OFFSET @Start
              """, new { fromTime, toTime, pageQuery.Start, pageQuery.Num, userId });
         await foreach (MyBooking item in query.WithCancellation(cancellation))

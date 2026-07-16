@@ -17,7 +17,7 @@ internal sealed partial class UserRepository(IConnectionProvider connectionProvi
              WHERE deleted IS NULL
                AND (@query IS NULL OR email ILIKE '%' || @query || '%' OR name ILIKE '%' || @query || '%')
                AND (@role IS NULL OR role = @role OR (@role = 'Employee' AND role = 'Admin'))
-             ORDER BY created DESC
+             ORDER BY created DESC, id DESC
              LIMIT @Num OFFSET @Start
              """, new { query, role, pageQuery.Start, pageQuery.Num });
 

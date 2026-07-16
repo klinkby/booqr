@@ -14,7 +14,7 @@ internal sealed partial class ServiceRepository(IConnectionProvider connectionPr
         LEFT JOIN employeeservices es ON es.serviceid = s.id
         WHERE s.deleted IS NULL
         GROUP BY s.id
-        ORDER BY s.name
+        ORDER BY s.name, s.id
         LIMIT @Num OFFSET @Start
         """;
 

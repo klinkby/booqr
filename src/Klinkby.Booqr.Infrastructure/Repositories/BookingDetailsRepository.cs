@@ -18,7 +18,7 @@ internal sealed partial class BookingDetailsRepository(
              FROM {TableName}
              WHERE ( starttime BETWEEN @fromTime AND @toTime )
                AND deleted IS NULL
-             ORDER BY starttime
+             ORDER BY starttime, id
              LIMIT @Num OFFSET @Start
              """, new { fromTime, toTime, pageQuery.Start, pageQuery.Num });
         await foreach (BookingDetails item in query.WithCancellation(cancellation))
