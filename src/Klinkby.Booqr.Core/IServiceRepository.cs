@@ -12,11 +12,13 @@ namespace Klinkby.Booqr.Core;
 /// <param name="Name">The name of the service.</param>
 /// <param name="Duration">The time duration required for the service.</param>
 /// <param name="Employees">The list of employee identifiers who can provide this service.</param>
+/// <param name="Description">An optional free-text description of the service.</param>
 public sealed record Service(
     string Name,
     TimeSpan Duration,
     [SuppressMessage("Performance", "CA1819:Properties should not return arrays", Justification = "Performance")]
-    int[] Employees) : Audit;
+    int[] Employees,
+    string? Description = null) : Audit;
 
 /// <summary>
 ///     Provides data access operations for <see cref="Service"/> entities.

@@ -6,8 +6,9 @@ public sealed record UpdateServiceRequest(
     [property: IgnoreDataMember] int Id,
     string Name,
     TimeSpan Duration,
-    int[]? Employees
-    ) : AddServiceRequest(Name, Duration, Employees), IId;
+    int[]? Employees,
+    string? Description = null
+    ) : AddServiceRequest(Name, Duration, Employees, Description), IId;
 
 public sealed class UpdateServiceCommand(
     IServiceRepository services,
@@ -47,7 +48,7 @@ public sealed class UpdateServiceCommand(
     }
 
     protected override Service Map(UpdateServiceRequest query) =>
-        new(query.Name, query.Duration, [])
+        new(query.Name, query.Duration, [], query.Description)
         {
             Id = query.Id,
             Version = etagProvider.Version

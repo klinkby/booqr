@@ -8,7 +8,9 @@ public record AddServiceRequest(
     string Name,
     TimeSpan Duration,
     [SuppressMessage("Performance", "CA1819:Properties should not return arrays", Justification = "Performance")]
-    int[]? Employees
+    int[]? Employees,
+    [property: StringLength(2000)]
+    string? Description = null
 ) : AuthenticatedRequest;
 
 public sealed class AddServiceCommand(
@@ -46,5 +48,5 @@ public sealed class AddServiceCommand(
     }
 
     protected override Service Map(AddServiceRequest query) =>
-        new(query.Name, query.Duration, []);
+        new(query.Name, query.Duration, [], query.Description);
 }

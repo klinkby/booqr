@@ -1,6 +1,6 @@
 namespace Klinkby.Booqr.Infrastructure.Repositories;
 
-[QueryFields("name", "duration")]
+[QueryFields("name", "duration", "description")]
 internal sealed partial class ServiceRepository(IConnectionProvider connectionProvider, TimeProvider timeProvider)
     : AuditRepository<Service>(timeProvider), IServiceRepository
 {
@@ -8,7 +8,7 @@ internal sealed partial class ServiceRepository(IConnectionProvider connectionPr
 
     private const string GetWithEmployeesAllQuery =
         """
-        SELECT s.id, s.name, s.duration, s.created, s.modified, s.deleted,
+        SELECT s.id, s.name, s.duration, s.description, s.created, s.modified, s.deleted,
                array_remove(array_agg(es.employeeid), NULL) AS employees
         FROM services s
         LEFT JOIN employeeservices es ON es.serviceid = s.id
@@ -20,7 +20,7 @@ internal sealed partial class ServiceRepository(IConnectionProvider connectionPr
 
     private const string GetWithEmployeesByIdQuery =
         """
-        SELECT s.id, s.name, s.duration, s.created, s.modified, s.deleted,
+        SELECT s.id, s.name, s.duration, s.description, s.created, s.modified, s.deleted,
                array_remove(array_agg(es.employeeid), NULL) AS employees
         FROM services s
         LEFT JOIN employeeservices es ON es.serviceid = s.id

@@ -44,11 +44,12 @@ create table public.services
     id       integer generated always as identity
         constraint services_pk
             primary key,
-    name     varchar(255)             not null,
-    duration interval                 not null,
-    created  timestamp with time zone not null,
-    modified timestamp with time zone not null,
-    deleted  timestamp with time zone
+    name        varchar(255)             not null,
+    duration    interval                 not null,
+    description varchar(2000),
+    created     timestamp with time zone not null,
+    modified    timestamp with time zone not null,
+    deleted     timestamp with time zone
 );
 
 create table public.bookings
