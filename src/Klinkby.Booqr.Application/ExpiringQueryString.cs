@@ -110,14 +110,57 @@ internal sealed class ExpiringQueryString(
 
     private string HashAndEncodeToBase64Url(string text)
     {
-        // Sign the exact bytes. Do NOT normalize case: upper-casing here would make
-        // the MAC case-insensitive, so two query strings differing only by case would
-        // share a signature and integrity could be bypassed for any case-sensitive value.
+        // Sign the exact bytes, apart from percent-encoding case. Do NOT upper-case the whole
+        // text: that would make the MAC case-insensitive, so two query strings differing only by
+        // case would share a signature and integrity could be bypassed for any case-sensitive
+        // value. Canonicalizing only the hex digits of %XY triplets keeps every value's case
+        // bound while surviving RFC 3986 normalization in transit.
         var hashBytes = HMACSHA3_384.HashData(
             Convert.FromBase64String(_hmacKey),
-            Encoding.UTF8.GetBytes(text));
+            Encoding.UTF8.GetBytes(CanonicalizePercentEncoding(text)));
         var hashValue = Base64Url.EncodeToString(hashBytes);
         return hashValue;
+    }
+
+    /// <summary>
+    ///     Upper-cases the two hex digits of every well-formed %XY triplet, leaving everything
+    ///     else untouched.
+    /// </summary>
+    /// <remarks>
+    ///     RFC 3986 §6.2.2.1 defines percent-encoding as case-insensitive and has normalizers
+    ///     upper-case the triplets, while <see cref="HttpUtility.UrlEncode(string)" /> emits them
+    ///     in lower case ("%3a"). Mail clients, link rewriters and front-ends that re-serialize
+    ///     the query therefore hand back "%3A" for the very bytes we signed. Signing the
+    ///     canonical form makes the MAC stable across that rewrite without weakening it:
+    ///     <see cref="HttpUtility.ParseQueryString(string)" /> already decodes both spellings to
+    ///     the same character, so they were never distinguishable to the consumer.
+    /// </remarks>
+    private static string CanonicalizePercentEncoding(string text)
+    {
+        if (!text.Contains('%', StringComparison.Ordinal))
+        {
+            return text;
+        }
+
+        return string.Create(text.Length, text, static (span, source) =>
+        {
+            source.CopyTo(span);
+            for (var i = 0; i <= span.Length - 3; i++)
+            {
+                if (span[i] != '%'
+                    || !char.IsAsciiHexDigit(span[i + 1])
+                    || !char.IsAsciiHexDigit(span[i + 2]))
+                {
+                    continue;
+                }
+
+                span[i + 1] = char.ToUpperInvariant(span[i + 1]);
+                span[i + 2] = char.ToUpperInvariant(span[i + 2]);
+                // Skip past the triplet so an encoded percent ("%253a") only has its own
+                // "25" normalized — the trailing "3a" is literal payload on both sides.
+                i += 2;
+            }
+        });
     }
 }
 
