@@ -12,7 +12,7 @@ public record AddBookingRequest(
     [property: Required]
     [property: Range(1, int.MaxValue)]
     int ServiceId,
-    [property: StringLength(8000)]
+    [property: StringLength(2000)]
     string? Notes,
     [property: Required] DateTime StartTime) : AuthenticatedRequest, IEvent
 {

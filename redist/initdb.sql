@@ -63,7 +63,7 @@ create table public.bookings
     serviceid  integer                  not null
         constraint bookings_services_id_fk
             references public.services,
-    notes      varchar(8000),
+    notes      varchar(2000),
     created    timestamp with time zone not null,
     modified   timestamp with time zone not null,
     deleted    timestamp with time zone
