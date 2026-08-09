@@ -6,7 +6,7 @@ namespace Klinkby.Booqr.Application.Tests.Services;
 
 public class ActivityBackgroundServiceTests
 {
-    [Theory(Timeout = 5000)]
+    [Theory(Timeout = 3000)]
     [AutoData]
     public async Task GIVEN_ChannelWithActivity_WHEN_Started_THEN_CallsRepositoryAdd(Activity activity)
     {
