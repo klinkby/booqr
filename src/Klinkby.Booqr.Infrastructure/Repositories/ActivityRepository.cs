@@ -18,6 +18,7 @@ internal sealed class ActivityRepository(
              SELECT id,{CommaSeparated}
              FROM {TableName}
              WHERE (timestamp BETWEEN @fromTime AND @toTime)
+             ORDER BY timestamp,id
              LIMIT @Num OFFSET @Start
              """, new { fromTime, toTime, pageQuery.Start, pageQuery.Num });
         await foreach (Activity item in query.WithCancellation(cancellation))
@@ -31,7 +32,7 @@ internal sealed class ActivityRepository(
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
         IAsyncEnumerable<Activity> query = connection.QueryUnbufferedAsync<Activity>(
-            $"SELECT id,{CommaSeparated} FROM {TableName} LIMIT @Num OFFSET @Start",
+            $"SELECT id,{CommaSeparated} FROM {TableName} ORDER BY timestamp,id LIMIT @Num OFFSET @Start",
             new { pageQuery.Start, pageQuery.Num });
         await foreach (Activity item in query.WithCancellation(cancellation))
         {

@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
-using Klinkby.Booqr.Core.Exceptions;
 
 namespace Klinkby.Booqr.Application.Commands.Users;
 
@@ -10,7 +9,7 @@ public record UpdateUserProfileRequest(
     [property: Required]
     [property: StringLength(0xff)]
     string Name,
-    [property: Range(10_00_00_00, 99_99_99_99)]
+    [property: Range(45_10_00_00_00, 49_99_99_99_99)]
     long Phone
 ) : AuthenticatedRequest, IId;
 
