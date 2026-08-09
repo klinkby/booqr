@@ -109,6 +109,65 @@ public class ExpiringQueryStringTests
         Assert.Equal(QueryStringValidation.IntegrityFailed, status);
     }
 
+    [Fact]
+    public void BuildAndValidate_ShouldReturnTrue_ForUppercasedPercentTriplets()
+    {
+        // Arrange
+        ExpiringQueryString sut = new(PasswordSettings, _timeProvider);
+
+        // Act — HttpUtility.UrlEncode emits lower-case triplets, but RFC 3986 §6.2.2.1 lets any
+        // intermediary (mail client, link rewriter, front-end re-encoding the query) upper-case
+        // them. That rewrite must not break integrity.
+        var queryString = sut.Create(TimeSpan.FromHours(1));
+        Assert.Contains("%3a", queryString, StringComparison.Ordinal);
+        var rewritten = queryString.Replace("%3a", "%3A", StringComparison.Ordinal);
+        var isValid = sut.TryParse(rewritten, out NameValueCollection? _, out QueryStringValidation status);
+
+        // Assert
+        Assert.True(isValid);
+        Assert.Equal(QueryStringValidation.Success, status);
+    }
+
+    [Theory]
+    [InlineData("jane doe+test@example.com")]
+    [InlineData("100%25 sure")]
+    [InlineData("a:b/c?d&e=f")]
+    public void BuildAndValidate_ShouldReturnTrue_ForUppercasedPercentTripletsInParameterValue(string value)
+    {
+        // Arrange
+        ExpiringQueryString sut = new(PasswordSettings, _timeProvider);
+        NameValueCollection parameters = new() { { "value", value } };
+
+        // Act — upper-case every triplet the way a normalizer would, including the "%25" of an
+        // encoded percent sign, whose trailing literal characters must stay untouched.
+        var queryString = sut.Create(TimeSpan.FromHours(1), parameters);
+        var rewritten = UppercasePercentTriplets(queryString);
+        var isValid = sut.TryParse(rewritten, out NameValueCollection? outParameters, out QueryStringValidation status);
+
+        // Assert
+        Assert.True(isValid);
+        Assert.Equal(QueryStringValidation.Success, status);
+        Assert.Equal(value, outParameters!["value"]);
+    }
+
+    private static string UppercasePercentTriplets(string text)
+    {
+        var chars = text.ToCharArray();
+        for (var i = 0; i <= chars.Length - 3; i++)
+        {
+            if (chars[i] != '%' || !char.IsAsciiHexDigit(chars[i + 1]) || !char.IsAsciiHexDigit(chars[i + 2]))
+            {
+                continue;
+            }
+
+            chars[i + 1] = char.ToUpperInvariant(chars[i + 1]);
+            chars[i + 2] = char.ToUpperInvariant(chars[i + 2]);
+            i += 2;
+        }
+
+        return new string(chars);
+    }
+
     [Theory]
     [InlineData("&hash=invalidhash")]
     [InlineData("&hash=")]
