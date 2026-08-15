@@ -8,12 +8,19 @@
         "resolved": "2.0.5",
         "contentHash": "8LrlvI1KpjjJ4VGSqZ16yoOCKlQnYS+Y8rYNifNrscmVh5anJcF9E4e0NiDP30BHBMUbkoJ5KdcxoRWM7Pz9Aw=="
       },
+      "Microsoft.NET.ILLink.Tasks": {
+        "type": "Direct",
+        "requested": "[10.0.11, )",
+        "resolved": "10.0.11",
+        "contentHash": "IBf7lbovvjGWVWXZX5cJ/cO0WXbId0Zq4BuSeT94mGZuOAP66oMeH9PTBZ9Jpp3Jb6jtK0qm/NyUbPRo1gC/wQ=="
+      },
       "SmartAnalyzers.ExceptionAnalyzer": {
         "type": "Direct",
         "requested": "[1.0.10, )",
         "resolved": "1.0.10",
         "contentHash": "vK2QCxSPUDXvxvgf60qqnHzpsNvW4D5yJpOyTKQbr8odSPw4M1GmDIUJuILfQo/QJb/FAE2Zzebr9pNpmbjxdw=="
       }
-    }
+    },
+    "net10.0/linux-x64": {}
   }
 }
