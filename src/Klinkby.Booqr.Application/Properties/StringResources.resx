@@ -27,4 +27,7 @@
     <data name="ReminderSubject" xml:space="preserve">
         <value>Husk din tid i morgen</value>
     </data>
+    <data name="NewBooking" xml:space="preserve">
+        <value>Ny tidsbestilling</value>
+    </data>
 </root>

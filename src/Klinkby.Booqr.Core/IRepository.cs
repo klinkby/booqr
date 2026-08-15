@@ -10,9 +10,7 @@ namespace Klinkby.Booqr.Core;
 ///     enabling generic repository registration and discovery patterns.
 /// </remarks>
 [SuppressMessage("Design", "CA1040:Avoid empty interfaces", Justification = "Marks all repositories")]
-public interface IRepository
-{
-}
+public interface IRepository;
 
 /// <summary>
 /// Represents an immutable repository that provides read-only access to items of type <typeparamref name="T" />
