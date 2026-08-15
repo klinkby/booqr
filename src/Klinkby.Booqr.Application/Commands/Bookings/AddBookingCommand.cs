@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Text.Json.Serialization;
+using System.Threading.Channels;
 
 namespace Klinkby.Booqr.Application.Commands.Bookings;
 
@@ -24,7 +26,9 @@ public partial class AddBookingCommand(
     IBookingRepository bookings,
     ICalendarRepository calendar,
     IServiceRepository services,
+    IBookingDetailsRepository bookingsDetails,
     ITransaction transaction,
+    ChannelWriter<Message> channelWriter,
     IActivityRecorder activityRecorder,
     ILogger<AddBookingCommand> logger)
     : ICommand<AddBookingRequest, Task<Result<int>>>
@@ -56,9 +60,17 @@ public partial class AddBookingCommand(
             throw;
         }
 
+
         if (commit)
         {
+            int newId = ((Result<int>.Success)result).Value;
+            BookingDetails details = await bookingsDetails.GetById(newId, cancellation)
+                                     ?? throw new InvalidOperationException("Booking was created but not found");
             await transaction.Commit(cancellation);
+
+            Message message = ComposeMessage(details);
+            await channelWriter.WriteAsync(message, cancellation);
+
             _log.CreateBooking(userId, nameof(Booking), ((Result<int>.Success)result).Value);
         }
         else
@@ -192,6 +204,22 @@ public partial class AddBookingCommand(
     private static Booking Map(AddBookingRequest query) =>
         new(query.CustomerId!.Value, query.ServiceId, query.Notes);
 
+    private static Message ComposeMessage(BookingDetails booking)
+    {
+        return EmbeddedResource.Properties_Reminder_handlebars.ComposeMessage(
+            booking.CustomerEmail,
+            StringResources.NewBooking,
+            new Dictionary<string, string>
+            {
+                ["id"] = booking.Id.ToString(CultureInfo.InvariantCulture),
+                ["start"] = booking.StartTime.ToString("hh:mm d/M", CultureInfo.InvariantCulture),
+                ["duration"] = booking.Duration.ToString("hh':'mm", CultureInfo.InvariantCulture),
+                ["name"] = booking.CustomerName ?? booking.CustomerEmail,
+                ["employee"] = booking.Employee ?? "?",
+                ["location"] = booking.Location,
+                ["service"] = booking.Service
+            });
+    }
     [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {

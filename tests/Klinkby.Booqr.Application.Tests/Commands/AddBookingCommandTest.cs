@@ -1,4 +1,6 @@
-﻿namespace Klinkby.Booqr.Application.Tests.Commands;
+﻿using System.Threading.Channels;
+
+namespace Klinkby.Booqr.Application.Tests.Commands;
 
 public class AddBookingCommandTest
 {
@@ -6,21 +8,28 @@ public class AddBookingCommandTest
     private readonly Mock<IBookingRepository> _mockBookingRepository;
     private readonly Mock<ICalendarRepository> _mockCalendarRepository;
     private readonly Mock<IServiceRepository> _mockServiceRepository;
+    private readonly Mock<IBookingDetailsRepository> _mockBookingDetailsRepository;
     private readonly Mock<ITransaction> _mockTransaction;
     private readonly Mock<IActivityRecorder> _activityRecorder = new();
+    private readonly Channel<Message> _channel;
 
     public AddBookingCommandTest()
     {
         _mockBookingRepository = new Mock<IBookingRepository>();
         _mockCalendarRepository = new Mock<ICalendarRepository>();
         _mockServiceRepository = new Mock<IServiceRepository>();
+        _mockBookingDetailsRepository = new Mock<IBookingDetailsRepository>();
+        _channel = Channel.CreateBounded<Message>(100);
+
         _mockTransaction = new Mock<ITransaction>();
 
         _command = new AddBookingCommand(
             _mockBookingRepository.Object,
             _mockCalendarRepository.Object,
             _mockServiceRepository.Object,
+            _mockBookingDetailsRepository.Object,
             _mockTransaction.Object,
+            _channel.Writer,
             _activityRecorder.Object,
             NullLogger<AddBookingCommand>.Instance);
     }
@@ -38,7 +47,8 @@ public class AddBookingCommandTest
         AddBookingRequest request,
         Service service,
         CalendarEvent vacancy,
-        int newBookingId)
+        int newBookingId,
+        BookingDetails bookingDetails)
     {
         CalendarEvent updatedVacancy = vacancy with { BookingId = null };
 
@@ -48,6 +58,8 @@ public class AddBookingCommandTest
             .ReturnsAsync(updatedVacancy);
         _mockBookingRepository.Setup(x => x.Add(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(newBookingId);
+        _mockBookingDetailsRepository.Setup(x => x.GetById(newBookingId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(bookingDetails with { Id = newBookingId });
 
         await _command.Execute(request);
 
@@ -60,7 +72,8 @@ public class AddBookingCommandTest
         AddBookingRequest request,
         Service service,
         CalendarEvent vacancy,
-        int newBookingId)
+        int newBookingId,
+        BookingDetails bookingDetails)
     {
         AddBookingRequest requestWithNullCustomer = request with { CustomerId = null };
         CalendarEvent updatedVacancy = vacancy with { BookingId = null };
@@ -71,6 +84,8 @@ public class AddBookingCommandTest
             .ReturnsAsync(updatedVacancy);
         _mockBookingRepository.Setup(x => x.Add(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(newBookingId);
+        _mockBookingDetailsRepository.Setup(x => x.GetById(newBookingId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(bookingDetails with { Id = newBookingId });
 
         await _command.Execute(requestWithNullCustomer);
 
@@ -101,7 +116,8 @@ public class AddBookingCommandTest
         AddBookingRequest request,
         Service service,
         CalendarEvent vacancy,
-        int newBookingId)
+        int newBookingId,
+        BookingDetails bookingDetails)
     {
         ClaimsPrincipal employee = CreateUser(7, UserRole.Employee);
         AddBookingRequest onBehalf = request with { CustomerId = 99, User = employee };
@@ -113,6 +129,8 @@ public class AddBookingCommandTest
             .ReturnsAsync(availableVacancy);
         _mockBookingRepository.Setup(x => x.Add(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(newBookingId);
+        _mockBookingDetailsRepository.Setup(x => x.GetById(newBookingId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(bookingDetails with { Id = newBookingId });
 
         await _command.Execute(onBehalf);
 
@@ -127,7 +145,8 @@ public class AddBookingCommandTest
         AddBookingRequest request,
         Service service,
         CalendarEvent vacancy,
-        int newBookingId)
+        int newBookingId,
+        BookingDetails bookingDetails)
     {
         ClaimsPrincipal customer = CreateUser(42, UserRole.Customer);
         AddBookingRequest ownBooking = request with { CustomerId = 42, User = customer };
@@ -139,6 +158,8 @@ public class AddBookingCommandTest
             .ReturnsAsync(availableVacancy);
         _mockBookingRepository.Setup(x => x.Add(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(newBookingId);
+        _mockBookingDetailsRepository.Setup(x => x.GetById(newBookingId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(bookingDetails with { Id = newBookingId });
 
         await _command.Execute(ownBooking);
 
@@ -267,7 +288,8 @@ public class AddBookingCommandTest
         AddBookingRequest request,
         Service service,
         CalendarEvent vacancy,
-        int newBookingId)
+        int newBookingId,
+        BookingDetails bookingDetails)
     {
         CalendarEvent availableVacancy = vacancy with { BookingId = null };
 
@@ -277,6 +299,8 @@ public class AddBookingCommandTest
             .ReturnsAsync(availableVacancy);
         _mockBookingRepository.Setup(x => x.Add(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(newBookingId);
+        _mockBookingDetailsRepository.Setup(x => x.GetById(newBookingId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(bookingDetails with { Id = newBookingId });
 
         var result = await _command.Execute(request);
 
@@ -284,6 +308,34 @@ public class AddBookingCommandTest
         _mockTransaction.Verify(x => x.Begin(It.IsAny<CancellationToken>()), Times.Once);
         _mockTransaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
         _mockTransaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_SuccessfulExecution_WHEN_Execute_THEN_WritesNonEmptyMessageToChannel(
+        AddBookingRequest request,
+        Service service,
+        CalendarEvent vacancy,
+        int newBookingId,
+        BookingDetails bookingDetails)
+    {
+        CalendarEvent availableVacancy = vacancy with { BookingId = null };
+
+        _mockServiceRepository.Setup(x => x.GetById(request.ServiceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(service);
+        _mockCalendarRepository.Setup(x => x.GetById(request.VacancyId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(availableVacancy);
+        _mockBookingRepository.Setup(x => x.Add(It.IsAny<Booking>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(newBookingId);
+        _mockBookingDetailsRepository.Setup(x => x.GetById(newBookingId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(bookingDetails with { Id = newBookingId });
+
+        await _command.Execute(request);
+
+        Assert.True(_channel.Reader.TryRead(out Message? message));
+        Assert.False(string.IsNullOrWhiteSpace(message!.Body));
+        Assert.False(string.IsNullOrWhiteSpace(message.To));
+        Assert.False(string.IsNullOrWhiteSpace(message.Subject));
     }
 
     #region GetCoverage Tests
