@@ -37,6 +37,14 @@ public sealed record BookingDetails(
 public interface IBookingDetailsRepository : IRepository
 {
     /// <summary>
+    /// Retrieves booking details by the specified identifier.
+    /// </summary>
+    /// <param name="id">The unique identifier of the booking.</param>
+    /// <param name="cancellation">A token to cancel the operation.</param>
+    /// <returns>A task that represents the asynchronous operation, containing the booking details that match the specified identifier.</returns>
+    Task<BookingDetails?> GetById(int id, CancellationToken cancellation = default);
+
+    /// <summary>
     ///     Retrieves booking details within the specified time range.
     /// </summary>
     /// <param name="fromTime">The start of the time range.</param>

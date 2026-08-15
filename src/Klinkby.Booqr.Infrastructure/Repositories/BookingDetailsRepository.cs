@@ -7,6 +7,12 @@ internal sealed partial class BookingDetailsRepository(
 {
     private const string TableName = "bookingdetails";
 
+    public async Task<BookingDetails?> GetById(int id, CancellationToken cancellation = default)
+    {
+        DbConnection conn = await connectionProvider.GetConnection(cancellation);
+        return await conn.QuerySingleOrDefaultAsync<BookingDetails>(GetByIdQuery, new GetByIdParameters(id));
+    }
+
     public async IAsyncEnumerable<BookingDetails> GetRange(DateTime fromTime, DateTime toTime,
         IPageQuery pageQuery,
         [EnumeratorCancellation] CancellationToken cancellation = default)
