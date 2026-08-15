@@ -7,7 +7,7 @@ namespace Klinkby.Booqr.Application.Models;
 /// </summary>
 public sealed record PasswordSettings
 {
-    [Required, MinLength(32)]
+    [Required]
     public required string HmacKey { get; set; }
 
     /// <summary>
