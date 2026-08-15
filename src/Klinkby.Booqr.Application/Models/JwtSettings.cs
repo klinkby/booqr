@@ -10,7 +10,7 @@ public sealed record JwtSettings
     /// <summary>
     /// Gets or sets the secret key used for signing JWTs.
     /// </summary>
-    [Required, RegularExpression("^[a-zA-Z0-9]{32}")]
+    [Required]
     public required string Key { get; set; }
 
     /// <summary>
