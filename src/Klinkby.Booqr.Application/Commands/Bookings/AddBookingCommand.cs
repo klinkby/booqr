@@ -206,7 +206,7 @@ public partial class AddBookingCommand(
 
     private static Message ComposeMessage(BookingDetails booking)
     {
-        return EmbeddedResource.Properties_Reminder_handlebars.ComposeMessage(
+        return EmbeddedResource.Properties_NewBooking_handlebars.ComposeMessage(
             booking.CustomerEmail,
             StringResources.NewBooking,
             new Dictionary<string, string>
