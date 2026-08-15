@@ -34,9 +34,9 @@
       },
       "Microsoft.Extensions.ApiDescription.Server": {
         "type": "Direct",
-        "requested": "[10.0.9, )",
-        "resolved": "10.0.9",
-        "contentHash": "n1m7EAbCbHMGiTy++F+mLSan4MrZe0t00XEpJrkai6BFpB6lwEcirflI9FiMm4G4u55h/2RnWToYBDwS+MnN6g=="
+        "requested": "[10.0.10, )",
+        "resolved": "10.0.10",
+        "contentHash": "AdNZonHDGXO67UoaE+NZ7YDZAztU4qszxeWyE51FeCfHXDSHV9VjxYeq+oDdHhLgT6TheoJzhDnqoVfJRIT5Wg=="
       },
       "Microsoft.NET.ILLink.Tasks": {
         "type": "Direct",
