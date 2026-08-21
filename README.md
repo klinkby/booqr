@@ -66,7 +66,7 @@ test containers to spin up a live PostgreSQL instance.
 
 ## Licensed under AGPL-3.0
 
-Copyright (C) 2026 Mads Klinkby
+Copyright (C) 2026 Mads Klinkby ([https://www.kli.dk](https://www.kli.dk))
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
