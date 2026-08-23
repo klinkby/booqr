@@ -50,6 +50,18 @@ public class WebApiServiceTests
     }
 
     [Fact]
+    public async Task GIVEN_HealthHeadRequest_THEN_Succeeds()
+    {
+        await using WebApiFixture fixture = new();
+        HttpClient client = fixture.CreateClient();
+        using HttpRequestMessage request = new(HttpMethod.Head, new Uri("/api/health", UriKind.Relative));
+
+        HttpResponseMessage response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GIVEN_AllowedHost_WHEN_Request_THEN_Succeeds()
     {
         await using WebApiFixture fixture = new("www.booqr.dk");
