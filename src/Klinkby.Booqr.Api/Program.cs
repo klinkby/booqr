@@ -102,7 +102,6 @@ static void ConfigureMiddleware(WebApplication app, bool isMockServer)
 
     app.UseHostFiltering();
     app.UseAuthorization();
-    app.UseHealthChecks("/api/health");
 
     if (app.Environment.IsDevelopment())
     {
@@ -119,6 +118,7 @@ static void ConfigureMiddleware(WebApplication app, bool isMockServer)
 static void ConfigureEndpoints(WebApplication app)
 {
     app.UseStatusCodePages();
+    app.MapHealthChecks("/api/health");
     app.MapApiRoutes();
 }
 
