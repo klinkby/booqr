@@ -647,7 +647,7 @@
           "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.11, )",
           "Microsoft.AspNetCore.OpenApi": "[10.0.0-preview.7.25380.108, 10.0.0-preview.7.25380.108]",
           "Microsoft.OpenApi": "[2.10.0, 2.10.0]",
-          "NLog": "[6.1.4, )",
+          "NLog": "[6.2.0, )",
           "NLog.Web.AspNetCore": "[6.1.4, )"
         }
       },
@@ -808,9 +808,9 @@
       },
       "NLog": {
         "type": "CentralTransitive",
-        "requested": "[6.1.4, )",
-        "resolved": "6.1.4",
-        "contentHash": "ft6Lv17uoFuHTGWiY47FEXH7VA5HMHp973zodaOZAJyFg6mHL9RdXjqdNkRJXFo5plQJR+LPt5e6aAZU8KSDog=="
+        "requested": "[6.2.0, )",
+        "resolved": "6.2.0",
+        "contentHash": "CxK6AjM1Wy3hM8YeBpLJJuB/JdoeIVvX0/fMTWeIXD917UozCtzv6cZDamevugeEaBBF0TIatfcNX2iJHI0Cew=="
       },
       "NLog.Web.AspNetCore": {
         "type": "CentralTransitive",
