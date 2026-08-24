@@ -58,9 +58,9 @@
       },
       "NLog.Schema": {
         "type": "Direct",
-        "requested": "[6.1.4, )",
-        "resolved": "6.1.4",
-        "contentHash": "FCHbBCle9HOix9CiNvrmfVvqiZw7C3or2X5Vwmgnl7Q9lyIFPew7JN9AfDugCHAPCTRo3M6CSk8EoaTjdkqIuw=="
+        "requested": "[6.2.0, )",
+        "resolved": "6.2.0",
+        "contentHash": "3A7Du6S7fDcs755nDTDcM5qqTP0gSe4TH+lZi2LxxfxnpmoXIa7wcj/UX+6CNh+H1gimAFHS2mN+d4y9VHSVOQ=="
       },
       "NLog.Web.AspNetCore": {
         "type": "Direct",
