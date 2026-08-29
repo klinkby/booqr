@@ -51,7 +51,7 @@ public class MyBookingRepositoryTests(ServiceProviderFixture serviceProvider)
 
     [Theory]
     [IntegrationAutoData]
-    public async Task GIVEN_EmployeeServingCustomer_WHEN_GetRangeByEmployeeId_THEN_ReturnsAppointment(
+    public async Task GIVEN_EmployeeServingCustomer_WHEN_GetRangeByUserId_THEN_ReturnsAppointment(
         CalendarEvent vacancy, Location location, Service service, User customer, User employee, Booking booking)
     {
         await _transaction.Begin();
