@@ -331,20 +331,22 @@ internal static class Routing
                     [AsParameters] GetUserCollectionRequest request,
                     CancellationToken cancellation) => command
                     .Execute(request, cancellation)
-                    .ToOk())
-            .RequireAuthorization(UserRole.Employee)
+                    .ToOk(x => new CollectionResponse<User>(x)))
+            .RequireAuthorization(UserRole.Customer)
             .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .WithName("getUsers")
             .WithSummary("List users");
 
         group.MapGet(IdRoutePattern,
                 static (GetUserByIdCommand command,
-                    [AsParameters] ByIdRequest request,
+                    [AsParameters] GetUserByIdRequest request,
                     CancellationToken cancellation) => command
                     .Execute(request, cancellation)
                     .ToOk())
-            .RequireAuthorization(UserRole.Employee)
+            .RequireAuthorization(UserRole.Customer)
             .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .WithName("getUserById")
             .WithSummary("Get a single user");

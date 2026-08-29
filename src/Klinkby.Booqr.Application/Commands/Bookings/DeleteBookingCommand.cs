@@ -28,7 +28,7 @@ public sealed partial class DeleteBookingCommand(
             Booking? booking = await bookings.GetById(query.Id, cancellation);
             if (booking is null) return true; // idempotence, already gone
 
-            if (!query.IsOwnerOrEmployee(booking.CustomerId))
+            if (!query.IsStaffOrOwner(booking.CustomerId))
             {
                 _log.CannotDeleteBooking(query.AuthenticatedUserId, booking.Id);
                 await transaction.Rollback(cancellation);

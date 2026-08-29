@@ -40,7 +40,7 @@ public partial class AddBookingCommand(
         ArgumentNullException.ThrowIfNull(query);
         int userId = query.AuthenticatedUserId;
 
-        if (query.CustomerId is { } customerId && !query.IsOwnerOrEmployee(customerId))
+        if (query.CustomerId is { } customerId && !query.IsStaffOrOwner(customerId))
         {
             _log.CannotBookForOther(userId, customerId);
             return Problem.Forbidden with { Detail = "You cannot create a booking for another customer." };

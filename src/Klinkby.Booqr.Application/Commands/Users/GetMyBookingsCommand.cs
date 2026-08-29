@@ -20,7 +20,7 @@ public sealed partial class GetMyBookingsCommand(
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        if (!query.IsOwnerOrEmployee(query.Id))
+        if (!query.IsStaffOrOwner(query.Id))
         {
             _log.CannotInspectBooking(query.AuthenticatedUserId, query.Id);
             return Problem.Forbidden;
