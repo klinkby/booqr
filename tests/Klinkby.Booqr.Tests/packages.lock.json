@@ -489,7 +489,7 @@
           "Klinkby.Booqr.Infrastructure": "[1.0.0, )",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.11, )",
           "Microsoft.AspNetCore.OpenApi": "[10.0.0-preview.7.25380.108, 10.0.0-preview.7.25380.108]",
-          "Microsoft.OpenApi": "[2.10.0, 2.10.0]",
+          "Microsoft.OpenApi": "[2.12.0, 2.12.0]",
           "NLog": "[6.1.4, )",
           "NLog.Web.AspNetCore": "[6.1.4, )"
         }
@@ -646,9 +646,9 @@
       },
       "Microsoft.OpenApi": {
         "type": "CentralTransitive",
-        "requested": "[2.10.0, 2.10.0]",
-        "resolved": "2.10.0",
-        "contentHash": "tD7ve8JrWfJ+aRfW7J9yDj8t6pbMOzdr8nSc5BlIZaIRxqZZ67RJ8J69//Tx6HHSNFsqomBbipkPP20opnqvMg=="
+        "requested": "[2.12.0, 2.12.0]",
+        "resolved": "2.12.0",
+        "contentHash": "0xB/be+f6qYOhvQPUrVsLrau+fkowYv6gt9RIkajMhwT7sZnqtcA797yW3bS5kgSje+AQW4xZgyLnW641YFioQ=="
       },
       "NLog": {
         "type": "CentralTransitive",
