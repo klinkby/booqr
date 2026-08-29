@@ -32,7 +32,7 @@ public sealed partial class UpdateUserProfileCommand(
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        if (!query.IsOwnerOrEmployee(query.Id))
+        if (!query.IsStaffOrOwner(query.Id))
         {
             _log.CannotChangeProfile(query.AuthenticatedUserId, query.Id);
             return Problem.Forbidden with { Detail = $"You do not have access to update user {query.Id} profile." };

@@ -16,7 +16,7 @@ public sealed partial class GetMyBookingByIdCommand(
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        if (!query.IsOwnerOrEmployee(query.Id))
+        if (!query.IsStaffOrOwner(query.Id))
         {
             _log.CannotInspectBooking(query.AuthenticatedUserId, query.Id);
             return Problem.Forbidden with { Detail = "You cannot inspect another customer's booking" };
@@ -27,7 +27,7 @@ public sealed partial class GetMyBookingByIdCommand(
         if (myBooking is null)
             return Problem.NotFound with { Detail = $"Booking {query.BookingId} was not found"};
 
-        if (!query.IsOwnerOrEmployee(myBooking.CustomerId))
+        if (!query.IsStaffOrOwner(myBooking.CustomerId))
         {
             _log.CannotInspectBooking(query.AuthenticatedUserId, myBooking.CustomerId);
             return Problem.Forbidden with { Detail = "You cannot inspect another customer's booking" };

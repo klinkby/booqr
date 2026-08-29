@@ -27,4 +27,14 @@ internal static class UserExtensions
 
     internal static bool ValidateETagParameter(this Audit user, NameValueCollection parameters) =>
         parameters[Query.ETag] == user.ETag;
+
+    extension(User user)
+    {
+        /// <summary>
+        ///     True when the user is staff (<see cref="UserRole.Employee" /> or
+        ///     <see cref="UserRole.Admin" />) rather than a <see cref="UserRole.Customer" />.
+        /// </summary>
+        internal bool IsStaff =>
+            user.Role == UserRole.Admin || user.Role == UserRole.Employee;
+    }
 }

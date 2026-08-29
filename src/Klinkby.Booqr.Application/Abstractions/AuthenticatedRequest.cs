@@ -58,13 +58,28 @@ public abstract record AuthenticatedRequest : IAuthenticatedRequest
         }
     }
 
+    /// <summary>
+    ///     True when the authenticated user is staff (Employee or Admin) and therefore not
+    ///     subject to the customer-scoped data-access restrictions.
+    /// </summary>
     [MemberNotNullWhen(true, nameof(User))]
-    public bool IsOwnerOrEmployee(int ownerUserId)
+    public bool IsStaff
     {
-        ClaimsPrincipal? user = User;
-        return user is not null
-               && (user.IsInRole(UserRole.Employee) ||
-                   user.IsInRole(UserRole.Admin) ||
-                   ownerUserId == AuthenticatedUserId);
+        get
+        {
+            ClaimsPrincipal? user = User;
+            return user is not null
+                   && (user.IsInRole(UserRole.Employee) || user.IsInRole(UserRole.Admin));
+        }
     }
+
+    /// <summary>
+    ///     True when the authenticated user is staff (see <see cref="IsEmployeeOrAdmin" />) or
+    ///     is the owner of the resource identified by <paramref name="ownerUserId" />.
+    /// </summary>
+    [MemberNotNullWhen(true, nameof(User))]
+    public bool IsOwner(int ownerUserId) =>
+        (User is not null && ownerUserId == AuthenticatedUserId);
+
+    public bool IsStaffOrOwner(int ownerUserId) => IsStaff || IsOwner(ownerUserId);
 }
