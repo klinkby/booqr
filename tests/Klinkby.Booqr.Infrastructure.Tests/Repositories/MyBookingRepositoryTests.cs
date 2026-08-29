@@ -48,4 +48,42 @@ public class MyBookingRepositoryTests(ServiceProviderFixture serviceProvider)
         Assert.Equal(vacancy.BookingId.Value, actual1!.Id);
         Assert.Contains(vacancy.BookingId.Value, actuals1.Select(x => x.Id));
     }
+
+    [Theory]
+    [IntegrationAutoData]
+    public async Task GIVEN_EmployeeServingCustomer_WHEN_GetRangeByEmployeeId_THEN_ReturnsAppointment(
+        CalendarEvent vacancy, Location location, Service service, User customer, User employee, Booking booking)
+    {
+        await _transaction.Begin();
+        List<MyBooking> appointments;
+        try
+        {
+            booking = booking with
+            {
+                CustomerId = await _users.Add(customer with { Role = UserRole.Customer }),
+                ServiceId = await _services.Add(service)
+            };
+            booking = booking with { Id = await _bookings.Add(booking) };
+            var employeeId = await _users.Add(employee with { Role = UserRole.Employee });
+            vacancy = vacancy with
+            {
+                EmployeeId = employeeId,
+                LocationId = await _location.Add(location),
+                BookingId = await _bookings.Add(booking)
+            };
+            await _calendar.Add(vacancy);
+
+            appointments = await _sut
+                .GetRangeByUserId(employeeId, DateTime.MinValue, DateTime.MaxValue, new PageQuery())
+                .ToListAsync();
+        }
+        finally
+        {
+            await _transaction.Rollback();
+        }
+
+        MyBooking appointment = Assert.Single(appointments, x => x.Id == vacancy.BookingId.Value);
+        Assert.Equal(vacancy.EmployeeId, appointment.EmployeeId);
+        Assert.NotEqual(appointment.EmployeeId, appointment.CustomerId);
+    }
 }

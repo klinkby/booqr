@@ -31,7 +31,11 @@ public interface IMyBookingRepository : IRepository
     /// <summary>
     ///     Retrieves a range of bookings for a specific user within the specified time period.
     /// </summary>
-    /// <param name="userId">The identifier of the user whose bookings to retrieve.</param>
+    /// <remarks>
+    ///     Returns bookings where the user is the customer as well as appointments where the user is the
+    ///     assigned employee serving other customers.
+    /// </remarks>
+    /// <param name="userId">The identifier of the user whose bookings and appointments to retrieve.</param>
     /// <param name="fromTime">The start of the time range.</param>
     /// <param name="toTime">The end of the time range.</param>
     /// <param name="pageQuery">The pagination parameters.</param>
