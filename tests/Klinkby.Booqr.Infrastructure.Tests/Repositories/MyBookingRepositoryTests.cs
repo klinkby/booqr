@@ -26,12 +26,13 @@ public class MyBookingRepositoryTests(ServiceProviderFixture serviceProvider)
                 CustomerId = await _users.Add(customer with { Role = UserRole.Customer }),
                 ServiceId = await _services.Add(service)
             };
-            booking = booking with { Id = await _bookings.Add(booking) };
+            var bookingId1 = await _bookings.Add(booking);
+            booking = booking with { Id = bookingId1 };
             vacancy = vacancy with
             {
                 EmployeeId = await _users.Add(employee with { Role = UserRole.Employee }),
                 LocationId = await _location.Add(location),
-                BookingId = await _bookings.Add(booking)
+                BookingId = bookingId1
             };
             await _calendar.Add(vacancy);
 
@@ -63,13 +64,14 @@ public class MyBookingRepositoryTests(ServiceProviderFixture serviceProvider)
                 CustomerId = await _users.Add(customer with { Role = UserRole.Customer }),
                 ServiceId = await _services.Add(service)
             };
-            booking = booking with { Id = await _bookings.Add(booking) };
+            var bookingId2 = await _bookings.Add(booking);
+            booking = booking with { Id = bookingId2 };
             var employeeId = await _users.Add(employee with { Role = UserRole.Employee });
             vacancy = vacancy with
             {
                 EmployeeId = employeeId,
                 LocationId = await _location.Add(location),
-                BookingId = await _bookings.Add(booking)
+                BookingId = bookingId2
             };
             await _calendar.Add(vacancy);
 
