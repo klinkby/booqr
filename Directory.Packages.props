@@ -26,7 +26,7 @@
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.11" />
     <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.11" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.9.0" />
-    <PackageVersion Include="Microsoft.OpenApi" Version="[2.12.0]" />
+    <PackageVersion Include="Microsoft.OpenApi" Version="[2.12.2]" />
     <!-- v3 requires dotnet 11 -->
     <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.10.0" />
     <PackageVersion Include="Moq" Version="4.20.72" />
