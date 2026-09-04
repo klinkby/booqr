@@ -107,7 +107,7 @@ public class LoginCommandTests
     private static Mock<IOAuth> CreateOAuthMock(OAuthTokenResponse fakeResponse)
     {
         var mock = new Mock<IOAuth>();
-        mock.Setup(m => m.GenerateTokenResponse(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+        mock.Setup(m => m.GenerateTokenResponse(It.IsAny<User>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
             .Returns(() => Task.FromResult((fakeResponse, "tokenHash")));
         return mock;
     }

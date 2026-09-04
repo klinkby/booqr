@@ -55,7 +55,7 @@ public sealed partial class LoginCommand(
             await oauth.RevokeTokenFamily(query.RefreshToken, cancellation);
         }
 
-        (OAuthTokenResponse response, _) = await oauth.GenerateTokenResponse(user, cancellation);
+        (OAuthTokenResponse response, _) = await oauth.GenerateTokenResponse(user, null, cancellation);
 
         _log.LoggedIn(user.Id);
         return response;
