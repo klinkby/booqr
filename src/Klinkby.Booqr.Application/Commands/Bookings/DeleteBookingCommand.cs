@@ -26,7 +26,14 @@ public sealed partial class DeleteBookingCommand(
         try
         {
             Booking? booking = await bookings.GetById(query.Id, cancellation);
-            if (booking is null) return true; // idempotence, already gone
+            if (booking is null)
+            {
+                // Not found = nothing deleted, so the base class records no audit entry;
+                // HTTP idempotence (204) is handled at the API layer. Commit to close the
+                // read-only transaction rather than leaking it open until scope disposal.
+                await transaction.Commit(cancellation);
+                return false;
+            }
 
             if (!query.IsStaffOrOwner(booking.CustomerId))
             {
