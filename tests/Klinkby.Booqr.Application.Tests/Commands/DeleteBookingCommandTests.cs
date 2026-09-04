@@ -31,14 +31,17 @@ public class DeleteBookingCommandTests
         DeleteBookingCommand sut = CreateSut();
 
         // Act
-        await sut.Execute(request);
+        var result = await sut.Execute(request);
 
         // Assert
+        Assert.IsType<Result<bool>.Success>(result);
+        Assert.False(result.ValueOrDefault());
         _transaction.Verify(x => x.Begin(It.IsAny<IsolationLevel>(), It.IsAny<CancellationToken>()), Times.Once);
         _bookings.Verify(x => x.Delete(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
         _calendar.Verify(x => x.Delete(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
-        _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Never);
+        _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
         _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Never);
+        _activityRecorder.Verify(x => x.Delete(It.IsAny<ActivityQuery<Booking>>()), Times.Never);
     }
 
     [Theory]
