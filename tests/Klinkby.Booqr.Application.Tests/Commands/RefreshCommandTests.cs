@@ -47,8 +47,8 @@ public class RefreshCommandTests
         string refreshToken)
     {
         var request = new RefreshRequest { RefreshToken = refreshToken };
-        _oauthMock.Setup(x => x.GetUserIdFromValidRefreshToken(request.RefreshToken!, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((int?)null);
+        _oauthMock.Setup(x => x.GetValidRefreshToken(request.RefreshToken!, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(((int, Guid)?)null);
 
         var result = await _command.Execute(request);
 
@@ -60,11 +60,12 @@ public class RefreshCommandTests
     [ApplicationAutoData]
     public async Task GIVEN_UserNotFound_WHEN_Execute_THEN_ReturnsUnauthorized(
         string refreshToken,
-        int userId)
+        int userId,
+        Guid family)
     {
         var request = new RefreshRequest { RefreshToken = refreshToken };
-        _oauthMock.Setup(x => x.GetUserIdFromValidRefreshToken(request.RefreshToken!, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(userId);
+        _oauthMock.Setup(x => x.GetValidRefreshToken(request.RefreshToken!, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((userId, family));
         _userRepositoryMock.Setup(x => x.GetById(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
@@ -79,25 +80,61 @@ public class RefreshCommandTests
     public async Task GIVEN_ValidToken_WHEN_Execute_THEN_ReturnsNewTokenResponse(
         string refreshToken,
         int userId,
+        Guid family,
         User user,
         OAuthTokenResponse expectedResponse,
         string tokenHash)
     {
         var request = new RefreshRequest { RefreshToken = refreshToken };
-        _oauthMock.Setup(x => x.GetUserIdFromValidRefreshToken(request.RefreshToken!, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(userId);
+        _oauthMock.Setup(x => x.GetValidRefreshToken(request.RefreshToken!, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((userId, family));
         _userRepositoryMock.Setup(x => x.GetById(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
-        _oauthMock.Setup(x => x.GenerateTokenResponse(user, It.IsAny<CancellationToken>()))
+        _oauthMock.Setup(x => x.GenerateTokenResponse(user, family, It.IsAny<CancellationToken>()))
             .ReturnsAsync((expectedResponse, tokenHash));
+        _oauthMock.Setup(x => x.InvalidateToken(request.RefreshToken!, tokenHash, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         var result = await _command.Execute(request);
 
         var success = Assert.IsType<Result<OAuthTokenResponse>.Success>(result);
         Assert.Same(expectedResponse, success.Value);
         _transactionMock.Verify(x => x.Begin(It.IsAny<CancellationToken>()), Times.Once);
+        // Rotation must preserve the ancestor family so reuse detection works.
+        _oauthMock.Verify(x => x.GenerateTokenResponse(user, family, It.IsAny<CancellationToken>()), Times.Once);
         _oauthMock.Verify(x => x.InvalidateToken(request.RefreshToken!, tokenHash, It.IsAny<CancellationToken>()), Times.Once);
+        _oauthMock.Verify(x => x.RevokeTokenFamily(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         _transactionMock.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_ConcurrentlyInvalidatedToken_WHEN_Execute_THEN_RevokesFamilyAndReturnsUnauthorized(
+        string refreshToken,
+        int userId,
+        Guid family,
+        User user,
+        OAuthTokenResponse expectedResponse,
+        string tokenHash)
+    {
+        var request = new RefreshRequest { RefreshToken = refreshToken };
+        _oauthMock.Setup(x => x.GetValidRefreshToken(request.RefreshToken!, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((userId, family));
+        _userRepositoryMock.Setup(x => x.GetById(userId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _oauthMock.Setup(x => x.GenerateTokenResponse(user, family, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((expectedResponse, tokenHash));
+        // The presented token was already revoked/replaced by a concurrent refresh.
+        _oauthMock.Setup(x => x.InvalidateToken(request.RefreshToken!, tokenHash, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var result = await _command.Execute(request);
+
+        var error = Assert.IsType<Result<OAuthTokenResponse>.Fault>(result);
+        Assert.Equal(Problem.Unauthorized.Type, error.Problem.Type);
+        _oauthMock.Verify(x => x.RevokeTokenFamily(request.RefreshToken!, It.IsAny<CancellationToken>()), Times.Once);
+        _transactionMock.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
+        _transactionMock.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Theory]
@@ -105,15 +142,16 @@ public class RefreshCommandTests
     public async Task GIVEN_ExceptionDuringExecution_WHEN_Execute_THEN_RollsBackTransaction(
         string refreshToken,
         int userId,
+        Guid family,
         User user,
         Exception testException)
     {
         var request = new RefreshRequest { RefreshToken = refreshToken };
-        _oauthMock.Setup(x => x.GetUserIdFromValidRefreshToken(request.RefreshToken!, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(userId);
+        _oauthMock.Setup(x => x.GetValidRefreshToken(request.RefreshToken!, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((userId, family));
         _userRepositoryMock.Setup(x => x.GetById(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
-        _oauthMock.Setup(x => x.GenerateTokenResponse(user, It.IsAny<CancellationToken>()))
+        _oauthMock.Setup(x => x.GenerateTokenResponse(user, family, It.IsAny<CancellationToken>()))
             .ThrowsAsync(testException);
 
         await Assert.ThrowsAsync<Exception>(() => _command.Execute(request));

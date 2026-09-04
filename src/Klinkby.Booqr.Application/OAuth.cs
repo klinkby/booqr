@@ -12,9 +12,9 @@ namespace Klinkby.Booqr.Application;
 
 public interface IOAuth
 {
-    Task<(OAuthTokenResponse, string)> GenerateTokenResponse(User user, CancellationToken cancellation);
-    Task<int?> GetUserIdFromValidRefreshToken(string refreshToken, CancellationToken cancellation);
-    Task InvalidateToken(string refreshToken, string? replacedBy, CancellationToken cancellation);
+    Task<(OAuthTokenResponse, string)> GenerateTokenResponse(User user, Guid? family, CancellationToken cancellation);
+    Task<(int UserId, Guid Family)?> GetValidRefreshToken(string refreshToken, CancellationToken cancellation);
+    Task<bool> InvalidateToken(string refreshToken, string? replacedBy, CancellationToken cancellation);
     Task RevokeTokenFamily(string refreshToken, CancellationToken cancellation);
 }
 
@@ -30,7 +30,7 @@ internal sealed partial class OAuth(
     private readonly JwtSettings _jwt = jwtSettings.Value;
     private readonly LoggerMessages _log = new(logger);
 
-    public async Task<(OAuthTokenResponse, string)> GenerateTokenResponse(User user, CancellationToken cancellation)
+    public async Task<(OAuthTokenResponse, string)> GenerateTokenResponse(User user, Guid? family, CancellationToken cancellation)
     {
         _log.GenerateTokenResponse(user.Id);
 
@@ -48,7 +48,7 @@ internal sealed partial class OAuth(
         var tokenHash = Hash(refreshToken);
         RefreshToken refreshTokenMetadata = new(
             tokenHash,
-            Guid.CreateVersion7(),
+            family ?? Guid.CreateVersion7(),
             user.Id,
             response.RefreshTokenExpiration,
             timestamp);
@@ -59,7 +59,7 @@ internal sealed partial class OAuth(
         return (response, tokenHash);
     }
 
-    public Task InvalidateToken(string refreshToken, string? replacedBy, CancellationToken cancellation)
+    public Task<bool> InvalidateToken(string refreshToken, string? replacedBy, CancellationToken cancellation)
     {
         var tokenHash = Hash(refreshToken);
         _log.Revoke(tokenHash);
@@ -84,7 +84,7 @@ internal sealed partial class OAuth(
         await refreshTokenRepository.RevokeAll(token.Family, now, cancellation);
     }
 
-    public async Task<int?> GetUserIdFromValidRefreshToken(string refreshToken, CancellationToken cancellation)
+    public async Task<(int UserId, Guid Family)?> GetValidRefreshToken(string refreshToken, CancellationToken cancellation)
     {
         _log.ValidateToken("Refresh");
 
@@ -109,7 +109,7 @@ internal sealed partial class OAuth(
                 return null;
 
             default:
-                return token.UserId;
+                return (token.UserId, token.Family);
         }
     }
 
