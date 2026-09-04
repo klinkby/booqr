@@ -49,7 +49,7 @@ internal sealed partial class FlushTokenService(
     {
         private readonly ILogger<FlushTokenService> _logger = logger;
 
-        [LoggerMessage(290, LogLevel.Information, "Flushing tokens older than {Threshold}")]
+        [LoggerMessage(293, LogLevel.Information, "Flushing tokens older than {Threshold}")]
         public partial void FlushingTokens(DateTime threshold);
 
         [LoggerMessage(291, LogLevel.Information, "Flushed {Count} tokens")]
