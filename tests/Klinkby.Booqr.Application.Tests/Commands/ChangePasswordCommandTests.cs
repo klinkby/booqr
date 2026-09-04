@@ -80,4 +80,64 @@ public class ChangePasswordCommandTests
         // Password should be re-hashed and match new password
         Assert.True(BCrypt.Net.BCrypt.EnhancedVerify(newPassword, patchedUser.PasswordHash));
     }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_PatchReturnsFalse_WHEN_Execute_THEN_ReturnsMidAirCollision(User user)
+    {
+        // Arrange
+        var users = new Mock<IUserRepository>();
+        users.Setup(x => x.GetById(It.IsAny<int>(), CancellationToken.None)).ReturnsAsync(user);
+        users.Setup(x => x.Patch(It.IsAny<PartialUser>(), CancellationToken.None))
+            .ReturnsAsync(false);
+
+        var queryString = ExpiringQueryString.Create(TimeSpan.FromHours(1), new ()
+        {
+            { Query.Id, user.Id.ToString(CultureInfo.InvariantCulture) },
+            { Query.Action, Query.ChangePasswordAction },
+            { Query.ETag, user.ETag }
+        });
+
+        var sut = CreateSut(users.Object);
+        var request = new ChangePasswordRequest("NewPassw0rd!", queryString);
+
+        // Act
+        Result<bool> result = await sut.Execute(request);
+
+        // Assert
+        var error = Assert.IsType<Result<bool>.Fault>(result);
+        Assert.Equal(Problem.MidAirCollision.Type, error.Problem.Type);
+        Assert.Contains(user.Id.ToString(CultureInfo.InvariantCulture), error.Problem.Detail, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_PatchReturnsFalse_WHEN_Execute_THEN_DoesNotRecordActivity(User user)
+    {
+        // Arrange
+        var activityRecorder = new Mock<IActivityRecorder>();
+        var users = new Mock<IUserRepository>();
+        users.Setup(x => x.GetById(It.IsAny<int>(), CancellationToken.None)).ReturnsAsync(user);
+        users.Setup(x => x.Patch(It.IsAny<PartialUser>(), CancellationToken.None))
+            .ReturnsAsync(false);
+
+        var queryString = ExpiringQueryString.Create(TimeSpan.FromHours(1), new ()
+        {
+            { Query.Id, user.Id.ToString(CultureInfo.InvariantCulture) },
+            { Query.Action, Query.ChangePasswordAction },
+            { Query.ETag, user.ETag }
+        });
+
+        var sut = new ChangePasswordCommand(users.Object, ExpiringQueryString, activityRecorder.Object, NullLogger<ChangePasswordCommand>.Instance);
+        var request = new ChangePasswordRequest("NewPassw0rd!", queryString);
+
+        // Act
+        Result<bool> result = await sut.Execute(request);
+
+        // Assert
+        Assert.IsType<Result<bool>.Fault>(result);
+        activityRecorder.Verify(
+            x => x.Update(It.IsAny<ActivityQuery<User>>()),
+            Times.Never);
+    }
 }

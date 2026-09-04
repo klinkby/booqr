@@ -65,7 +65,11 @@ public partial class ChangePasswordCommand(
 
         _log.ChangePassword(userId);
 
-        bool patched = await userRepository.Patch(new PartialUser(userId).WithPasswordHash(query.Password.Trim()), cancellation);
+        var patched = await userRepository.Patch(new PartialUser(userId).WithPasswordHash(query.Password.Trim()), cancellation);
+        if (!patched)
+        {
+            return Problem.MidAirCollision with { Detail = $"User {userId} was already updated." };
+        }
 
         _log.Changed(user.Email);
         activityRecorder.Update<User>(new(userId, user.Id));
