@@ -198,6 +198,20 @@ public class OAuthTests
         repoMock.Verify(x => x.RevokeAll(It.IsAny<Guid>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_OversizedRefreshToken_WHEN_GetValidRefreshToken_THEN_ReturnsNullWithoutOverflow(JwtSettings settings)
+    {
+        var repoMock = new Mock<IRefreshTokenRepository>();
+        repoMock.Setup(x => x.GetByHash(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((RefreshToken?)null);
+        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
+
+        var actual = await sut.GetValidRefreshToken(new string('a', 100_000), TestContext.Current.CancellationToken);
+
+        Assert.Null(actual);
+    }
+
     private static Mock<IRefreshTokenRepository> CreateRepositoryMock()
     {
         var repo = new Mock<IRefreshTokenRepository>();
