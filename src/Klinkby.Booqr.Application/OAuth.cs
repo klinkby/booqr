@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Buffers.Text;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -26,6 +27,7 @@ internal sealed partial class OAuth(
     ) : IOAuth
 {
     private const int Entropy = 30; // 240 bits, translates to 40 chars
+    private const int MaxStackAllocBytes = 256;
     private static Encoding Encoding => Encoding.UTF8;
     private readonly JwtSettings _jwt = jwtSettings.Value;
     private readonly LoggerMessages _log = new(logger);
@@ -153,13 +155,23 @@ internal sealed partial class OAuth(
         return tokenHandler.WriteToken(token);
     }
 
-    private static string Hash(string token, int outputLength = Entropy)
+    private static string Hash(string token)
     {
-        Span<byte> tokenBytes = stackalloc byte[Encoding.GetByteCount(token)];
-        Encoding.GetBytes(token, tokenBytes);
-        Span<byte> digest = stackalloc byte[outputLength];
-        Shake128.HashData(tokenBytes, digest);
-        return Base64UrlEncode(digest);
+        int byteCount = Encoding.GetByteCount(token);
+        byte[]? rented = byteCount > MaxStackAllocBytes ? ArrayPool<byte>.Shared.Rent(byteCount) : null;
+        try
+        {
+            Span<byte> tokenBytes = rented is null ? stackalloc byte[MaxStackAllocBytes] : rented;
+            tokenBytes = tokenBytes[..byteCount];
+            Encoding.GetBytes(token, tokenBytes);
+            Span<byte> digest = stackalloc byte[Entropy];
+            Shake128.HashData(tokenBytes, digest);
+            return Base64UrlEncode(digest);
+        }
+        finally
+        {
+            if (rented is not null) ArrayPool<byte>.Shared.Return(rented);
+        }
     }
 
     private static string Base64UrlEncode(ReadOnlySpan<byte> buffer) =>
@@ -176,13 +188,10 @@ internal sealed partial class OAuth(
         [LoggerMessage(281, LogLevel.Information, "Validate {TokenType} token")]
         internal partial void ValidateToken(string tokenType);
 
-        [LoggerMessage(282, LogLevel.Warning, "Token {Hash} is not for user {UserId}")]
-        internal partial void DifferentUser(string hash, int userId);
-
         [LoggerMessage(283, LogLevel.Warning, "Token {Hash} was revoked at {Timestamp} - possible fraud!!!")]
         internal partial void Revoked(string hash, DateTime timestamp);
 
-        [LoggerMessage(284, LogLevel.Warning, "Token {Hash} has expired as {Timestamp} - possible fraud!!!")]
+        [LoggerMessage(284, LogLevel.Warning, "Token {Hash} expired at {Timestamp}")]
         internal partial void Expired(string hash, DateTime timestamp);
 
         [LoggerMessage(285, LogLevel.Information, "Revoke token {Hash}")]
