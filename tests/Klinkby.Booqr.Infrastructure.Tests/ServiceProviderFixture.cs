@@ -84,7 +84,6 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
         IConfigurationRoot config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                { nameof(InfrastructureSettings.ConnectionString), TenantConnectionString(TenantAId) },
                 { nameof(InfrastructureSettings.MailClientApiKey), settings.MailClientApiKey },
                 { nameof(InfrastructureSettings.MailClientAccount), settings.MailClientAccount },
                 { nameof(InfrastructureSettings.MailClientFromAddress), settings.MailClientFromAddress },

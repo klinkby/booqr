@@ -27,7 +27,6 @@ public class EmailLabsMailClientTests
 
         var options = Options.Create(new InfrastructureSettings
         {
-            ConnectionString = "foo",
             MailClientApiKey = "bar:baz",
             MailClientAccount = SmtpAccount,
             MailClientBaseAddress = new Uri(BaseAddress),
