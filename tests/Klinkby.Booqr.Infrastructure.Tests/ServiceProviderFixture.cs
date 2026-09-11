@@ -3,6 +3,7 @@ using AutoFixture;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Dapper;
+using Klinkby.Booqr.Core;
 using Klinkby.Booqr.Infrastructure.Models;
 using Klinkby.Booqr.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
@@ -30,10 +31,15 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
     // with, so there's nothing to coordinate out-of-band.
     private const string MigratorPassword = "changeme_booqr_migrator";
 
-    // Deterministic per-role test password for provisioned tenant roles (t_<id>). Not derived via
-    // the HMAC master-secret scheme (that's the API's Phase 2 concern) — the fixture provisions
-    // tenants directly, mirroring only the DDL steps of `admin --provision`.
-    private const string TenantRolePassword = "changeme_tenant_role";
+    // Deterministic placeholder password for booqr_registry from redist/initdb/01-control-plane.sql
+    // (see MigratorPassword above for the same rationale).
+    private const string RegistryPassword = "changeme_booqr_registry";
+
+    // Fixed test master secret. Provisioned tenant role (t_<id>) passwords are derived from this via
+    // TenantCredentials.DerivePassword — the same algorithm TenantDataSourceFactory uses — so the
+    // fixture's provisioned roles match what the DI-registered factory (and future admin CLI
+    // provisioning) derives.
+    private const string TenantMasterSecret = "changeme_tenant_master_secret";
 
     private ServiceProvider? _services;
 
@@ -45,11 +51,20 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
     /// <summary>Id of the second provisioned tenant, used by isolation tests.</summary>
     internal int TenantBId { get; private set; }
 
+    /// <summary>The fixed test master secret used to provision tenant role passwords (see <see cref="TenantMasterSecret" />).</summary>
+    internal static string MasterSecret => TenantMasterSecret;
+
+    /// <summary>
+    ///     The base connection string (host/port/database only — no <c>Username</c>/<c>Password</c>),
+    ///     for tests constructing a <see cref="TenantDataSourceFactory" /> directly.
+    /// </summary>
+    internal string BaseConnectionString => SqlContainer.GetConnectionString();
+
     private PostgreSqlContainer SqlContainer { get; } =
         new PostgreSqlBuilder("postgres:18-alpine3.23")
         .Build();
 
-    private static string TenantRole(int tenantId) => $"t_{tenantId}";
+    internal static string TenantRole(int tenantId) => $"t_{tenantId}";
 
     async ValueTask IAsyncLifetime.InitializeAsync()
     {
@@ -70,12 +85,33 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
                 { nameof(InfrastructureSettings.MailClientAccount), settings.MailClientAccount },
                 { nameof(InfrastructureSettings.MailClientFromAddress), settings.MailClientFromAddress },
                 { nameof(InfrastructureSettings.MailClientBaseAddress), settings.MailClientBaseAddress.ToString() },
+                // Tenancy configuration (Phase 2c): base domain and reserved subdomains.
+                { "Tenancy:BaseDomain", "booqr.dk" },
+                { "Tenancy:ReservedSubdomains:0", "www" },
+                { "Tenancy:ReservedSubdomains:1", "api" },
+                // Tenant data-source factory configuration (Phase 2a): base connection, master secret, pool/cache config.
+                // BaseConnectionString must be stripped of credentials (host/database only); the factory adds the per-tenant role/password.
+                { "TenantDataSources:BaseConnectionString", SqlContainer.GetConnectionString() },
+                { "TenantDataSources:MasterSecret", TenantMasterSecret },
+                { "TenantDataSources:MaxPoolSize", "3" },
+                { "TenantDataSources:MaxCacheEntries", "64" },
+                // Registry connection (booqr_registry, SELECT-only on public.tenants) — separate
+                // from the tenant connection above. See Services/RegistryServiceCollectionExtensions.cs
+                // (subtask 2b) for the config keys this binds.
+                { "Registry:ConnectionString", SqlContainer.GetConnectionString() },
+                { "Registry:RegistryUsername", "booqr_registry" },
+                { "Registry:RegistryPassword", RegistryPassword },
             })
             .Build();
         _services = new ServiceCollection()
             .AddSingleton<TimeProvider, FakeTimeProvider>()
             .AddSingleton(typeof(ILogger<>), typeof(NullLogger<>))
             .AddInfrastructure(config)
+            // Register a test ITenantContext that resolves to tenant A by default.
+            // This allows existing repository tests to work without modification;
+            // they will connect as tenant A (the default). Tests that need to verify
+            // multi-tenant isolation can open separate connections via OpenTenantConnection().
+            .AddScoped<ITenantContext>(_ => new TestTenantContext(TenantAId))
             .BuildServiceProvider();
     }
 
@@ -97,12 +133,25 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
         return connection;
     }
 
+    /// <summary>
+    ///     Opens a fresh connection as <c>booqr_migrator</c>, which holds INSERT/UPDATE on
+    ///     <c>public.tenants</c> (see redist/initdb/01-control-plane.sql). Used by tests that need
+    ///     to mutate the registry directly (e.g. asserting cache-TTL behavior around a newly
+    ///     inserted or deleted tenant row) without going through the read-only registry role.
+    /// </summary>
+    internal async Task<NpgsqlConnection> OpenMigratorConnection(CancellationToken cancellation)
+    {
+        NpgsqlConnection connection = new(MigratorConnectionString());
+        await connection.OpenAsync(cancellation);
+        return connection;
+    }
+
     private string TenantConnectionString(int tenantId)
     {
         NpgsqlConnectionStringBuilder builder = new(SqlContainer.GetConnectionString())
         {
             Username = TenantRole(tenantId),
-            Password = TenantRolePassword,
+            Password = TenantCredentials.DerivePassword(TenantMasterSecret, tenantId),
         };
         return builder.ConnectionString;
     }
@@ -162,8 +211,9 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
             new { dbRole = TenantRole(tenantId), id = tenantId });
 
         var role = TenantRole(tenantId);
+        var password = TenantCredentials.DerivePassword(TenantMasterSecret, tenantId);
         await connection.ExecuteAsync(
-            $"""create role "{role}" login password '{TenantRolePassword}' nobypassrls""");
+            $"""create role "{role}" login password '{password}' nobypassrls""");
         await connection.ExecuteAsync($"""grant booqr_tenant to "{role}" """);
         await connection.ExecuteAsync($"""alter role "{role}" set search_path = app""");
 

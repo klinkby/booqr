@@ -46,23 +46,25 @@ public static partial class ServiceCollectionExtensions
             .Bind(configuration)
             .ValidateOnStart();
 
+        // Bind and validate tenancy configuration (base domain, reserved subdomains).
+        services
+            .AddSingleton<IValidateOptions<TenancySettings>, ValidateTenancySettings>()
+            .AddOptions<TenancySettings>()
+            .Bind(configuration.GetSection("Tenancy"))
+            .ValidateOnStart();
+
         services.ConfigureEmailLabsHttpClient();
-        services.AddNpgsqlSlimDataSource(
-            "",
-            (serviceProvider, builder) =>
-            {
-                InfrastructureSettings settings =
-                    serviceProvider.GetRequiredService<IOptions<InfrastructureSettings>>().Value;
-                builder.ConnectionStringBuilder.ConnectionString = settings.ConnectionString;
-                builder.EnableArrays();
-                PostgreSql(
-                    serviceProvider.GetRequiredService<ILogger<InfrastructureSettings>>(),
-                    builder.ConnectionStringBuilder.Host);
-            }, serviceKey: nameof(ConnectionProvider));
         services.AddSingleton<IMailClient, EmailLabsMailClient>();
         services.AddScoped<ITransaction, Transaction>();
         services.AddScoped<IConnectionProvider, ConnectionProvider>();
         services.AddRepositories();
+
+        // Register tenant-aware multi-tenancy infrastructure (phases 2a and 2b).
+        // 2a: Tenant data-source factory with per-tenant connection pooling and LRU cache.
+        services.AddTenantDataSources(configuration);
+        // 2b: Tenant registry data source (booqr_registry role) and cached resolution.
+        // Must be called after AddRepositories() so the CachingTenantRepository override wins.
+        services.AddTenantRegistry();
 
         return services;
     }
