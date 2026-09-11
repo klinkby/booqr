@@ -5,7 +5,12 @@ namespace Klinkby.Booqr.Infrastructure.Repositories;
 internal sealed class ActivityRepository(
     IConnectionProvider connectionProvider) : IActivityRepository
 {
-    private const string CommaSeparated = "timestamp,requestid,userid,entity,entityid,action";
+    // tenant_id is NOT written here: on a tenant connection the column's
+    // DEFAULT app.tenant_of(current_user) stamps it, and RLS WITH CHECK would
+    // reject any other value. The cross-tenant background consumer that writes
+    // tenant_id explicitly as booqr_batch (BYPASSRLS) is a separate path (Phase 3c).
+    private const string SelectColumns = "timestamp,requestid,userid,entity,entityid,action,tenant_id as tenantid";
+    private const string InsertColumns = "timestamp,requestid,userid,entity,entityid,action";
     private const string ParametersCommaSeparated = "@timestamp,@requestid,@userid,@entity,@entityid,@action";
     private const string TableName = "activities";
 
@@ -15,7 +20,7 @@ internal sealed class ActivityRepository(
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
         IAsyncEnumerable<Activity> query = connection.QueryUnbufferedAsync<Activity>(
             $"""
-             SELECT id,{CommaSeparated}
+             SELECT id,{SelectColumns}
              FROM {TableName}
              WHERE (timestamp BETWEEN @fromTime AND @toTime)
              ORDER BY timestamp,id
@@ -32,7 +37,7 @@ internal sealed class ActivityRepository(
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
         IAsyncEnumerable<Activity> query = connection.QueryUnbufferedAsync<Activity>(
-            $"SELECT id,{CommaSeparated} FROM {TableName} ORDER BY timestamp,id LIMIT @Num OFFSET @Start",
+            $"SELECT id,{SelectColumns} FROM {TableName} ORDER BY timestamp,id LIMIT @Num OFFSET @Start",
             new { pageQuery.Start, pageQuery.Num });
         await foreach (Activity item in query.WithCancellation(cancellation))
         {
@@ -45,7 +50,7 @@ internal sealed class ActivityRepository(
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
         return await connection.QuerySingleOrDefaultAsync<Activity>(
-            $"SELECT id,{CommaSeparated} FROM {TableName} WHERE id=@id",
+            $"SELECT id,{SelectColumns} FROM {TableName} WHERE id=@id",
             new GetByLongIdParameters(id));
     }
 
@@ -53,7 +58,7 @@ internal sealed class ActivityRepository(
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
         var result = await connection.ExecuteScalarAsync(
-            $"INSERT INTO {TableName} ({CommaSeparated}) VALUES ({ParametersCommaSeparated}) RETURNING id",
+            $"INSERT INTO {TableName} ({InsertColumns}) VALUES ({ParametersCommaSeparated}) RETURNING id",
             newItem);
         Debug.Assert(result is long);
         return (long)result;
