@@ -71,6 +71,15 @@ public static class TenantDataSourceServiceCollectionExtensions
                 settings.MaxCacheEntries);
         });
 
+        // Scoped tenant context: one mutable instance per request, resolvable via both the read-only
+        // ITenantContext (consumed by the connection factory below) and IMutableTenantContext (set
+        // once by the tenant-resolution middleware, Phase 4). Defaults to no tenant, so requests to
+        // reserved/apex hosts — and DI resolution before the middleware runs — have a well-defined
+        // empty context instead of a missing registration.
+        services.AddScoped<TenantContext>();
+        services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
+        services.AddScoped<IMutableTenantContext>(sp => sp.GetRequiredService<TenantContext>());
+
         // Scoped: acquires the tenant's data-source lease once per scope and releases it when the
         // scope ends (via IDisposable), independent of the DbConnection's own lifetime below.
         services.AddScoped(serviceProvider =>

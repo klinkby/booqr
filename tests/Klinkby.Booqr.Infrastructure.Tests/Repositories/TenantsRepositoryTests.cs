@@ -38,7 +38,8 @@ public sealed class TenantsRepositoryTests(ServiceProviderFixture serviceProvide
         // The FakeTimeProvider registered for the SUT's DI graph is shared across the fixture, so
         // advancing it here affects the cache's clock deterministically without touching wall time.
         var timeProvider = (FakeTimeProvider)serviceProvider.Services.GetRequiredService<TimeProvider>();
-        var slug = $"tenant-cache-{Guid.NewGuid():N}";
+        // slug is varchar(32); keep the generated value within that bound.
+        var slug = $"tc-{Guid.NewGuid():N}"[..32];
 
         Tenant? beforeInsert = await _sut.GetBySlug(slug, CancellationToken.None);
         Assert.Null(beforeInsert);
@@ -67,7 +68,11 @@ public sealed class TenantsRepositoryTests(ServiceProviderFixture serviceProvide
             }
             finally
             {
-                await connection.ExecuteAsync("delete from public.tenants where slug = @slug", new { slug });
+                // Soft-delete, mirroring the real deprovision path: booqr_migrator holds
+                // SELECT/INSERT/UPDATE on public.tenants but not DELETE (least privilege), and
+                // GetBySlug filters WHERE deleted IS NULL, so this both cleans up and matches prod.
+                await connection.ExecuteAsync(
+                    "update public.tenants set deleted = now() where slug = @slug", new { slug });
             }
         }
     }

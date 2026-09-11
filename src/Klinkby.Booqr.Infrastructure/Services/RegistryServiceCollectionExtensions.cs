@@ -58,12 +58,15 @@ public static partial class RegistryServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
     /// <returns>The <see cref="IServiceCollection" /> so that additional calls can be chained.</returns>
-    public static IServiceCollection AddTenantRegistry(this IServiceCollection services)
+    public static IServiceCollection AddTenantRegistry(this IServiceCollection services,
+        IConfiguration configuration)
     {
+        ArgumentNullException.ThrowIfNull(configuration);
+
         services
             .AddSingleton<IValidateOptions<RegistrySettings>, ValidateRegistrySettings>()
             .AddOptions<RegistrySettings>()
-            .BindConfiguration("Registry")
+            .Bind(configuration.GetSection("Registry"))
             .ValidateOnStart();
 
         services.AddNpgsqlSlimDataSource(

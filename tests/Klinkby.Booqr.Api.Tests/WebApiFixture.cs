@@ -33,7 +33,24 @@ internal sealed class WebApiFixture(string? allowedHosts = null, bool withThrowi
             "ConnectionString": "Host=postgres:5432;Database=postgres;Username=postgres;Password=...",
             "MailClientApiKey": "...:...",
             "MailClientAccount": "1.....smtp",
-            "MailClientFromAddress": "no-reply@booqr.dk"
+            "MailClientFromAddress": "no-reply@booqr.dk",
+            "Tenancy": {
+              "BaseDomain": "booqr.dk",
+              "ReservedSubdomains": [ "www", "api" ]
+            },
+            "TenantDataSources": {
+              "BaseConnectionString": "Host=postgres:5432;Database=postgres",
+              "MasterSecret": "test-master-secret",
+              "MaxPoolSize": 3,
+              "MaxCacheEntries": 64
+            },
+            "Registry": {
+              "ConnectionString": "Host=postgres:5432;Database=postgres",
+              "RegistryUsername": "booqr_registry",
+              "RegistryPassword": "test-registry-password",
+              "CacheTtl": "00:00:30",
+              "CacheSize": 256
+            }
           }
         }
         """;

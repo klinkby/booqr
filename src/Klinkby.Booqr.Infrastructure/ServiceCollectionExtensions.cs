@@ -64,7 +64,7 @@ public static partial class ServiceCollectionExtensions
         services.AddTenantDataSources(configuration);
         // 2b: Tenant registry data source (booqr_registry role) and cached resolution.
         // Must be called after AddRepositories() so the CachingTenantRepository override wins.
-        services.AddTenantRegistry();
+        services.AddTenantRegistry(configuration);
 
         return services;
     }
