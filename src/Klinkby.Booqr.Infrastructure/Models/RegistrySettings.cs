@@ -43,8 +43,13 @@ internal sealed record RegistrySettings
     ///     Gets or initializes the bounded time-to-live for cached tenant resolutions (positive and
     ///     negative).
     /// </summary>
+    /// <remarks>
+    ///     No <c>[Range(typeof(TimeSpan), …)]</c> attribute: that RangeAttribute overload is
+    ///     reflection-based (TypeConverter) and is flagged IL2026 under Native AOT/trimming. The
+    ///     value binds from a config string (e.g. <c>"00:00:30"</c>); a malformed value fails binding,
+    ///     and the 30-second default applies when unset.
+    /// </remarks>
     /// <value>Defaults to 30 seconds.</value>
-    [Range(typeof(TimeSpan), "00:00:01", "1.00:00:00")]
     public TimeSpan CacheTtl { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
