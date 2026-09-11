@@ -156,6 +156,14 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
     }
 
     /// <summary>
+    ///     Builds an <see cref="NpgsqlDataSource" /> connected as <c>booqr_migrator</c>. Used by tests
+    ///     exercising <c>Klinkby.Booqr.Control.TenantProvisioner</c> directly, which (like
+    ///     <see cref="SchemaMigrator" />) takes an already-built migrator data source rather than
+    ///     constructing its own.
+    /// </summary>
+    internal NpgsqlDataSource CreateMigratorDataSource() => NpgsqlDataSource.Create(MigratorConnectionString());
+
+    /// <summary>
     ///     Opens a fresh connection as <c>booqr_batch</c> (BYPASSRLS), which bypasses row-level
     ///     security and sees all tenants' rows across the entire database. Used by tests that verify
     ///     cross-tenant behavior for background/batch work and assert that regular tenant roles

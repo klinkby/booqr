@@ -87,6 +87,13 @@ grant select on public.tenants to booqr_registry;
 -- "writes public.tenants"). CREATE was revoked from PUBLIC above, so USAGE on the
 -- public schema must be granted explicitly.
 grant usage on schema public to booqr_migrator;
+
+-- Provisioning runs `GRANT booqr_tenant TO t_<id>` as booqr_migrator. In PostgreSQL
+-- 16+, granting membership in a role requires ADMIN OPTION on that role (CREATEROLE
+-- alone is not enough for a role the migrator did not create). Give the migrator
+-- admin option on booqr_tenant, but WITH INHERIT FALSE so it can administer the
+-- membership without silently acquiring booqr_tenant's app-table privileges itself.
+grant booqr_tenant to booqr_migrator with admin option, inherit false;
 grant select, insert on public.schema_migrations to booqr_migrator;
 grant select, insert, update on public.tenants to booqr_migrator;
 
