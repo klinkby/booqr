@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Options;
 
 namespace Klinkby.Booqr.Infrastructure.Models;
@@ -12,7 +13,7 @@ namespace Klinkby.Booqr.Infrastructure.Models;
 ///     Bound from the <c>Tenancy</c> configuration section by
 ///     <see cref="Microsoft.Extensions.DependencyInjection.ServiceCollectionExtensions.AddInfrastructure" />.
 /// </remarks>
-internal sealed record TenancySettings
+public sealed record TenancySettings
 {
     /// <summary>
     ///     Gets or initializes the base domain (e.g., "booqr.dk") used for tenant host resolution.
@@ -36,6 +37,8 @@ internal sealed record TenancySettings
     /// </remarks>
     /// <value>An array of lowercase reserved subdomain names (e.g., ["www", "api"]), or empty if none are reserved.</value>
     [Required]
+    [SuppressMessage("Performance", "CA1819:Properties should not return arrays",
+        Justification = "Options-pattern binding target; bound once from configuration, not a mutation-prone public API surface.")]
     public required string[] ReservedSubdomains { get; set; }
 }
 

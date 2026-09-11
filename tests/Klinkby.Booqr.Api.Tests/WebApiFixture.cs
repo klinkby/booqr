@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Unicode;
+using Klinkby.Booqr.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -9,7 +10,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Klinkby.Booqr.Api.Tests;
 
-internal sealed class WebApiFixture(string? allowedHosts = null, bool withThrowingEndpoint = false)
+/// <summary>
+///     Optional stand-in for <see cref="ITenantRepository" />, letting tests resolve tenants
+///     deterministically without a live registry database (the fixture's connection strings point
+///     at an unreachable <c>postgres:5432</c> host). When <c>null</c> (the default), the real
+///     registry-backed repository is used and any attempt to reach it fails as it does today.
+/// </summary>
+internal sealed class WebApiFixture(
+    string? allowedHosts = null,
+    bool withThrowingEndpoint = false,
+    ITenantRepository? tenantRepository = null)
     : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -80,7 +90,17 @@ internal sealed class WebApiFixture(string? allowedHosts = null, bool withThrowi
             builder.ConfigureTestServices(static services =>
                 services.AddSingleton<IStartupFilter, ThrowingStartupFilter>());
         }
-        else
+
+        if (tenantRepository is not null)
+        {
+            // Overrides the registry-backed ITenantRepository (which would otherwise try to reach
+            // the unreachable postgres:5432 host above) so tenant-resolution middleware and the
+            // GET /api/tenant endpoint resolve deterministically in-process.
+            builder.ConfigureTestServices(services =>
+                services.AddScoped(_ => tenantRepository));
+        }
+
+        if (!withThrowingEndpoint && tenantRepository is null)
         {
             builder.ConfigureTestServices(_ => { });
         }

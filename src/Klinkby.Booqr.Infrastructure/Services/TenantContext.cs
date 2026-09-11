@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Klinkby.Booqr.Core;
 
 namespace Klinkby.Booqr.Infrastructure.Services;
@@ -8,7 +9,7 @@ namespace Klinkby.Booqr.Infrastructure.Services;
 ///     (<see cref="ITenantContext.HasTenant" /> is <c>false</c>) so anonymous/reserved/apex hosts
 ///     and startup have a well-defined empty context rather than a missing DI registration.
 /// </summary>
-internal interface IMutableTenantContext : ITenantContext
+public interface IMutableTenantContext : ITenantContext
 {
     /// <summary>
     ///     Assigns the resolved tenant to this scope. Idempotent per scope: the middleware calls it
@@ -16,6 +17,8 @@ internal interface IMutableTenantContext : ITenantContext
     /// </summary>
     /// <param name="tenantId">The resolved tenant's positive integer id.</param>
     /// <param name="dbRole">The tenant's PostgreSQL login role (e.g. <c>t_42</c>).</param>
+    [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords",
+        Justification = "'Set' reads clearly as the mutator for this scoped context; not a public library API surface.")]
     void Set(int tenantId, string dbRole);
 }
 

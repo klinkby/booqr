@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using Klinkby.Booqr.Api;
+using Klinkby.Booqr.Api.Util;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HostFiltering;
 using Microsoft.AspNetCore.OpenApi;
@@ -9,6 +10,17 @@ using Microsoft.OpenApi;
 using NLog.Web;
 
 var timer = Stopwatch.StartNew();
+
+// Admin mode: same Native-AOT image, started with a leading "admin" argument, runs one
+// provisioning/migration command against the database and exits without starting Kestrel or any
+// part of the web pipeline (docs/1-design.md "2b. Admin CLI (admin mode)"). Detected before the
+// WebApplicationBuilder is created so the admin path never touches tenant/registry HTTP request
+// context. The actual admin commands (provision/migrate/deprovision/rotate) are Phase 5; here we
+// only detect the flag and dispatch to the AdminRunner seam Phase 5 fills in.
+if (args.Length > 0 && string.Equals(args[0], "admin", StringComparison.OrdinalIgnoreCase))
+{
+    return await AdminRunner.RunAsync(args[1..]);
+}
 
 WebApplicationBuilder builder = WebApplication.CreateSlimBuilder(args);
 
@@ -24,7 +36,7 @@ ConfigureMiddleware(app, isMockServer);
 ConfigureEndpoints(app);
 
 await RunApplicationAsync(app, timer);
-return;
+return 0;
 
 static void ConfigureLogging(WebApplicationBuilder builder, bool isMockServer)
 {
@@ -101,6 +113,7 @@ static void ConfigureMiddleware(WebApplication app, bool isMockServer)
     }
 
     app.UseHostFiltering();
+    app.UseTenantResolution();
     app.UseAuthorization();
 
     if (app.Environment.IsDevelopment())

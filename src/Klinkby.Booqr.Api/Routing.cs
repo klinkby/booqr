@@ -1,7 +1,9 @@
 ﻿using System.Net.Mime;
 using Klinkby.Booqr.Application.Commands.Employees;
 using Klinkby.Booqr.Application.Models;
-using Klinkby.Booqr.Api.Util;
+using Klinkby.Booqr.Infrastructure.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.Options;
 
 namespace Klinkby.Booqr.Api;
 
@@ -16,8 +18,10 @@ internal static class Routing
         RouteGroupBuilder baseRoute = app
             .MapGroup(BaseUrl)
             .AddEndpointFilter<RequestMetadataEndPointFilter>()
-            .AddEndpointFilter<AuthenticatedRequestEndPointFilter>();
+            .AddEndpointFilter<AuthenticatedRequestEndPointFilter>()
+            .AddEndpointFilter<TenantRequiredEndPointFilter>();
         MapOpenApi(baseRoute);
+        MapTenant(baseRoute);
         MapAuth(baseRoute);
         MapBookings(baseRoute);
         MapEmployees(baseRoute);
@@ -38,8 +42,53 @@ internal static class Routing
                     response.Headers.CacheControl = "public, max-age=86400";
                     return response.SendFileAsync(Path.Combine(env.ContentRootPath, "openapi", filename), cancellation);
                 })
-            .ExcludeFromDescription();
+            .ExcludeFromDescription()
+            .WithMetadata(new TenantOptionalAttribute());
     }
+
+    /// <summary>
+    ///     Anonymous <c>GET /api/tenant</c>: resolves the tenant from <see cref="HttpRequest.Host" />
+    ///     via <see cref="ITenantRepository" /> (the same slug-extraction rules the tenant-resolution
+    ///     middleware applies) and returns public branding, or <c>404 tenant-not-found</c> for an
+    ///     unknown, deleted, malformed, reserved, or apex host. Never a redirect — the SPA handles
+    ///     that (docs/1-design.md §3 "Frontend contract"). Re-resolves independently (rather than
+    ///     reading the already-populated <see cref="ITenantContext" />) so this endpoint has a
+    ///     single, explicit source of truth for its own contract and stays correct even if the
+    ///     tenant-required filter's opt-out ever changes.
+    /// </summary>
+    private static void MapTenant(RouteGroupBuilder baseRoute)
+    {
+        baseRoute.MapGet("tenant",
+                static async Task<Results<Ok<TenantResponse>, ProblemHttpResult>> (
+                    HttpContext context,
+                    [FromServices] ITenantRepository tenantRepository,
+                    [FromServices] IOptions<TenancySettings> tenancyOptions,
+                    CancellationToken cancellation) =>
+                {
+                    TenancySettings settings = tenancyOptions.Value;
+                    var slug = Klinkby.Booqr.Api.Util.ApplicationBuilderExtensions.ExtractTenantSlug(
+                        context.Request.Host.Host, settings.BaseDomain, settings.ReservedSubdomains);
+
+                    Tenant? tenant = slug is null ? null : await tenantRepository.GetBySlug(slug, cancellation);
+                    return tenant is null
+                        ? TenantNotFound()
+                        : TypedResults.Ok(new TenantResponse(tenant.DisplayName, tenant.Slug));
+                })
+            .WithMetadata(new TenantOptionalAttribute())
+            .WithTags("Tenant")
+            .WithDescription("Tenant")
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .WithName("getTenant")
+            .WithSummary("Resolve the current tenant's public branding");
+    }
+
+    private static ProblemHttpResult TenantNotFound() =>
+        TypedResults.Problem(
+            "The request host did not resolve to a known tenant.",
+            null,
+            StatusCodes.Status404NotFound,
+            "Tenant not found",
+            "https://www.booqr.dk/problems/tenant-not-found");
 
     private static void MapAuth(IEndpointRouteBuilder app)
     {
@@ -55,6 +104,7 @@ internal static class Routing
                     CancellationToken cancellation) => command
                     .Execute(request.WithRefreshToken(context), cancellation)
                     .ToOk(x => x.AddRefreshTokenCookie(context)))
+            .WithMetadata(new TenantOptionalAttribute())
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .WithName("login")
@@ -64,6 +114,7 @@ internal static class Routing
                 static (RefreshCommand command, HttpContext context, CancellationToken cancellation) => command
                     .Execute(new RefreshRequest().WithRefreshToken(context), cancellation)
                     .ToOk(x => x.AddRefreshTokenCookie(context)))
+            .WithMetadata(new TenantOptionalAttribute())
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .WithName("refresh")
             .WithSummary("Refresh auth token");
@@ -72,6 +123,7 @@ internal static class Routing
                 static (LogoutCommand command, HttpContext context, CancellationToken cancellation) => command
                     .Execute(new LogoutRequest().WithRefreshToken(context), cancellation)
                     .ToOk(x => x.DeleteRefreshTokenCookie(context)))
+            .WithMetadata(new TenantOptionalAttribute())
             .WithName("logout")
             .WithSummary("Log out");
     }
