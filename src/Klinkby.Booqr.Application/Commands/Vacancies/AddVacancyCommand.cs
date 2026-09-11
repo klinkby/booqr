@@ -132,7 +132,7 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
         if (result is Result<int>.Success success)
         {
             await transaction.Commit(cancellation);
-            activityRecorder.Add<CalendarEvent>(new(query.AuthenticatedUserId, success.Value));
+            activityRecorder.Add<CalendarEvent>(new(query.AuthenticatedUserId, success.Value, query.TenantId));
         }
         else
         {

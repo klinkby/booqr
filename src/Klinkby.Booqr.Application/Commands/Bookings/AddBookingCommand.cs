@@ -119,7 +119,7 @@ public partial class AddBookingCommand(
             _ => throw new UnreachableException("Covers enum has no more values.")
         };
         await updateStrategy;
-        activityRecorder.Add<Booking>(new(query.AuthenticatedUserId, newId));
+        activityRecorder.Add<Booking>(new(query.AuthenticatedUserId, newId, query.TenantId));
 
         return (newId, true);
     }

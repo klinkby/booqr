@@ -28,7 +28,7 @@ public abstract partial class DeleteCommand<TItem>(
         Result<bool> result = await Delete(query, cancellation);
         if (result.ValueOrDefault())
         {
-            activityRecorder.Delete<TItem>(new(query.AuthenticatedUserId, query.Id));
+            activityRecorder.Delete<TItem>(new(query.AuthenticatedUserId, query.Id, query.TenantId));
         }
 
         return result;

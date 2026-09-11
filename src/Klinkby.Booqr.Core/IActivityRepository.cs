@@ -17,6 +17,7 @@ namespace Klinkby.Booqr.Core;
 /// <param name="Entity">The name of the entity associated with the activity.</param>
 /// <param name="EntityId">The identifier of the specific entity instance associated with the activity.</param>
 /// <param name="Action">The type of action performed on the entity.</param>
+/// <param name="TenantId">The identifier of the tenant in which the activity occurred.</param>
 public sealed record Activity(
     long Id,
     DateTime Timestamp,
@@ -27,7 +28,8 @@ public sealed record Activity(
     string Entity,
     int EntityId,
     [property: StringLength(30)]
-    string Action
+    string Action,
+    int TenantId
 );
 
 /// <summary>

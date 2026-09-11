@@ -10,7 +10,8 @@ namespace Klinkby.Booqr.Application;
 /// <typeparam name="TItem">The type of the entity associated with the activity.</typeparam>
 /// <param name="UserId">The ID of the user performing the activity.</param>
 /// <param name="EntityId">The ID of the entity being acted upon.</param>
-public record struct ActivityQuery<TItem>(int UserId, int EntityId);
+/// <param name="TenantId">The ID of the tenant in which the activity occurred.</param>
+public record struct ActivityQuery<TItem>(int UserId, int EntityId, int TenantId);
 
 /// <summary>
 /// Provides methods for recording user activities on entities.
@@ -70,5 +71,6 @@ internal sealed class ActivityRecorder(
             query.UserId,
             typeof(TItem).Name,
             query.EntityId,
-            action);
+            action,
+            query.TenantId);
 }

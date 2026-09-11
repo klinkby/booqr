@@ -46,7 +46,7 @@ public sealed partial class UpdateUserProfileCommand(
             return Problem.MidAirCollision with { Detail = $"User {query.Id} was already updated." };
         }
 
-        activityRecorder.Update<User>(new(query.AuthenticatedUserId, query.Id));
+        activityRecorder.Update<User>(new(query.AuthenticatedUserId, query.Id, query.TenantId));
         return updated;
     }
 

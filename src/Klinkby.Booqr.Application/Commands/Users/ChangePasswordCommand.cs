@@ -72,7 +72,7 @@ public partial class ChangePasswordCommand(
         }
 
         _log.Changed(user.Email);
-        activityRecorder.Update<User>(new(userId, user.Id));
+        activityRecorder.Update<User>(new(userId, user.Id, 0));
         return patched;
     }
 
