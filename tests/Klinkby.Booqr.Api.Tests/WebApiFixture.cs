@@ -72,11 +72,11 @@ internal sealed class WebApiFixture(
         using MemoryStream stream = new(Encoding.UTF8.GetBytes(jsonConfig));
         IConfigurationBuilder configurationBuilder = new ConfigurationBuilder()
             .AddJsonStream(stream);
-        if (allowedHosts is not null)
-        {
-            configurationBuilder.AddInMemoryCollection(
-                new Dictionary<string, string?> { ["AllowedHosts"] = allowedHosts });
-        }
+        // In-memory WebApplicationFactory requests default to the "localhost" host, which the
+        // production appsettings.json AllowedHosts (*.booqr.dk) would reject. Default the test host
+        // filter to allow-all; tests that specifically exercise host filtering pass an explicit value.
+        configurationBuilder.AddInMemoryCollection(
+            new Dictionary<string, string?> { ["AllowedHosts"] = allowedHosts ?? "*" });
 
         IConfigurationRoot configuration = configurationBuilder.Build();
         builder.UseConfiguration(configuration);
