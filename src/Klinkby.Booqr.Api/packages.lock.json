@@ -228,6 +228,13 @@
           "System.IdentityModel.Tokens.Jwt": "[8.22.0, )"
         }
       },
+      "klinkby.booqr.control": {
+        "type": "Project",
+        "dependencies": {
+          "Klinkby.Booqr.Core": "[1.0.0, )",
+          "Klinkby.Booqr.Infrastructure": "[1.0.0, )"
+        }
+      },
       "klinkby.booqr.core": {
         "type": "Project"
       },

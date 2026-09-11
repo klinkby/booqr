@@ -1,23 +1,26 @@
-namespace Klinkby.Booqr.Api;
+namespace Klinkby.Booqr.Control;
 
 /// <summary>
 ///     Dispatch scaffold for admin mode (docs/1-design.md "2b. Admin CLI (admin mode)"), selected by
-///     a leading <c>admin</c> argument (<c>Program.cs</c>): <c>admin --migrate</c>,
+///     a leading <c>admin</c> argument (the API's <c>Program.cs</c>): <c>admin --migrate</c>,
 ///     <c>admin --provision &lt;slug&gt;</c>, <c>admin --deprovision &lt;id&gt;</c>,
 ///     <c>admin --rotate</c>.
 /// </summary>
 /// <remarks>
+///     Lives in <c>Klinkby.Booqr.Control</c> — the control-plane assembly that holds the elevated
+///     <c>booqr_migrator</c>/<c>booqr_batch</c> provisioning logic. Keeping it out of the request-path
+///     assemblies (Api/Application) makes "the migrator/batch credentials never run on a request path"
+///     a compile-time boundary (enforced by an ArchUnit rule), not just a convention.
+///     <para>
 ///     Scope: this type only detects which admin command was requested and dispatches to the
 ///     matching seam method below. The actual implementations (provisioning a tenant role,
 ///     applying migrations via <c>SchemaMigrator</c>, deprovisioning, rotating tenant passwords) are
 ///     Phase 5 and intentionally throw <see cref="NotImplementedException" /> here. Building a
 ///     minimal host/service provider for the admin command (so it can reach
-///     <c>booqr_migrator</c>/<c>booqr_batch</c> and the registry) is also Phase 5 work — this
-///     scaffold takes no dependency on Infrastructure DI so the web-host startup path
-///     (<c>ConfigureServices</c>/<c>ConfigureMiddleware</c>) is completely untouched when the
-///     <c>admin</c> flag is absent.
+///     <c>booqr_migrator</c>/<c>booqr_batch</c> and the registry) is also Phase 5 work.
+///     </para>
 /// </remarks>
-internal static class AdminRunner
+public static class AdminRunner
 {
     private const int UsageErrorExitCode = 64; // EX_USAGE (sysexits.h convention)
 
@@ -25,8 +28,10 @@ internal static class AdminRunner
     ///     Parses the admin subcommand and its arguments, dispatches to the matching Phase-5 seam,
     ///     and returns the process exit code. Never starts Kestrel or any web pipeline.
     /// </summary>
-    internal static async Task<int> RunAsync(string[] args)
+    public static async Task<int> RunAsync(string[] args)
     {
+        ArgumentNullException.ThrowIfNull(args);
+
         if (args.Length == 0)
         {
             await Console.Error.WriteLineAsync(

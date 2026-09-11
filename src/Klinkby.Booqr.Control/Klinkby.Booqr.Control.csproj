@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup Label="Project references">
+        <ProjectReference Include="..\Klinkby.Booqr.Core\Klinkby.Booqr.Core.csproj" />
+        <ProjectReference Include="..\Klinkby.Booqr.Infrastructure\Klinkby.Booqr.Infrastructure.csproj" />
+    </ItemGroup>
+
+</Project>

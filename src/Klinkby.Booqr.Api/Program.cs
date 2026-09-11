@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Reflection;
 using Klinkby.Booqr.Api;
 using Klinkby.Booqr.Api.Util;
+using Klinkby.Booqr.Control;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HostFiltering;
 using Microsoft.AspNetCore.OpenApi;

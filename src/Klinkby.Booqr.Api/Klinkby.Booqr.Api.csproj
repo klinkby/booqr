@@ -25,6 +25,7 @@
     <ItemGroup Label="Project references">
         <ProjectReference Include="..\Klinkby.Booqr.Application\Klinkby.Booqr.Application.csproj"/>
         <ProjectReference Include="..\Klinkby.Booqr.Infrastructure\Klinkby.Booqr.Infrastructure.csproj"/>
+        <ProjectReference Include="..\Klinkby.Booqr.Control\Klinkby.Booqr.Control.csproj"/>
     </ItemGroup>
 
     <ItemGroup Label="Nuget references">
