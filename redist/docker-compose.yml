@@ -42,13 +42,6 @@ services:
       - /home/app/.aspnet/DataProtection-Keys
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      # Legacy superuser connection string. Least-privilege goal (docs/1-design.md "The API ...
-      # no longer uses the POSTGRES_USER superuser creds current compose passes") is NOT fully
-      # realized yet: not every Infrastructure connection path has been confirmed migrated off
-      # this value, so it is left in place rather than risking breaking the running API. Follow-up:
-      # verify every DB access path resolves through Registry/TenantDataSources/Batch below, then
-      # remove this line.
-      - Infrastructure__ConnectionString=Host=/var/run/postgresql;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       # Tenancy (host -> tenant resolution middleware config).
       - Infrastructure__Tenancy__BaseDomain=${TENANCY_BASE_DOMAIN}
       - Infrastructure__Tenancy__ReservedSubdomains__0=www

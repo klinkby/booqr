@@ -40,7 +40,6 @@ internal sealed class WebApiFixture(
             }
           },
           "Infrastructure": {
-            "ConnectionString": "Host=postgres:5432;Database=postgres;Username=postgres;Password=...",
             "MailClientApiKey": "...:...",
             "MailClientAccount": "1.....smtp",
             "MailClientFromAddress": "no-reply@booqr.dk",
