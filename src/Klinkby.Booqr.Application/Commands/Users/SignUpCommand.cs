@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
+using Klinkby.Booqr.Core;
 using Microsoft.Extensions.Options;
 
 namespace Klinkby.Booqr.Application.Commands.Users;
@@ -26,6 +27,7 @@ public sealed partial class SignUpCommand(
     ChannelWriter<Message> channelWriter,
     IActivityRecorder activityRecorder,
     IOptions<PasswordSettings> passwordSettings,
+    ITenantContext tenantContext,
     ILogger<SignUpCommand> logger
 ) : ICommand<SignUpRequest, Task<Result<int>>>
 {
@@ -49,7 +51,7 @@ public sealed partial class SignUpCommand(
         await channelWriter.WriteAsync(message, cancellation);
 
         _log.CreatedUser(newUser.Email, newUser.Id);
-        activityRecorder.Add<User>(new(newUser.Id, newUser.Id, 0));
+        activityRecorder.Add<User>(new(newUser.Id, newUser.Id, tenantContext.TenantId));
         return newUser.Id;
     }
 

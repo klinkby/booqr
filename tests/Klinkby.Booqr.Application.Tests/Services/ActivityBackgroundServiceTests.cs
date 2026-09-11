@@ -1,5 +1,6 @@
 ﻿using System.Threading.Channels;
 using Klinkby.Booqr.Application.Services;
+using Klinkby.Booqr.Core;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Klinkby.Booqr.Application.Tests.Services;
@@ -17,6 +18,9 @@ public class ActivityBackgroundServiceTests
 
         var services = new ServiceCollection();
         services.AddScoped<IActivityRepository>(_ => repoMock.Object);
+        // ActivityBackgroundService enables IBatchScope on its scope before resolving
+        // IActivityRepository (docs/2-implementation.md Phase 3c).
+        services.AddScoped<IBatchScope, TestBatchScope>();
         ServiceProvider provider = services.BuildServiceProvider();
 
         using var sut =

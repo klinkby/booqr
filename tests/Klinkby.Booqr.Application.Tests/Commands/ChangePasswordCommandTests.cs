@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using Klinkby.Booqr.Application.Util;
+using Klinkby.Booqr.Core;
 
 namespace Klinkby.Booqr.Application.Tests.Commands;
 
@@ -8,9 +9,18 @@ public class ChangePasswordCommandTests
     private readonly static TimeProvider TimeProvider = TestHelpers.TimeProvider;
     private readonly static Mock<IActivityRecorder> ActivityRecorder = new();
     private readonly static ExpiringQueryString ExpiringQueryString = CreateExpiringQueryString(TimeProvider);
+    private const int TenantId = 7;
 
     private static ChangePasswordCommand CreateSut(IUserRepository users)
-        => new(users, ExpiringQueryString, ActivityRecorder.Object, NullLogger<ChangePasswordCommand>.Instance);
+        => new(users, ExpiringQueryString, ActivityRecorder.Object, CreateTenantContext(), NullLogger<ChangePasswordCommand>.Instance);
+
+    private static ITenantContext CreateTenantContext()
+    {
+        var mock = new Mock<ITenantContext>();
+        mock.SetupGet(x => x.HasTenant).Returns(true);
+        mock.SetupGet(x => x.TenantId).Returns(TenantId);
+        return mock.Object;
+    }
 
     [Fact]
     public async Task GIVEN_NullRequest_WHEN_Execute_THEN_ThrowsArgumentNullException()
@@ -51,6 +61,9 @@ public class ChangePasswordCommandTests
     {
         // Arrange
         PartialUser? patchedUser = null;
+        // ActivityRecorder is a static mock shared across this class's tests; reset so the
+        // Times.Once verification below only reflects this invocation.
+        ActivityRecorder.Invocations.Clear();
         var users = new Mock<IUserRepository>();
         users.Setup(x => x.GetById(It.IsAny<int>(), CancellationToken.None)).ReturnsAsync(user);
         users.Setup(x => x.Patch(It.IsAny<PartialUser>(), CancellationToken.None))
@@ -77,6 +90,11 @@ public class ChangePasswordCommandTests
         Assert.NotNull(patchedUser);
         // Email must remain unchanged
         Assert.Null(patchedUser.Email);
+        // The Phase 1 placeholder (tenant_id=0) must now carry the host-resolved tenant from
+        // ITenantContext.
+        ActivityRecorder.Verify(
+            x => x.Update(It.Is<ActivityQuery<User>>(q => q.TenantId == TenantId)),
+            Times.Once);
         // Password should be re-hashed and match new password
         Assert.True(BCrypt.Net.BCrypt.EnhancedVerify(newPassword, patchedUser.PasswordHash));
     }
@@ -128,7 +146,7 @@ public class ChangePasswordCommandTests
             { Query.ETag, user.ETag }
         });
 
-        var sut = new ChangePasswordCommand(users.Object, ExpiringQueryString, activityRecorder.Object, NullLogger<ChangePasswordCommand>.Instance);
+        var sut = new ChangePasswordCommand(users.Object, ExpiringQueryString, activityRecorder.Object, CreateTenantContext(), NullLogger<ChangePasswordCommand>.Instance);
         var request = new ChangePasswordRequest("NewPassw0rd!", queryString);
 
         // Act

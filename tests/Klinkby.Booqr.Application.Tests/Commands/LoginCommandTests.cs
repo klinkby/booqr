@@ -1,3 +1,4 @@
+using Klinkby.Booqr.Core;
 using LoginCommand = Klinkby.Booqr.Application.Commands.Auth.LoginCommand;
 
 namespace Klinkby.Booqr.Application.Tests.Commands;
@@ -14,7 +15,7 @@ public class LoginCommandTests
         Mock<IUserRepository> userRepo = CreateUserRepositoryMock(null);
         Mock<IOAuth> oauth = CreateOAuthMock(expectedResponse);
 
-        var command = new LoginCommand(userRepo.Object, oauth.Object, NullLogger<LoginCommand>.Instance);
+        var command = new LoginCommand(userRepo.Object, oauth.Object, CreateTenantContext(), NullLogger<LoginCommand>.Instance);
         var request = new LoginRequest(email, password);
 
         var result = await command.Execute(request);
@@ -36,7 +37,7 @@ public class LoginCommandTests
         User unconfirmed = user with { PasswordHash = null };
         Mock<IUserRepository> userRepo = CreateUserRepositoryMock(unconfirmed);
         Mock<IOAuth> oauth = CreateOAuthMock(expectedResponse);
-        var command = new LoginCommand(userRepo.Object, oauth.Object, NullLogger<LoginCommand>.Instance);
+        var command = new LoginCommand(userRepo.Object, oauth.Object, CreateTenantContext(), NullLogger<LoginCommand>.Instance);
         var request = new LoginRequest(user.Email, password);
 
         var result = await command.Execute(request);
@@ -58,7 +59,7 @@ public class LoginCommandTests
             user with { PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(correctPassword) };
         Mock<IUserRepository> userRepo = CreateUserRepositoryMock(userWithHashedPassword);
         Mock<IOAuth> oauth = CreateOAuthMock(expectedResponse);
-        var command = new LoginCommand(userRepo.Object, oauth.Object,  NullLogger<LoginCommand>.Instance);
+        var command = new LoginCommand(userRepo.Object, oauth.Object, CreateTenantContext(), NullLogger<LoginCommand>.Instance);
         var request = new LoginRequest(user.Email, wrongPassword);
 
         var result = await command.Execute(request);
@@ -78,7 +79,7 @@ public class LoginCommandTests
         User userWithHashedPassword = user with { PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(password) };
         Mock<IUserRepository> userRepo = CreateUserRepositoryMock(userWithHashedPassword);
         Mock<IOAuth> oauth = CreateOAuthMock(expectedResponse);
-        var command = new LoginCommand(userRepo.Object, oauth.Object, NullLogger<LoginCommand>.Instance);
+        var command = new LoginCommand(userRepo.Object, oauth.Object, CreateTenantContext(), NullLogger<LoginCommand>.Instance);
         var request = new LoginRequest(userWithHashedPassword.Email, password) { RefreshToken = refreshToken };
 
         // Act
@@ -110,5 +111,33 @@ public class LoginCommandTests
         mock.Setup(m => m.GenerateTokenResponse(It.IsAny<User>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
             .Returns(() => Task.FromResult((fakeResponse, "tokenHash")));
         return mock;
+    }
+
+    private static ITenantContext CreateTenantContext(bool hasTenant = true)
+    {
+        var mock = new Mock<ITenantContext>();
+        mock.SetupGet(x => x.HasTenant).Returns(hasTenant);
+        mock.SetupGet(x => x.TenantId).Returns(hasTenant ? 7 : 0);
+        return mock.Object;
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_NoHostResolvedTenant_WHEN_Login_THEN_ReturnsUnauthorized_AndDoesNotQueryRepository(
+        string email,
+        string password,
+        OAuthTokenResponse expectedResponse)
+    {
+        Mock<IUserRepository> userRepo = CreateUserRepositoryMock(null);
+        Mock<IOAuth> oauth = CreateOAuthMock(expectedResponse);
+
+        var command = new LoginCommand(userRepo.Object, oauth.Object, CreateTenantContext(hasTenant: false), NullLogger<LoginCommand>.Instance);
+        var request = new LoginRequest(email, password);
+
+        var result = await command.Execute(request);
+
+        var error = Assert.IsType<Result<OAuthTokenResponse>.Fault>(result);
+        Assert.Equal(Problem.Unauthorized.Type, error.Problem.Type);
+        userRepo.Verify(x => x.GetByEmail(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

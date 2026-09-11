@@ -65,6 +65,11 @@ public static partial class ServiceCollectionExtensions
         // 2b: Tenant registry data source (booqr_registry role) and cached resolution.
         // Must be called after AddRepositories() so the CachingTenantRepository override wins.
         services.AddTenantRegistry(configuration);
+        // 3c: Cross-tenant booqr_batch (BYPASSRLS) data source + IBatchScope opt-in for
+        // background/scheduled work. Must be called after AddTenantDataSources so its keyed
+        // DbConnection registration (which falls back to the tenant connection when batch mode is
+        // not enabled) wins.
+        services.AddBatchDataSource(configuration);
 
         return services;
     }

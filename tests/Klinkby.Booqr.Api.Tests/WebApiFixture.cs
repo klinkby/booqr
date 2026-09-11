@@ -50,6 +50,11 @@ internal sealed class WebApiFixture(string? allowedHosts = null, bool withThrowi
               "RegistryPassword": "test-registry-password",
               "CacheTtl": "00:00:30",
               "CacheSize": 256
+            },
+            "Batch": {
+              "ConnectionString": "Host=postgres:5432;Database=postgres",
+              "BatchUsername": "booqr_batch",
+              "BatchPassword": "test-batch-password"
             }
           }
         }

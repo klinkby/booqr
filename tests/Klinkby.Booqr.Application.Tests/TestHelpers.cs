@@ -1,8 +1,21 @@
 ﻿using System.Security.Cryptography;
+using Klinkby.Booqr.Core;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 
 namespace Klinkby.Booqr.Application.Tests;
+
+/// <summary>
+///     Trivial <see cref="IBatchScope" /> for background-service tests that use a real DI
+///     <c>ServiceProvider</c> (rather than mocking <see cref="IServiceProvider" /> directly), so
+///     scopes created by the service under test can resolve it.
+/// </summary>
+public sealed class TestBatchScope : IBatchScope
+{
+    public bool IsEnabled { get; private set; }
+
+    public void Enable() => IsEnabled = true;
+}
 
 internal static class TestHelpers
 {

@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Klinkby.Booqr.Core;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -23,6 +24,7 @@ internal sealed partial class OAuth(
     IRefreshTokenRepository refreshTokenRepository,
     TimeProvider timeProvider,
     IOptions<JwtSettings> jwtSettings,
+    ITenantContext tenantContext,
     ILogger<OAuth> logger
     ) : IOAuth
 {
@@ -127,8 +129,20 @@ internal sealed partial class OAuth(
         GenerateToken(
             user,
             _jwt.AccessExpires,
-            new(JwtRegisteredClaimNames.Email, user.Email),
-            new(ClaimTypes.Role, user.Role));
+            GetAdditionalClaims(user));
+
+    private IEnumerable<Claim> GetAdditionalClaims(User user)
+    {
+        yield return new(JwtRegisteredClaimNames.Email, user.Email);
+        yield return new(ClaimTypes.Role, user.Role);
+
+        // Only emit a tenant claim when a tenant was actually resolved for this request; do not
+        // emit tenant=0 for no-tenant contexts (e.g. reserved/apex hosts).
+        if (tenantContext.HasTenant)
+        {
+            yield return new("tenant", tenantContext.TenantId.ToString(CultureInfo.InvariantCulture));
+        }
+    }
 
     private string GenerateToken(User user, TimeSpan expires, params IEnumerable<Claim> additionalClaims)
     {

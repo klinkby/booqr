@@ -35,6 +35,10 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
     // (see MigratorPassword above for the same rationale).
     private const string RegistryPassword = "changeme_booqr_registry";
 
+    // Deterministic placeholder password for booqr_batch (BYPASSRLS) from
+    // redist/initdb/01-control-plane.sql (see MigratorPassword above for the same rationale).
+    private const string BatchPassword = "changeme_booqr_batch";
+
     // Fixed test master secret. Provisioned tenant role (t_<id>) passwords are derived from this via
     // TenantCredentials.DerivePassword — the same algorithm TenantDataSourceFactory uses — so the
     // fixture's provisioned roles match what the DI-registered factory (and future admin CLI
@@ -101,6 +105,11 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
                 { "Registry:ConnectionString", SqlContainer.GetConnectionString() },
                 { "Registry:RegistryUsername", "booqr_registry" },
                 { "Registry:RegistryPassword", RegistryPassword },
+                // Cross-tenant booqr_batch (BYPASSRLS) connection (Phase 3c). See
+                // Services/BatchServiceCollectionExtensions.cs for the config keys this binds.
+                { "Batch:ConnectionString", SqlContainer.GetConnectionString() },
+                { "Batch:BatchUsername", "booqr_batch" },
+                { "Batch:BatchPassword", BatchPassword },
             })
             .Build();
         _services = new ServiceCollection()
@@ -146,6 +155,20 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
         return connection;
     }
 
+    /// <summary>
+    ///     Opens a fresh connection as <c>booqr_batch</c> (BYPASSRLS), which bypasses row-level
+    ///     security and sees all tenants' rows across the entire database. Used by tests that verify
+    ///     cross-tenant behavior for background/batch work and assert that regular tenant roles
+    ///     cannot perform such queries. The batch role has the full booqr_tenant grant set via
+    ///     default privileges in redist/initdb/02-provisioning-engine.sql.
+    /// </summary>
+    internal async Task<NpgsqlConnection> OpenBatchConnection(CancellationToken cancellation)
+    {
+        NpgsqlConnection connection = new(BatchConnectionString());
+        await connection.OpenAsync(cancellation);
+        return connection;
+    }
+
     private string TenantConnectionString(int tenantId)
     {
         NpgsqlConnectionStringBuilder builder = new(SqlContainer.GetConnectionString())
@@ -162,6 +185,16 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
         {
             Username = "booqr_migrator",
             Password = MigratorPassword,
+        };
+        return builder.ConnectionString;
+    }
+
+    private string BatchConnectionString()
+    {
+        NpgsqlConnectionStringBuilder builder = new(SqlContainer.GetConnectionString())
+        {
+            Username = "booqr_batch",
+            Password = BatchPassword,
         };
         return builder.ConnectionString;
     }

@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json.Serialization;
+using Klinkby.Booqr.Core;
 
 namespace Klinkby.Booqr.Application.Commands.Users;
 
@@ -20,6 +21,7 @@ public partial class ChangePasswordCommand(
     IUserRepository userRepository,
     IExpiringQueryString expiringQueryString,
     IActivityRecorder activityRecorder,
+    ITenantContext tenantContext,
     ILogger<ChangePasswordCommand> logger
 ) : ICommand<ChangePasswordRequest, Task<Result<bool>>>
 {
@@ -50,6 +52,16 @@ public partial class ChangePasswordCommand(
             return Problem.ValidationFailed with { Detail = "Invalid action" };
         }
 
+        // Belt-and-braces cross-tenant rejection for reset-link replay: this command runs on the
+        // scoped tenant connection (IUserRepository -> IConnectionProvider -> the keyed DbConnection
+        // resolved from ITenantContext for this request). RLS confines GetById to rows visible under
+        // the current tenant role, so a link containing a user id from tenant A, replayed against
+        // tenant B's host, already finds no row here - user is null below and we return NotFound.
+        // Core's User record carries no TenantId (only Activity does, from Phase 1), so there is no
+        // separate application-level tenant to compare against; the DB is the sole enforcement point.
+        // A non-tenant connection is never reached, because IConnectionProvider throws
+        // InvalidOperationException before ITenantContext.HasTenant is false, so requiring a tenant
+        // is implicit rather than an explicit check here.
         User? user = await userRepository.GetById(userId, cancellation);
         if (user is null)
         {
@@ -72,7 +84,7 @@ public partial class ChangePasswordCommand(
         }
 
         _log.Changed(user.Email);
-        activityRecorder.Update<User>(new(userId, user.Id, 0));
+        activityRecorder.Update<User>(new(userId, user.Id, tenantContext.TenantId));
         return patched;
     }
 

@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Klinkby.Booqr.Core;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Klinkby.Booqr.Application.Services;
@@ -24,6 +25,10 @@ internal sealed partial class FlushTokenService(
     protected override async Task ExecuteScheduledTaskAsync(CancellationToken cancellation)
     {
         await using AsyncServiceScope serviceScope = ServiceProvider.CreateAsyncScope();
+        // Cross-tenant batch work: token flushing spans all tenants, so this scope runs as
+        // booqr_batch (BYPASSRLS) rather than a per-tenant connection (docs/1-design.md
+        // "Background / scheduled work"). Enable before resolving any repository.
+        serviceScope.ServiceProvider.GetRequiredService<IBatchScope>().Enable();
         IRefreshTokenRepository repository = serviceScope.ServiceProvider.GetRequiredService<IRefreshTokenRepository>();
         IJobClaim jobClaim = serviceScope.ServiceProvider.GetRequiredService<IJobClaim>();
 

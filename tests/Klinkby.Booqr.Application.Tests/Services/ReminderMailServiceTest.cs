@@ -1,4 +1,5 @@
 ﻿using Klinkby.Booqr.Application.Services;
+using Klinkby.Booqr.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -69,6 +70,7 @@ public class ReminderMailServiceTest
             .Setup(m => m.TryClaimAsync(It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
         services.AddSingleton(jobClaimMock.Object);
+        services.AddScoped<IBatchScope, TestBatchScope>();
 
         return services;
     }

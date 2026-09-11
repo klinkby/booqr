@@ -1,6 +1,7 @@
 ﻿using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Channels;
+using Klinkby.Booqr.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -29,6 +30,11 @@ internal sealed partial class ActivityBackgroundService(
 
     async private Task TryAddActivity(IServiceProvider scopedServiceProvider, Activity activity, CancellationToken stoppingToken)
     {
+        // Cross-tenant consumer: writes Activity.TenantId explicitly via the booqr_batch
+        // (BYPASSRLS) connection, since booqr_batch's app.tenant_of(current_user) resolves to no
+        // tenant (see docs/1-design.md "Background / scheduled work"). Enable before resolving the
+        // repository, so ActivityRepository observes IBatchScope.IsEnabled for this scope.
+        scopedServiceProvider.GetRequiredService<IBatchScope>().Enable();
         IActivityRepository activities = scopedServiceProvider.GetRequiredService<IActivityRepository>();
         try
         {

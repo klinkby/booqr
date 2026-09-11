@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Klinkby.Booqr.Application.Commands.Bookings;
+using Klinkby.Booqr.Core;
 using Klinkby.Booqr.Core.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -34,6 +35,10 @@ internal sealed partial class ReminderMailService(
     {
         var timestamp = DateOnly.FromDateTime(Now);
         await using AsyncServiceScope serviceScope = ServiceProvider.CreateAsyncScope();
+        // Cross-tenant batch work: reminder mail spans all tenants, so this scope runs as
+        // booqr_batch (BYPASSRLS) rather than a per-tenant connection (docs/1-design.md
+        // "Background / scheduled work"). Enable before resolving any repository/command.
+        serviceScope.ServiceProvider.GetRequiredService<IBatchScope>().Enable();
         var sw = Stopwatch.StartNew();
         var messageCount =
             await FetchBookingDetailsAndSendReminders(serviceScope.ServiceProvider, timestamp, _log, stoppingToken);
