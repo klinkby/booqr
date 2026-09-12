@@ -40,11 +40,7 @@ public static partial class ServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
-        services
-            .AddSingleton<IValidateOptions<InfrastructureSettings>, ValidateInfrastructureSettings>()
-            .AddOptions<InfrastructureSettings>()
-            .Bind(configuration)
-            .ValidateOnStart();
+        services.AddWorkerInfrastructureCore(configuration);
 
         // Bind and validate tenancy configuration (base domain, reserved subdomains).
         services
@@ -52,12 +48,6 @@ public static partial class ServiceCollectionExtensions
             .AddOptions<TenancySettings>()
             .Bind(configuration.GetSection("Tenancy"))
             .ValidateOnStart();
-
-        services.ConfigureEmailLabsHttpClient();
-        services.AddSingleton<IMailClient, EmailLabsMailClient>();
-        services.AddScoped<ITransaction, Transaction>();
-        services.AddScoped<IConnectionProvider, ConnectionProvider>();
-        services.AddRepositories();
 
         // Register tenant-aware multi-tenancy infrastructure (phases 2a and 2b).
         // 2a: Tenant data-source factory with per-tenant connection pooling and LRU cache.
@@ -67,6 +57,51 @@ public static partial class ServiceCollectionExtensions
         services.AddTenantRegistry(configuration);
 
         return services;
+    }
+
+    /// <summary>
+    ///     Adds the worker-only subset of infrastructure services: options, mail, repositories, and the
+    ///     cross-tenant <c>booqr_batch</c> (<c>BYPASSRLS</c>) data source (<see cref="BatchServiceCollectionExtensions.AddBatchDataSource"/>).
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configuration">The configuration containing infrastructure settings.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    ///     <para>
+    ///         Security boundary (worker run-mode): this method deliberately does <b>not</b> call
+    ///         <c>AddTenantDataSources</c> or <c>AddTenantRegistry</c>. Those pull in the tenant
+    ///         master secret (<c>TenantDataSources:MasterSecret</c>) used to derive every tenant's
+    ///         per-tenant login-role password, and open per-tenant, RLS-scoped connections. The
+    ///         worker process only ever needs to run cross-tenant scheduled jobs (reminder mail,
+    ///         token flush) as the fixed <c>booqr_batch</c> (<c>BYPASSRLS</c>, <c>NOBYPASSRLS</c>-exempt)
+    ///         role, so it must never hold the master secret or be able to mint/resolve a tenant
+    ///         connection — reducing blast radius if the worker process is compromised.
+    ///     </para>
+    /// </remarks>
+    public static IServiceCollection AddWorkerInfrastructure(this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        services.AddWorkerInfrastructureCore(configuration);
+        services.AddBatchDataSource(configuration);
+
+        return services;
+    }
+
+    private static void AddWorkerInfrastructureCore(this IServiceCollection services, IConfiguration configuration)
+    {
+        services
+            .AddSingleton<IValidateOptions<InfrastructureSettings>, ValidateInfrastructureSettings>()
+            .AddOptions<InfrastructureSettings>()
+            .Bind(configuration)
+            .ValidateOnStart();
+
+        services.ConfigureEmailLabsHttpClient();
+        services.AddSingleton<IMailClient, EmailLabsMailClient>();
+        services.AddScoped<ITransaction, Transaction>();
+        services.AddScoped<IConnectionProvider, ConnectionProvider>();
+        services.AddRepositories();
     }
 
     private static void ConfigureEmailLabsHttpClient(this IServiceCollection services)

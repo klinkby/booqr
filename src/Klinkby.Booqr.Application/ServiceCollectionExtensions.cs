@@ -86,9 +86,30 @@ public static partial class ServiceCollectionExtensions
     /// These services (ReminderMailService, FlushTokenService) span all tenants and run via the booqr_batch (BYPASSRLS) connection.
     /// </summary>
     /// <param name="services">The service collection to configure.</param>
+    /// <param name="configuration">
+    /// The "Application" configuration section, used to bind <c>ReminderMailSettings</c> (from
+    /// "ReminderMail", mirroring <see cref="AddApplication"/>). <see cref="Models.ReminderMailSettings"/>
+    /// is <c>internal</c> to this assembly, so the option must be bound here rather than by the caller.
+    /// </param>
     /// <returns>The configured service collection for method chaining.</returns>
-    public static IServiceCollection AddScheduledWorkers(this IServiceCollection services)
+    /// <remarks>
+    /// This intentionally only registers commands (<see cref="ICommand{TRequest,TResult}"/> implementations,
+    /// needed by <c>ReminderMailService</c>'s <c>GetBookingDetailsCommand</c>), the two hosted services, and
+    /// the <c>ReminderMailSettings</c> option — never JWT, Password, the email channel/background service, or
+    /// <c>IOAuth</c>/<c>IActivityRecorder</c>. Those are request-path/authentication concerns the worker process
+    /// must not load (see <c>WorkerRunner</c> in the Api project for the composition root and its security notes).
+    /// </remarks>
+    public static IServiceCollection AddScheduledWorkers(this IServiceCollection services, IConfiguration configuration)
     {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        services.AddCommands();
+
+        services
+            .AddOptions<ReminderMailSettings>()
+            .Bind(configuration.GetSection("ReminderMail"))
+            .ValidateOnStart();
+
         services.AddHostedService<ReminderMailService>();
         services.AddHostedService<FlushTokenService>();
         return services;

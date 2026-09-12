@@ -23,6 +23,15 @@ if (args.Length > 0 && string.Equals(args[0], "admin", StringComparison.OrdinalI
     return await AdminRunner.RunAsync(args[1..]);
 }
 
+// Worker mode: same Native-AOT image, started with a leading "worker" argument, runs the
+// cross-tenant scheduled jobs (reminder mail, refresh-token flush) as the booqr_batch
+// (BYPASSRLS) role on a generic host - no Kestrel, no JWT, no tenant data sources/master
+// secret. See Klinkby.Booqr.Api.Worker.WorkerRunner for the security-boundary rationale.
+if (args.Length > 0 && string.Equals(args[0], "worker", StringComparison.OrdinalIgnoreCase))
+{
+    return await Klinkby.Booqr.Api.Worker.WorkerRunner.RunAsync(args[1..]);
+}
+
 WebApplicationBuilder builder = WebApplication.CreateSlimBuilder(args);
 
 // Detect if running in OpenAPI document generation mode
