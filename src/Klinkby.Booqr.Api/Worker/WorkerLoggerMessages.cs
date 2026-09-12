@@ -1,9 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
 namespace Klinkby.Booqr.Api.Worker;
 
+[ExcludeFromCodeCoverage]
 internal sealed partial class WorkerLoggerMessages(ILogger logger)
 {
+    [SuppressMessage("Performance", "CA1823:Avoid unused private fields", Justification = "Referenced by source generator")]
     private readonly ILogger _logger = logger;
 
     [LoggerMessage(1, LogLevel.Information, "Worker initialized in {TimeSpan}")]
@@ -16,8 +19,10 @@ internal sealed partial class WorkerLoggerMessages(ILogger logger)
     internal partial void WorkerCrash(Exception exception, TimeSpan timeSpan);
 }
 
+[ExcludeFromCodeCoverage]
 internal sealed partial class HeartbeatLoggerMessages(ILogger logger)
 {
+    [SuppressMessage("Performance", "CA1823:Avoid unused private fields", Justification = "Referenced by source generator")]
     private readonly ILogger _logger = logger;
 
     [LoggerMessage(4, LogLevel.Debug, "Heartbeat service started, writing to {HeartbeatPath}")]
