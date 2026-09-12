@@ -7,21 +7,15 @@ namespace Klinkby.Booqr.Infrastructure.Repositories;
 
 internal sealed partial class ActivityRepository(
     IConnectionProvider connectionProvider,
-    IBatchScope batchScope,
     ILogger<ActivityRepository> logger) : IActivityRepository
 {
     private readonly LoggerMessages _log = new(logger);
 
     // On a tenant connection tenant_id is NOT written: the column's
-    // DEFAULT app.tenant_of(current_user) stamps it, and RLS WITH CHECK would reject any other
-    // value. The cross-tenant background consumer runs as booqr_batch (BYPASSRLS), which maps to
-    // no tenant via app.tenant_of(), so the DEFAULT would resolve to NULL - that path (IBatchScope
-    // enabled) must write tenant_id explicitly from the queued Activity.TenantId instead.
+    // DEFAULT app.tenant_of(current_user) stamps it, and RLS WITH CHECK would reject any other value.
     private const string SelectColumns = "timestamp,requestid,userid,entity,entityid,action,tenant_id as tenantid";
     private const string InsertColumns = "timestamp,requestid,userid,entity,entityid,action";
     private const string ParametersCommaSeparated = "@timestamp,@requestid,@userid,@entity,@entityid,@action";
-    private const string InsertColumnsWithTenant = "timestamp,requestid,userid,entity,entityid,action,tenant_id";
-    private const string ParametersCommaSeparatedWithTenant = "@timestamp,@requestid,@userid,@entity,@entityid,@action,@tenantid";
     private const string TableName = "activities";
 
     public async IAsyncEnumerable<Activity> GetRange(DateTime fromTime, DateTime toTime, IPageQuery pageQuery,
@@ -67,13 +61,9 @@ internal sealed partial class ActivityRepository(
     public async Task<long> Add(Activity newItem, CancellationToken cancellation)
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
-        object? result = batchScope.IsEnabled
-            ? await connection.ExecuteScalarAsync(
-                $"INSERT INTO {TableName} ({InsertColumnsWithTenant}) VALUES ({ParametersCommaSeparatedWithTenant}) RETURNING id",
-                newItem)
-            : await connection.ExecuteScalarAsync(
-                $"INSERT INTO {TableName} ({InsertColumns}) VALUES ({ParametersCommaSeparated}) RETURNING id",
-                newItem);
+        object? result = await connection.ExecuteScalarAsync(
+            $"INSERT INTO {TableName} ({InsertColumns}) VALUES ({ParametersCommaSeparated}) RETURNING id",
+            newItem);
         Debug.Assert(result is long);
         return (long)result;
     }
