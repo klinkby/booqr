@@ -1,3 +1,4 @@
+using System.Buffers.Text;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -60,14 +61,6 @@ internal static class TenantCredentials
             messageBytes[..messageByteCount],
             hmac);
 
-        return ToBase64Url(hmac[..written]);
-    }
-
-    private static string ToBase64Url(ReadOnlySpan<byte> bytes)
-    {
-        return Convert.ToBase64String(bytes)
-            .Replace('+', '-')
-            .Replace('/', '_')
-            .TrimEnd('=');
+        return Base64Url.EncodeToString(hmac[..written]);
     }
 }

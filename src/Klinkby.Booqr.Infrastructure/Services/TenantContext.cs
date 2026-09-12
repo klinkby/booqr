@@ -17,9 +17,10 @@ public interface IMutableTenantContext : ITenantContext
     /// </summary>
     /// <param name="tenantId">The resolved tenant's positive integer id.</param>
     /// <param name="dbRole">The tenant's PostgreSQL login role (e.g. <c>t_42</c>).</param>
+    /// <param name="slug">The tenant's public slug (e.g. <c>acme</c>).</param>
     [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords",
         Justification = "'Set' reads clearly as the mutator for this scoped context; not a public library API surface.")]
-    void Set(int tenantId, string dbRole);
+    void Set(int tenantId, string dbRole, string slug);
 }
 
 /// <inheritdoc cref="IMutableTenantContext" />
@@ -29,15 +30,19 @@ internal sealed class TenantContext : IMutableTenantContext
 
     public string DbRole { get; private set; } = string.Empty;
 
+    public string Slug { get; private set; } = string.Empty;
+
     public bool HasTenant { get; private set; }
 
-    public void Set(int tenantId, string dbRole)
+    public void Set(int tenantId, string dbRole, string slug)
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(tenantId, 0);
         ArgumentException.ThrowIfNullOrEmpty(dbRole);
+        ArgumentException.ThrowIfNullOrEmpty(slug);
 
         TenantId = tenantId;
         DbRole = dbRole;
+        Slug = slug;
         HasTenant = true;
     }
 }

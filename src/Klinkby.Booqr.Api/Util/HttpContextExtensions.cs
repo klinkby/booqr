@@ -15,7 +15,8 @@ internal static class HttpContextExtensions
     ///     the raw request authority only when no tenant was resolved — those endpoints (sign-up,
     ///     reset) are tenant-required in practice via RLS on the underlying user row, but the
     ///     tenant-resolution middleware itself does not error on an unresolved host, so this stays
-    ///     defensive rather than throwing here.
+    ///     defensive rather than throwing here. When a tenant is resolved the slug comes straight from
+    ///     <see cref="ITenantContext.Slug" /> (set by the middleware) rather than being re-parsed.
     /// </remarks>
     internal static string GetContextAuthority(this HttpContext context)
     {
@@ -26,13 +27,6 @@ internal static class HttpContextExtensions
         }
 
         TenancySettings settings = context.RequestServices.GetRequiredService<IOptions<TenancySettings>>().Value;
-        var slug = ApplicationBuilderExtensions.ExtractTenantSlug(
-            context.Request.Host.Host, settings.BaseDomain, settings.ReservedSubdomains);
-
-        // The middleware only sets a tenant when the host itself parsed as <slug>.<baseDomain>, so
-        // this should always resolve; fall back to the raw authority if it somehow doesn't.
-        return slug is null
-            ? context.Request.Scheme + Uri.SchemeDelimiter + context.Request.Host.Value
-            : $"https://{slug}.{settings.BaseDomain}";
+        return $"https://{tenantContext.Slug}.{settings.BaseDomain}";
     }
 }

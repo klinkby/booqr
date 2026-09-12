@@ -27,24 +27,17 @@ internal sealed class AuthenticatedRequestEndPointFilter : IEndpointFilter
     {
         HttpContext httpContext = context.HttpContext;
         ClaimsPrincipal user = httpContext.User;
+        ITenantContext tenantContext = httpContext.RequestServices.GetRequiredService<ITenantContext>();
 
         if (user.Identity?.IsAuthenticated == true)
         {
             var tenantClaimValue = user.FindFirst(TenantClaimType)?.Value;
-            if (tenantClaimValue is not null)
-            {
-                ITenantContext tenantContext = httpContext.RequestServices.GetRequiredService<ITenantContext>();
-                if (!int.TryParse(tenantClaimValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var claimTenantId)
+            if (tenantClaimValue is not null
+                && (!int.TryParse(tenantClaimValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var claimTenantId)
                     || !tenantContext.HasTenant
-                    || claimTenantId != tenantContext.TenantId)
-                {
-                    return ValueTask.FromResult<object?>(TypedResults.Problem(
-                        "The authenticated tenant does not match the request host.",
-                        null,
-                        StatusCodes.Status403Forbidden,
-                        "Tenant mismatch",
-                        "https://www.booqr.dk/problems/tenant-mismatch"));
-                }
+                    || claimTenantId != tenantContext.TenantId))
+            {
+                return ValueTask.FromResult<object?>(TenantProblems.Mismatch());
             }
         }
 
@@ -58,11 +51,9 @@ internal sealed class AuthenticatedRequestEndPointFilter : IEndpointFilter
             }
 
             request.SetUser(user);
-            ITenantContext tenantContextForRequest =
-                httpContext.RequestServices.GetRequiredService<ITenantContext>();
-            if (tenantContextForRequest.HasTenant)
+            if (tenantContext.HasTenant)
             {
-                request.SetTenantId(tenantContextForRequest.TenantId);
+                request.SetTenantId(tenantContext.TenantId);
             }
 
             break;

@@ -30,12 +30,7 @@ internal sealed class TenantRequiredEndPointFilter : IEndpointFilter
         ITenantContext tenantContext = httpContext.RequestServices.GetRequiredService<ITenantContext>();
         if (!tenantContext.HasTenant)
         {
-            return ValueTask.FromResult<object?>(TypedResults.Problem(
-                "The request host did not resolve to a known tenant.",
-                null,
-                StatusCodes.Status404NotFound,
-                "Tenant not found",
-                "https://www.booqr.dk/problems/tenant-not-found"));
+            return ValueTask.FromResult<object?>(TenantProblems.NotFound());
         }
 
         return next(context);

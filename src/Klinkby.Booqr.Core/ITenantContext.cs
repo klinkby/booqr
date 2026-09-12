@@ -26,6 +26,13 @@ public interface ITenantContext
     string DbRole { get; }
 
     /// <summary>
+    ///     Gets the public slug of the resolved tenant (the <c>&lt;slug&gt;</c> in
+    ///     <c>&lt;slug&gt;.booqr.dk</c>), or an empty string when no tenant was resolved.
+    /// </summary>
+    /// <value>The tenant slug, or an empty string when <see cref="HasTenant"/> is <c>false</c>.</value>
+    string Slug { get; }
+
+    /// <summary>
     ///     Gets a value indicating whether a tenant was successfully resolved from the request host.
     /// </summary>
     /// <remarks>

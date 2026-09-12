@@ -71,7 +71,7 @@ internal static class Routing
 
                     Tenant? tenant = slug is null ? null : await tenantRepository.GetBySlug(slug, cancellation);
                     return tenant is null
-                        ? TenantNotFound()
+                        ? TenantProblems.NotFound()
                         : TypedResults.Ok(new TenantResponse(tenant.DisplayName, tenant.Slug));
                 })
             .WithMetadata(new TenantOptionalAttribute())
@@ -81,14 +81,6 @@ internal static class Routing
             .WithName("getTenant")
             .WithSummary("Resolve the current tenant's public branding");
     }
-
-    private static ProblemHttpResult TenantNotFound() =>
-        TypedResults.Problem(
-            "The request host did not resolve to a known tenant.",
-            null,
-            StatusCodes.Status404NotFound,
-            "Tenant not found",
-            "https://www.booqr.dk/problems/tenant-not-found");
 
     private static void MapAuth(IEndpointRouteBuilder app)
     {

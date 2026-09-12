@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+using Klinkby.Booqr.Control;
 using Klinkby.Booqr.Core;
 using Klinkby.Booqr.Infrastructure.Models;
 using Klinkby.Booqr.Infrastructure.Services;
@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 
 namespace Klinkby.Booqr.Api.Util;
 
-internal static partial class ApplicationBuilderExtensions
+internal static class ApplicationBuilderExtensions
 {
     private const string ContentSecurityPolicyValue = "default-src 'none'; frame-ancestors 'none'";
     private const string XContentTypeOptionsValue = "nosniff";
@@ -58,7 +58,7 @@ internal static partial class ApplicationBuilderExtensions
                 {
                     IMutableTenantContext tenantContext =
                         context.RequestServices.GetRequiredService<IMutableTenantContext>();
-                    tenantContext.Set(tenant.Id, tenant.DbRole);
+                    tenantContext.Set(tenant.Id, tenant.DbRole, slug);
                 }
             }
 
@@ -102,10 +102,8 @@ internal static partial class ApplicationBuilderExtensions
         }
 
         var lowerCandidate = candidate.ToLowerInvariant();
-        return DnsLabelRegex().IsMatch(lowerCandidate) ? lowerCandidate : null;
+        // Slug validated as a DNS label per docs/1-design.md "Naming safety"; shares the single
+        // regex with the control-plane provisioner so the slug contract cannot drift across assemblies.
+        return SlugValidator.IsValid(lowerCandidate) ? lowerCandidate : null;
     }
-
-    // Slug validated as a DNS label per docs/1-design.md "Naming safety".
-    [GeneratedRegex("^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9])?$")]
-    private static partial Regex DnsLabelRegex();
 }

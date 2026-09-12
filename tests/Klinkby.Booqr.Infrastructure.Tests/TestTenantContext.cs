@@ -14,12 +14,15 @@ internal sealed class TestTenantContext : ITenantContext
     {
         TenantId = tenantId;
         DbRole = $"t_{tenantId}";
+        Slug = $"tenant{tenantId}";
         HasTenant = true;
     }
 
     public int TenantId { get; }
 
     public string DbRole { get; }
+
+    public string Slug { get; }
 
     public bool HasTenant { get; }
 }
