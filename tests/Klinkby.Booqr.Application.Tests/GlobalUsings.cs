@@ -6,6 +6,7 @@ global using Klinkby.Booqr.Application.Commands.Services;
 global using Klinkby.Booqr.Application.Commands.Users;
 global using Klinkby.Booqr.Application.Commands.Vacancies;
 global using Klinkby.Booqr.Application.Models;
+global using Klinkby.Booqr.Application.Workers;
 global using Microsoft.Extensions.Logging.Abstractions;
 global using static Klinkby.Booqr.Application.Tests.TestHelpers;
 global using static Xunit.TestContext;

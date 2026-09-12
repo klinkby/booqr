@@ -2,7 +2,7 @@ using Klinkby.Booqr.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Klinkby.Booqr.Application.Services;
+namespace Klinkby.Booqr.Application.Workers;
 
 /// <summary>
 ///     Abstract base class for services that run on a daily schedule.

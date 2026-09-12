@@ -1,6 +1,7 @@
 ﻿using System.Threading.Channels;
 using Klinkby.Booqr.Application;
 using Klinkby.Booqr.Application.Services;
+using Klinkby.Booqr.Application.Workers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using ServiceScan.SourceGenerator;
@@ -60,8 +61,6 @@ public static partial class ServiceCollectionExtensions
         // emails
         services.AddBoundedChannel<Message>(options);
         services.AddHostedService<EmailBackgroundService>();
-        services.AddHostedService<ReminderMailService>();
-        services.AddHostedService<FlushTokenService>();
 
         // activities
         services.AddScoped<IActivityRecorder, ActivityRecorder>();
@@ -80,6 +79,19 @@ public static partial class ServiceCollectionExtensions
         var channel = Channel.CreateBounded<T>(options);
         services.AddSingleton(channel.Reader);
         services.AddSingleton(channel.Writer);
+    }
+
+    /// <summary>
+    /// Adds the cross-tenant scheduled background workers that run in the worker process.
+    /// These services (ReminderMailService, FlushTokenService) span all tenants and run via the booqr_batch (BYPASSRLS) connection.
+    /// </summary>
+    /// <param name="services">The service collection to configure.</param>
+    /// <returns>The configured service collection for method chaining.</returns>
+    public static IServiceCollection AddScheduledWorkers(this IServiceCollection services)
+    {
+        services.AddHostedService<ReminderMailService>();
+        services.AddHostedService<FlushTokenService>();
+        return services;
     }
 
     [GenerateServiceRegistrations(

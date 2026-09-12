@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Klinkby.Booqr.Core;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Klinkby.Booqr.Application.Services;
+namespace Klinkby.Booqr.Application.Workers;
 
 /// <summary>
 ///     FlushTokenService is a background service that deletes expired and old refresh tokens daily.

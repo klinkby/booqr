@@ -7,7 +7,7 @@ using Klinkby.Booqr.Core.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace Klinkby.Booqr.Application.Services;
+namespace Klinkby.Booqr.Application.Workers;
 
 /// <summary>
 /// ReminderMailService is a background service that orchestrates the sending of reminder emails
