@@ -21,7 +21,7 @@ public sealed record TenancySettings
     /// <remarks>
     ///     Tenant subdomains are matched against this base domain. For example, with base domain
     ///     "booqr.dk", the host "acme.booqr.dk" resolves the tenant with slug "acme". The apex
-    ///     (naked base domain) and reserved subdomains (e.g. "www", "api") resolve to no tenant.
+    ///     (naked base domain) and reserved subdomains (e.g. "www", "status", "mta-sts") resolve to no tenant.
     /// </remarks>
     /// <value>The base domain, typically a DNS apex (e.g., "booqr.dk").</value>
     [Required]

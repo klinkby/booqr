@@ -45,7 +45,7 @@ internal sealed class WebApiFixture(
             "MailClientFromAddress": "no-reply@booqr.dk",
             "Tenancy": {
               "BaseDomain": "booqr.dk",
-              "ReservedSubdomains": [ "www", "api" ]
+              "ReservedSubdomains": [ "www", "status", "mta-sts" ]
             },
             "TenantDataSources": {
               "BaseConnectionString": "Host=postgres:5432;Database=postgres",

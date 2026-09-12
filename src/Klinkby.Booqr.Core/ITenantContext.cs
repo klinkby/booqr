@@ -36,7 +36,7 @@ public interface ITenantContext
     ///     Gets a value indicating whether a tenant was successfully resolved from the request host.
     /// </summary>
     /// <remarks>
-    ///     Returns <c>false</c> for reserved hosts (e.g., "www", "api", naked "booqr.dk") and marketing routes.
+    ///     Returns <c>false</c> for reserved hosts (e.g., "www", "status", "mta-sts", naked "booqr.dk") routes.
     ///     When <c>false</c>, <see cref="TenantId"/> is 0 and <see cref="DbRole"/> is empty.
     /// </remarks>
     /// <value><c>true</c> if a tenant was resolved; otherwise <c>false</c>.</value>

@@ -91,7 +91,8 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
                 // Tenancy configuration (Phase 2c): base domain and reserved subdomains.
                 { "Tenancy:BaseDomain", "booqr.dk" },
                 { "Tenancy:ReservedSubdomains:0", "www" },
-                { "Tenancy:ReservedSubdomains:1", "api" },
+                { "Tenancy:ReservedSubdomains:1", "status" },
+                { "Tenancy:ReservedSubdomains:2", "mta-sts" },
                 // Tenant data-source factory configuration (Phase 2a): base connection, master secret, pool/cache config.
                 // BaseConnectionString must be stripped of credentials (host/database only); the factory adds the per-tenant role/password.
                 { "TenantDataSources:BaseConnectionString", SqlContainer.GetConnectionString() },
