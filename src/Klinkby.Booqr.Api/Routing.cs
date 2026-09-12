@@ -47,7 +47,7 @@ internal static class Routing
     }
 
     /// <summary>
-    ///     Anonymous <c>GET /api/tenant</c>: resolves the tenant from <see cref="HttpRequest.Host" />
+    ///     Anonymous <c>GET /api/my-tenant</c>: resolves the tenant from <see cref="HttpRequest.Host" />
     ///     via <see cref="ITenantRepository" /> (the same slug-extraction rules the tenant-resolution
     ///     middleware applies) and returns public branding, or <c>404 tenant-not-found</c> for an
     ///     unknown, deleted, malformed, reserved, or apex host. Never a redirect — the SPA handles
@@ -58,7 +58,7 @@ internal static class Routing
     /// </summary>
     private static void MapTenant(RouteGroupBuilder baseRoute)
     {
-        baseRoute.MapGet("tenant",
+        baseRoute.MapGet("my-tenant",
                 static async Task<Results<Ok<TenantResponse>, ProblemHttpResult>> (
                     HttpContext context,
                     [FromServices] ITenantRepository tenantRepository,

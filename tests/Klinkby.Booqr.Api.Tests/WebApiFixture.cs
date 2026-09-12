@@ -94,7 +94,7 @@ internal sealed class WebApiFixture(
         {
             // Overrides the registry-backed ITenantRepository (which would otherwise try to reach
             // the unreachable postgres:5432 host above) so tenant-resolution middleware and the
-            // GET /api/tenant endpoint resolve deterministically in-process.
+            // GET /api/my-tenant endpoint resolve deterministically in-process.
             builder.ConfigureTestServices(services =>
                 services.AddScoped(_ => tenantRepository));
         }

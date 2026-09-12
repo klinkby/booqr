@@ -12,7 +12,7 @@ namespace Klinkby.Booqr.Api.Filters;
 /// <remarks>
 ///     Applied to the <c>/api</c> route group in <c>Routing.cs</c>, alongside
 ///     <see cref="AuthenticatedRequestEndPointFilter" />. Endpoints that must remain reachable with no
-///     tenant (health, <c>GET /api/tenant</c> itself, the OpenAPI document, auth login/refresh/logout)
+///     tenant (health, <c>GET /api/my-tenant</c> itself, the OpenAPI document, auth login/refresh/logout)
 ///     opt out via <see cref="TenantOptionalAttribute" /> endpoint metadata — see <c>Routing.cs</c> for
 ///     where it's applied. Every other <c>/api</c> endpoint reads or writes tenant-scoped data (directly,
 ///     or transitively via row-level security), so tenant resolution is required by default.

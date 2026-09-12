@@ -97,11 +97,11 @@ running initdb-then-migrate, the migrator is foundational and lands here (not la
 - **4a [SONNET]** Tenant-resolution middleware in `ConfigureMiddleware` (before `UseAuthorization`); populate
   scoped `ITenantContext` from `Request.Host` via `TenantRepository`; reserved/apex → no tenant;
   tenant-required endpoints reject empty context.
-- **4b [HAIKU]** Anonymous `GET /api/tenant` endpoint in `Routing.cs` → branding or `404 tenant-not-found`
+- **4b [HAIKU]** Anonymous `GET /api/my-tenant` endpoint in `Routing.cs` → branding or `404 tenant-not-found`
   ProblemDetails.
 - **4c [SONNET]** `Program.cs` **admin-mode branch** (flag-selected) running provision/migrate/deprovision/
   rotate then exiting; ensure the web host path is untouched when the flag is absent.
-- **Gate:** Api integration tests (WebApplicationFactory) green, including the isolation & `GET /api/tenant`
+- **Gate:** Api integration tests (WebApplicationFactory) green, including the isolation & `GET /api/my-tenant`
   cases.
 
 ### Phase 5 — Admin CLI commands + compose  **[SONNET]** (after Phase 4)

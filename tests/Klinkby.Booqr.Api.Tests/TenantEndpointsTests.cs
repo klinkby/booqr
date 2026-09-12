@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Klinkby.Booqr.Api.Tests;
 
 /// <summary>
-///     Covers Phase 4 tenant resolution: <c>GET /api/tenant</c> branding/404, and the claim-vs-host
+///     Covers Phase 4 tenant resolution: <c>GET /api/my-tenant</c> branding/404, and the claim-vs-host
 ///     403 guard in <see cref="Filters.AuthenticatedRequestEndPointFilter" />. Uses a fake
 ///     <see cref="ITenantRepository" /> (via <see cref="WebApiFixture" />) so these stay deterministic
 ///     without a live registry database.
@@ -65,7 +65,7 @@ public class TenantEndpointsTests
     {
         await using WebApiFixture fixture = new(allowedHosts: AliceHost, tenantRepository: new FakeTenantRepository(AliceTenant));
         using HttpClient client = fixture.CreateClient();
-        using HttpRequestMessage request = new(HttpMethod.Get, new Uri("/api/tenant", UriKind.Relative));
+        using HttpRequestMessage request = new(HttpMethod.Get, new Uri("/api/my-tenant", UriKind.Relative));
         request.Headers.Host = AliceHost;
 
         HttpResponseMessage response = await client.SendAsync(request);
@@ -84,7 +84,7 @@ public class TenantEndpointsTests
     {
         await using WebApiFixture fixture = new(allowedHosts: host, tenantRepository: new FakeTenantRepository(AliceTenant));
         using HttpClient client = fixture.CreateClient();
-        using HttpRequestMessage request = new(HttpMethod.Get, new Uri("/api/tenant", UriKind.Relative));
+        using HttpRequestMessage request = new(HttpMethod.Get, new Uri("/api/my-tenant", UriKind.Relative));
         request.Headers.Host = host;
 
         HttpResponseMessage response = await client.SendAsync(request);

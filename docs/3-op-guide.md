@@ -94,7 +94,7 @@
 - The API's host authority is the preserved `Host`; client `X-Forwarded-Host` is ignored. `AllowedHosts` is
   the `*.booqr.dk` wildcard.
 - Unknown/deleted subdomains are **not** an edge concern — the SPA is served for any `*.booqr.dk`, and
-  validity is decided by `GET /api/tenant` (404 → browser redirect to `www`).
+  validity is decided by `GET /api/my-tenant` (404 → browser redirect to `www`).
 
 ## 7. Credential rotation
 

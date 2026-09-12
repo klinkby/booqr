@@ -116,7 +116,7 @@ both consume it). New `Tenant` record + `ITenantRepository` (repurpose the shelv
 `master_secret` ref). No tenant list in config. The API uses the **registry** connection to resolve and
 derives **tenant** connections; it no longer uses the `POSTGRES_USER` superuser creds current compose passes.
 
-**API endpoints:** anonymous `GET /api/tenant` (resolve from `Host` → public branding, or
+**API endpoints:** anonymous `GET /api/my-tenant` (resolve from `Host` → public branding, or
 `404 tenant-not-found`); tenant-resolution middleware in `ConfigureMiddleware` before `UseAuthorization`;
 reserved/apex hosts resolve to no tenant.
 
@@ -206,7 +206,7 @@ the command, exits). Holds `booqr_migrator` (+ `booqr_batch`); **not** on the HA
 ## 3. Frontend contract (implemented in `booqr-app`)
 
 The backend must satisfy the contract the SPA depends on:
-- `GET /api/tenant` (anonymous): resolves the tenant from `Host`; returns public branding (display name,
+- `GET /api/my-tenant` (anonymous): resolves the tenant from `Host`; returns public branding (display name,
   logo ref) for a known tenant, or **`404` ProblemDetails `type: tenant-not-found`** for unknown/deleted/
   malformed. **Never a redirect** (wrong for XHR).
 - Reserved/apex hosts (`www`, `api`, naked `booqr.dk`) resolve to no tenant (marketing site).

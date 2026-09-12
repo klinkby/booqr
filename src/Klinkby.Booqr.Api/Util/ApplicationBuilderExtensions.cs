@@ -37,7 +37,7 @@ internal static partial class ApplicationBuilderExtensions
     ///     error, since they serve the marketing site. An unknown/deleted/malformed slug also leaves
     ///     the context empty rather than failing the request outright; endpoints that require a tenant
     ///     reject via <see cref="TenantRequiredEndPointFilter" /> (see <c>Routing.cs</c>), and
-    ///     <c>GET /api/tenant</c> is the one place that turns "no tenant" into its own
+    ///     <c>GET /api/my-tenant</c> is the one place that turns "no tenant" into its own
     ///     <c>404 tenant-not-found</c>. Must run before <c>UseAuthorization</c> per docs/1-design.md
     ///     "Request flow", since authorization/endpoints depend on the resolved tenant and the scoped
     ///     tenant connection.
