@@ -63,6 +63,12 @@ public static class WorkerRunner
         builder.Services.AddScheduledWorkers(builder.Configuration.GetRequiredSection("Application"));
         builder.Services.AddWorkerInfrastructure(builder.Configuration.GetRequiredSection("Infrastructure"));
 
+        // Register the heartbeat liveness service (signals container health-check).
+        builder.Services.AddHostedService(sp => new HeartbeatService(
+            sp.GetRequiredService<TimeProvider>(),
+            sp.GetRequiredService<ILogger<HeartbeatService>>(),
+            Environment.GetEnvironmentVariable("WORKER_HEARTBEAT_PATH") ?? "/tmp/worker-alive"));
+
         IHost host = builder.Build();
         WorkerLoggerMessages log = new(host.Services.GetRequiredService<ILogger<Program>>());
 
