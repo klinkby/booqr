@@ -44,7 +44,7 @@ public sealed class ArchitectureTestFixture
         .And()
         .ResideInAssemblyMatching(Regex.Escape(Application))
         .And()
-        .DoNotHaveNameMatching("(EmbeddedResource|ActivityBackgroundService)")
+        .DoNotHaveNameMatching("(EmbeddedResource)")
         .As("Application types");
 
     internal static GivenTypesConjunctionWithDescription InfrastructureTypes => Types()

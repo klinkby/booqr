@@ -47,4 +47,14 @@ public interface IActivityRepository : IImmutableRepository<Activity, long>
     /// <returns>An asynchronous stream of <see cref="Activity"/> instances.</returns>
     IAsyncEnumerable<Activity> GetRange(DateTime fromTime, DateTime toTime, IPageQuery pageQuery,
         CancellationToken cancellation = default);
+
+    /// <summary>
+    ///     Best-effort record of an <see cref="Activity"/> on the caller's current (tenant)
+    ///     connection. A write failure is logged and swallowed rather than thrown, so audit
+    ///     recording never faults the surrounding use case. On a tenant connection <c>tenant_id</c>
+    ///     is stamped by the RLS column DEFAULT, so no cross-tenant access is required.
+    /// </summary>
+    /// <param name="activity">The activity to persist.</param>
+    /// <param name="cancellation">A token to cancel the operation.</param>
+    Task Record(Activity activity, CancellationToken cancellation = default);
 }

@@ -84,7 +84,7 @@ public partial class ChangePasswordCommand(
         }
 
         _log.Changed(user.Email);
-        activityRecorder.Update<User>(new(userId, user.Id, tenantContext.TenantId));
+        await activityRecorder.Update<User>(new(userId, user.Id, tenantContext.TenantId), cancellation);
         return patched;
     }
 

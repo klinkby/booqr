@@ -26,8 +26,8 @@ data, with isolation enforced by the database itself.
     *   [Custom infrastructure](https://github.com/klinkby/booqr-generators) query builder helper
 *   **[IAsyncEnumerable Streaming](https://learn.microsoft.com/dotnet/csharp/asynchronous-programming/generate-consume-asynchronous-stream)**: Unbuffered streaming for collection endpoints with async iteration
 *   **[Channels](https://learn.microsoft.com/dotnet/core/extensions/channels)**: Async pipelines for immediate response with deferred processing.
-*   **[Background Services](https://learn.microsoft.com/aspnet/core/fundamentals/host/hosted-services)**: Hosted services for email processing, activity recording, and CRON-scheduled reminder delivery.
-*   **Activity Tracking**: Efficient audit logging aspect.
+*   **[Background Services](https://learn.microsoft.com/aspnet/core/fundamentals/host/hosted-services)**: Hosted services for email processing and CRON-scheduled reminder delivery.
+*   **Activity Tracking**: Historic audit logging.
 *   **[Problem Details](https://datatracker.ietf.org/doc/html/rfc7807)**: Structured error responses using RFC 7807 (ProblemDetails) standard with detailed validation errors.
 *   **[CLEF structured logging](https://github.com/Serilog/serilog-formatting-compact)** via [NLog](https://nlog-project.org/): Compact Log Event Format for efficient json log sink.
 *   **Container Security**: Runs rootless in tiny [Alpine Linux](https://alpinelinux.org/) [images (~17MB image)](https://hub.docker.com/r/klinkby/booqr/tags) with immutable filesystem.

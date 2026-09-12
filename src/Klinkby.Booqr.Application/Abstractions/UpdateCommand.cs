@@ -40,7 +40,7 @@ public abstract partial class UpdateCommand<TRequest, TItem>(
             return Problem.MidAirCollision with { Detail = $"{item.GetType().Name} {query.Id} was not found or already updated." };
         }
 
-        activityRecorder.Update<TItem>(new(query.AuthenticatedUserId, query.Id, query.TenantId));
+        await activityRecorder.Update<TItem>(new(query.AuthenticatedUserId, query.Id, query.TenantId), cancellation);
 
         return updated;
     }

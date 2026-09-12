@@ -82,7 +82,7 @@ public class SignUpCommandTests
         // The Phase 1 placeholder (tenant_id=0) must now carry the host-resolved tenant from
         // ITenantContext.
         ActivityRecorder.Verify(
-            x => x.Add(It.Is<ActivityQuery<User>>(q => q.TenantId == TenantId)),
+            x => x.Add(It.Is<ActivityQuery<User>>(q => q.TenantId == TenantId), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 }

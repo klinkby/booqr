@@ -27,7 +27,7 @@ The Application layer contains the business logic and orchestrates operations be
 ### Contents
 - **Commands**: ICommand implementations (use case orchestration)
 - **Services**: Business logic services (e.g., token generation, password hashing)
-- **Background services**: Hosted services for async processing (email, reminders, activity recording)
+- **Background services**: Hosted services for async processing (email, reminders)
 - **Request/Response DTOs**: Data transfer objects
 
 ### Purpose
@@ -110,8 +110,10 @@ Do not throw for conditions a caller can reasonably branch on (not found, forbid
 
 ### Background Services
 - **EmailWorker**: Processes email queue via channels
-- **ActivityRecorder**: Records audit events asynchronously
 - **ReminderService**: CRON-scheduled reminder delivery
+
+### Activity Recording
+- **ActivityRecorder**: Records audit events **synchronously on the request's own tenant connection** (via `IActivityRepository.Record`), not through a background channel. Writes are best-effort — a failed insert is logged and swallowed in the Infrastructure repository, so audit recording never faults the surrounding use case. On a tenant connection `tenant_id` is stamped by the RLS column DEFAULT, so no cross-tenant (`booqr_batch`/BYPASSRLS) access is used. For commands with an explicit transaction, record **after** `transaction.Commit`.
 
 ## Testing Guidelines
 

@@ -51,7 +51,7 @@ public sealed partial class SignUpCommand(
         await channelWriter.WriteAsync(message, cancellation);
 
         _log.CreatedUser(newUser.Email, newUser.Id);
-        activityRecorder.Add<User>(new(newUser.Id, newUser.Id, tenantContext.TenantId));
+        await activityRecorder.Add<User>(new(newUser.Id, newUser.Id, tenantContext.TenantId), cancellation);
         return newUser.Id;
     }
 

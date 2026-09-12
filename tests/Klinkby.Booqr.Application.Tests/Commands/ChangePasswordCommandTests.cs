@@ -93,7 +93,7 @@ public class ChangePasswordCommandTests
         // The Phase 1 placeholder (tenant_id=0) must now carry the host-resolved tenant from
         // ITenantContext.
         ActivityRecorder.Verify(
-            x => x.Update(It.Is<ActivityQuery<User>>(q => q.TenantId == TenantId)),
+            x => x.Update(It.Is<ActivityQuery<User>>(q => q.TenantId == TenantId), It.IsAny<CancellationToken>()),
             Times.Once);
         // Password should be re-hashed and match new password
         Assert.True(BCrypt.Net.BCrypt.EnhancedVerify(newPassword, patchedUser.PasswordHash));
@@ -155,7 +155,7 @@ public class ChangePasswordCommandTests
         // Assert
         Assert.IsType<Result<bool>.Fault>(result);
         activityRecorder.Verify(
-            x => x.Update(It.IsAny<ActivityQuery<User>>()),
+            x => x.Update(It.IsAny<ActivityQuery<User>>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 }

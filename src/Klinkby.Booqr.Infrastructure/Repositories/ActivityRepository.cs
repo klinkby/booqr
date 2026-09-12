@@ -1,12 +1,17 @@
-﻿using Klinkby.Booqr.Core;
+﻿using System.Data.Common;
+using Klinkby.Booqr.Core;
+using Microsoft.Extensions.Logging;
 using Activity = Klinkby.Booqr.Core.Activity;
 
 namespace Klinkby.Booqr.Infrastructure.Repositories;
 
-internal sealed class ActivityRepository(
+internal sealed partial class ActivityRepository(
     IConnectionProvider connectionProvider,
-    IBatchScope batchScope) : IActivityRepository
+    IBatchScope batchScope,
+    ILogger<ActivityRepository> logger) : IActivityRepository
 {
+    private readonly LoggerMessages _log = new(logger);
+
     // On a tenant connection tenant_id is NOT written: the column's
     // DEFAULT app.tenant_of(current_user) stamps it, and RLS WITH CHECK would reject any other
     // value. The cross-tenant background consumer runs as booqr_batch (BYPASSRLS), which maps to
@@ -71,5 +76,27 @@ internal sealed class ActivityRepository(
                 newItem);
         Debug.Assert(result is long);
         return (long)result;
+    }
+
+    /// <inheritdoc />
+    public async Task Record(Activity activity, CancellationToken cancellation = default)
+    {
+        try
+        {
+            _ = await Add(activity, cancellation);
+        }
+        catch (DbException ex)
+        {
+            // Best-effort: a failed audit write must never fault the surrounding use case.
+            _log.RecordActivityFailed(ex, ex.Message);
+        }
+    }
+
+    private sealed partial class LoggerMessages(ILogger logger)
+    {
+        private readonly ILogger _logger = logger;
+
+        [LoggerMessage(1061, LogLevel.Warning, "Error recording activity: {Message}")]
+        public partial void RecordActivityFailed(Exception ex, string message);
     }
 }

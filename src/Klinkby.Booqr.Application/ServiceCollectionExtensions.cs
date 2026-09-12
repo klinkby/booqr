@@ -64,8 +64,6 @@ public static partial class ServiceCollectionExtensions
         services.AddHostedService<FlushTokenService>();
 
         // activities
-        services.AddBoundedChannel<Activity>(options);
-        services.AddHostedService<ActivityBackgroundService>();
         services.AddScoped<IActivityRecorder, ActivityRecorder>();
 
         // auth

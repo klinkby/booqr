@@ -41,7 +41,7 @@ public class DeleteBookingCommandTests
         _calendar.Verify(x => x.Delete(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
         _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
         _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Never);
-        _activityRecorder.Verify(x => x.Delete(It.IsAny<ActivityQuery<Booking>>()), Times.Never);
+        _activityRecorder.Verify(x => x.Delete(It.IsAny<ActivityQuery<Booking>>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Theory]
