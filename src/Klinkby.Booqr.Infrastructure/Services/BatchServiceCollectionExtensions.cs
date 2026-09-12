@@ -12,16 +12,17 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
 ///     Registers the cross-tenant <c>booqr_batch</c> (<c>BYPASSRLS</c>) data source and the scoped
-///     <see cref="IBatchScope" /> opt-in, and re-registers the scoped keyed <see cref="DbConnection" />
-///     (keyed <c>nameof(ConnectionProvider)</c>) so a scope with <see cref="IBatchScope.IsEnabled" />
-///     set connects as <c>booqr_batch</c> instead of requiring a resolved tenant.
+///     <see cref="IBatchScope" /> opt-in, and registers the scoped keyed <see cref="DbConnection" />
+///     (keyed <c>nameof(ConnectionProvider)</c>) as batch-only: it always connects as <c>booqr_batch</c>.
+///     There is no fallback to a tenant connection.
 /// </summary>
 /// <remarks>
 ///     <para>
-///         <b>Call order:</b> call <see cref="AddBatchDataSource" /> <i>after</i>
-///         <c>AddTenantDataSources</c> (subtask 2a) - it re-registers the same keyed
-///         <see cref="DbConnection" /> service, and Microsoft.DI resolves a non-collection dependency
-///         using the last registration.
+///         <b>Call order:</b> call <see cref="AddBatchDataSource" /> only from the worker composition
+///         root. It registers the keyed <see cref="DbConnection" /> service unconditionally as the
+///         batch connection, so it must never be composed into the same service collection as
+///         <c>AddTenantDataSources</c> (the API's <c>AddInfrastructure</c>) - doing so would make every
+///         resolution of that keyed connection bypass RLS.
 ///     </para>
 ///     <para>
 ///         <b>Config keys</b> (bound from <see cref="BatchSettings" />, under the <c>"Batch"</c>
@@ -35,7 +36,8 @@ namespace Microsoft.Extensions.DependencyInjection;
 ///     <para>
 ///         <b>Opt-in usage:</b> a background service creates its scope, resolves
 ///         <see cref="IBatchScope" /> and calls <see cref="IBatchScope.Enable" /> <i>before</i>
-///         resolving any repository from that scope. Never enable this for a request-handling scope.
+///         resolving any repository from that scope, for intent/correctness signalling. Never enable
+///         this for a request-handling scope.
 ///     </para>
 /// </remarks>
 public static partial class BatchServiceCollectionExtensions
@@ -73,21 +75,14 @@ public static partial class BatchServiceCollectionExtensions
         // background service explicitly enables it on its own scope.
         services.AddScoped<IBatchScope, BatchScope>();
 
-        // Re-registers the scoped keyed DbConnection (see AddTenantDataSources): when the scope's
-        // IBatchScope is enabled, connect as booqr_batch (BYPASSRLS, cross-tenant); otherwise fall
-        // back to the tenant-aware connection, unchanged from subtask 2a.
+        // Registers the scoped keyed DbConnection as batch-only: always connects as booqr_batch
+        // (BYPASSRLS, cross-tenant). No fallback to a tenant connection - this process never holds a
+        // tenant data source or tenant master secret.
         services.AddKeyedScoped<DbConnection>(nameof(ConnectionProvider), static (serviceProvider, _) =>
         {
-            IBatchScope batchScope = serviceProvider.GetRequiredService<IBatchScope>();
-            if (batchScope.IsEnabled)
-            {
-                NpgsqlDataSource batchDataSource =
-                    serviceProvider.GetRequiredKeyedService<NpgsqlDataSource>(BatchDataSourceKey);
-                return batchDataSource.CreateConnection();
-            }
-
-            TenantDataSourceLease lease = serviceProvider.GetRequiredService<TenantDataSourceLease>();
-            return lease.DataSource.CreateConnection();
+            NpgsqlDataSource batchDataSource =
+                serviceProvider.GetRequiredKeyedService<NpgsqlDataSource>(BatchDataSourceKey);
+            return batchDataSource.CreateConnection();
         });
 
         return services;
