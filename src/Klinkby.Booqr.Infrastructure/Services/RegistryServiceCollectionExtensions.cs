@@ -91,8 +91,12 @@ public static partial class RegistryServiceCollectionExtensions
         // resolve through the caching decorator. Microsoft.DI resolves a non-collection dependency
         // using the last registration, so calling this method after AddInfrastructure makes the
         // cached path the one GetRequiredService<ITenantRepository>() returns.
-        services.AddScoped<TenantRepository>();
-        services.AddScoped<ITenantRepository, CachingTenantRepository>();
+        // CachingTenantRepository must be a singleton: its cache lives in instance fields, so a
+        // scoped registration would discard the cache every request and hit the registry DB on
+        // each resolution. Its only dependency, TenantRepository, depends solely on the singleton
+        // registry NpgsqlDataSource (keyed), so there is no scoped-captive-dependency hazard.
+        services.AddSingleton<TenantRepository>();
+        services.AddSingleton<ITenantRepository, CachingTenantRepository>();
 
         return services;
     }

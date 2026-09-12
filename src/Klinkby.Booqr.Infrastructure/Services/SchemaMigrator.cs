@@ -89,9 +89,18 @@ public sealed class SchemaMigrator(NpgsqlDataSource migratorDataSource)
     }
 
     /// <summary>
+    ///     Tables in schema <c>app</c> that are intentionally exempt from the RLS coverage guard
+    ///     because they hold cluster-wide coordination state rather than tenant data. Currently only
+    ///     <c>scheduled_job_executions</c>, which carries no <c>tenant_id</c> and is written solely by
+    ///     the <c>booqr_batch</c> (BYPASSRLS) role via <c>IJobClaim</c> (see 0001_baseline.sql).
+    /// </summary>
+    private static readonly string[] RlsExemptTables = ["scheduled_job_executions"];
+
+    /// <summary>
     ///     RLS coverage guard: fails the migration if any table (relkind = 'r') in schema
     ///     <c>app</c> lacks both <c>ENABLE</c> and <c>FORCE ROW LEVEL SECURITY</c>. Views are
-    ///     excluded — RLS applies through their underlying base tables.
+    ///     excluded — RLS applies through their underlying base tables. Cluster-wide coordination
+    ///     tables in <see cref="RlsExemptTables" /> are also excluded by design.
     /// </summary>
     private async Task AssertRlsCoverage(CancellationToken cancellation)
     {
@@ -104,8 +113,10 @@ public sealed class SchemaMigrator(NpgsqlDataSource migratorDataSource)
             where n.nspname = 'app'
               and c.relkind = 'r'
               and (c.relrowsecurity = false or c.relforcerowsecurity = false)
+              and c.relname <> all(@exempt)
             order by c.relname
             """, connection);
+        command.Parameters.AddWithValue("exempt", RlsExemptTables);
 
         List<string> unprotected = [];
         await using (NpgsqlDataReader reader = await command.ExecuteReaderAsync(cancellation))

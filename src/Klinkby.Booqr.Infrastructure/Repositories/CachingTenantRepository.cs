@@ -50,9 +50,20 @@ internal sealed class CachingTenantRepository(
         Tenant? tenant = await inner.GetBySlug(slug, cancellation);
 
         RegistrySettings settings = options.Value;
-        _cache[slug] = new Entry(tenant, now + settings.CacheTtl);
-        _insertionOrder.Enqueue(slug);
-        EvictOverflow(settings.CacheSize);
+        var entry = new Entry(tenant, now + settings.CacheTtl);
+        // Only enqueue the slug into the insertion-order queue when it is a genuinely new key. A
+        // TTL refresh of an existing slug just replaces its Entry in place; re-enqueuing it would
+        // accumulate duplicate queue entries, and EvictOverflow could then dequeue a slug that is
+        // still live in the cache and remove it prematurely.
+        if (_cache.TryAdd(slug, entry))
+        {
+            _insertionOrder.Enqueue(slug);
+            EvictOverflow(settings.CacheSize);
+        }
+        else
+        {
+            _cache[slug] = entry;
+        }
 
         return tenant;
     }

@@ -78,6 +78,7 @@ public abstract record AuthenticatedRequest : IAuthenticatedRequest
     ///     True when the authenticated user is staff (Employee or Admin) and therefore not
     ///     subject to the customer-scoped data-access restrictions.
     /// </summary>
+    [JsonIgnore]
     [MemberNotNullWhen(true, nameof(User))]
     public bool IsStaff
     {

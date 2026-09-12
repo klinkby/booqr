@@ -181,9 +181,12 @@ create index idx_refreshtokens_expires
 
 -------------------------------------------------------------
 
+-- Cluster-wide job-claim coordination, NOT tenant data: rows are written only by the
+-- booqr_batch (BYPASSRLS) role via IJobClaim (see ScheduledBackgroundService). It therefore
+-- carries no tenant_id and no RLS policy - app.tenant_of('booqr_batch') is NULL, so a
+-- tenant_id DEFAULT would violate NOT NULL on insert.
 create table app.scheduled_job_executions
 (
-    tenant_id      int                      not null default app.tenant_of(current_user),
     job_name       varchar(50)              not null,
     execution_date date                     not null,
     claimed_at     timestamp with time zone not null,
@@ -288,8 +291,5 @@ create policy tenant_isolation on app.refreshtokens
     using (tenant_id = app.tenant_of(current_user))
     with check (tenant_id = app.tenant_of(current_user));
 
-alter table app.scheduled_job_executions enable row level security;
-alter table app.scheduled_job_executions force row level security;
-create policy tenant_isolation on app.scheduled_job_executions
-    using (tenant_id = app.tenant_of(current_user))
-    with check (tenant_id = app.tenant_of(current_user));
+-- app.scheduled_job_executions intentionally has no RLS: it is cluster-wide coordination
+-- state written only by the booqr_batch role (see table definition above), not tenant data.
