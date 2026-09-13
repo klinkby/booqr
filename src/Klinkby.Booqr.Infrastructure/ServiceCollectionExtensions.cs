@@ -35,7 +35,7 @@ public static partial class ServiceCollectionExtensions
     ///         <item><description>All repository implementations</description></item>
     ///     </list>
     /// </remarks>
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services,
+    public static IServiceCollection AddApiInfrastructure(this IServiceCollection services,
         IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
@@ -135,9 +135,6 @@ public static partial class ServiceCollectionExtensions
         AssignableTo = typeof(IRepository),
         AsImplementedInterfaces = true)]
     private static partial void AddRepositories(this IServiceCollection services);
-
-    [LoggerMessage(1040, LogLevel.Information, "PostgreSQL is at {Host}")]
-    private static partial void PostgreSql(ILogger logger, string? host);
 
     [LoggerMessage(1041, LogLevel.Information, "EmailLabs is at {Host}")]
     private static partial void EmailLabs(ILogger logger, Uri host);
