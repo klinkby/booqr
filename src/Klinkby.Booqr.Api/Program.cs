@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Reflection;
 using Klinkby.Booqr.Api;
 using Klinkby.Booqr.Api.Util;
+using Klinkby.Booqr.Api.Worker;
 using Klinkby.Booqr.Control;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HostFiltering;
@@ -29,9 +30,10 @@ if (args.Length > 0 && string.Equals(args[0], "admin", StringComparison.OrdinalI
 // secret. See Klinkby.Booqr.Api.Worker.WorkerRunner for the security-boundary rationale.
 if (args.Length > 0 && string.Equals(args[0], "worker", StringComparison.OrdinalIgnoreCase))
 {
-    return await Klinkby.Booqr.Api.Worker.WorkerRunner.RunAsync(args[1..]);
+    return await WorkerRunner.RunAsync(args[1..]);
 }
 
+// Or API mode:
 WebApplicationBuilder builder = WebApplication.CreateSlimBuilder(args);
 
 // Detect if running in OpenAPI document generation mode

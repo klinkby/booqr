@@ -1,6 +1,9 @@
 using System.Diagnostics;
-using Microsoft.Extensions.Hosting;
+using System.Diagnostics.CodeAnalysis;
+using NLog;
 using NLog.Extensions.Logging;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Klinkby.Booqr.Api.Worker;
 
@@ -18,32 +21,38 @@ namespace Klinkby.Booqr.Api.Worker;
 ///         registers:
 ///     </para>
 ///     <list type="bullet">
-///         <item><description>
-///         JWT (<c>JwtSettings</c>/<c>Jwt</c> config section, <c>IOAuth</c>) — the worker issues
-///         and validates no tokens; it is not on any authenticated request path.
-///         </description></item>
-///         <item><description>
-///         Tenant data sources / tenant registry (<c>AddTenantDataSources</c>,
-///         <c>AddTenantRegistry</c>) — these load the tenant master secret
-///         (<c>TenantDataSources:MasterSecret</c>) used to derive every tenant's per-tenant login
-///         role password. The worker has no business minting or resolving a tenant connection, so
-///         it must never hold that secret in memory: smaller blast radius if this process is
-///         ever compromised.
-///         </description></item>
-///         <item><description>
-///         Kestrel / the web pipeline / <c>PasswordSettings</c> — no HTTP surface at all.
-///         </description></item>
+///         <item>
+///             <description>
+///                 JWT (<c>JwtSettings</c>/<c>Jwt</c> config section, <c>IOAuth</c>) — the worker issues
+///                 and validates no tokens; it is not on any authenticated request path.
+///             </description>
+///         </item>
+///         <item>
+///             <description>
+///                 Tenant data sources / tenant registry (<c>AddTenantDataSources</c>,
+///                 <c>AddTenantRegistry</c>) — these load the tenant master secret
+///                 (<c>TenantDataSources:MasterSecret</c>) used to derive every tenant's per-tenant login
+///                 role password. The worker has no business minting or resolving a tenant connection, so
+///                 it must never hold that secret in memory: smaller blast radius if this process is
+///                 ever compromised.
+///             </description>
+///         </item>
+///         <item>
+///             <description>
+///                 Kestrel / the web pipeline / <c>PasswordSettings</c> — no HTTP surface at all.
+///             </description>
+///         </item>
 ///     </list>
 ///     <para>
 ///         It resolves only what the scheduled services in
 ///         <c>Klinkby.Booqr.Application.Workers</c> actually inject: repositories (via
-///         <c>AddRepositories</c>), <see cref="IMailClient"/>, <c>IBatchScope</c>/the keyed batch
+///         <c>AddRepositories</c>), <see cref="IMailClient" />, <c>IBatchScope</c>/the keyed batch
 ///         <c>DbConnection</c>, the <c>ReminderMailSettings</c> option, and the two
-///         <see cref="IHostedService"/> registrations themselves
+///         <see cref="IHostedService" /> registrations themselves
 ///         (<c>AddScheduledWorkers</c> in <c>Klinkby.Booqr.Application</c>).
 ///     </para>
 /// </remarks>
-public static class WorkerRunner
+public static partial class WorkerRunner
 {
     public static async Task<int> RunAsync(string[] args)
     {
@@ -70,7 +79,7 @@ public static class WorkerRunner
             Environment.GetEnvironmentVariable("WORKER_HEARTBEAT_PATH") ?? "/tmp/worker-alive"));
 
         IHost host = builder.Build();
-        WorkerLoggerMessages log = new(host.Services.GetRequiredService<ILogger<Program>>());
+        LoggerMessages log = new(host.Services.GetRequiredService<ILogger<Program>>());
 
         try
         {
@@ -86,7 +95,24 @@ public static class WorkerRunner
         }
         finally
         {
-            NLog.LogManager.Shutdown();
+            LogManager.Shutdown();
         }
+    }
+
+    [ExcludeFromCodeCoverage]
+    private sealed partial class LoggerMessages(ILogger logger)
+    {
+        [SuppressMessage("Performance", "CA1823:Avoid unused private fields",
+            Justification = "Referenced by source generator")]
+        private readonly ILogger _logger = logger;
+
+        [LoggerMessage(1070, LogLevel.Information, "Worker initialized in {TimeSpan}")]
+        internal partial void WorkerLaunch(TimeSpan timeSpan);
+
+        [LoggerMessage(1071, LogLevel.Information, "Worker shutdown ran for {TimeSpan}")]
+        internal partial void WorkerShutdown(TimeSpan timeSpan);
+
+        [LoggerMessage(1072, LogLevel.Error, "Worker crash after {TimeSpan}")]
+        internal partial void WorkerCrash(Exception exception, TimeSpan timeSpan);
     }
 }
