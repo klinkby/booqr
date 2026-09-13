@@ -20,15 +20,13 @@ public sealed class ArchitectureTestFixture
     internal const string Application = $"{RootNamespace}.{nameof(Booqr.Application)}";
     internal const string Infrastructure = $"{RootNamespace}.{nameof(Booqr.Infrastructure)}";
     internal const string Api = $"{RootNamespace}.{nameof(Booqr.Api)}";
-    internal const string Control = $"{RootNamespace}.{nameof(Booqr.Control)}";
 
     internal Architecture Architecture { get; } = new ArchLoader()
         .LoadAssemblies(
             Assembly.Load(Core),
             Assembly.Load(Application),
             Assembly.Load(Infrastructure),
-            Assembly.Load(Api),
-            Assembly.Load(Control))
+            Assembly.Load(Api))
         .Build();
 
     internal static GivenTypesConjunctionWithDescription CoreTypes => Types()
@@ -53,13 +51,6 @@ public sealed class ArchitectureTestFixture
         .And()
         .ResideInAssemblyMatching(Regex.Escape(Infrastructure))
         .As("Infrastructure types");
-
-    internal static GivenTypesConjunctionWithDescription ControlTypes => Types()
-        .That()
-        .ResideInNamespaceMatching("Klinkby\\.Booqr\\.")
-        .And()
-        .ResideInAssemblyMatching(Regex.Escape(Control))
-        .As("Control types");
 
     internal static GivenClassesConjunctionWithDescription RequestTypes => Classes()
         .That()

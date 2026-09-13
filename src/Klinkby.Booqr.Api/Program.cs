@@ -1,9 +1,8 @@
 using System.Diagnostics;
 using System.Reflection;
 using Klinkby.Booqr.Api;
-using Klinkby.Booqr.Api.Util;
+using Klinkby.Booqr.Api.Admin;
 using Klinkby.Booqr.Api.Worker;
-using Klinkby.Booqr.Control;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HostFiltering;
 using Microsoft.AspNetCore.OpenApi;
@@ -76,7 +75,8 @@ static void ConfigureServices(WebApplicationBuilder builder, bool isMockServer)
     {
         builder.Services
             .AddSingleton<TimeProvider>(static _ => TimeProvider.System)
-            .AddInfrastructure(configuration.GetRequiredSection("Infrastructure"));
+            .AddTenancy(configuration.GetRequiredSection("Infrastructure:Tenancy"))
+            .AddApiInfrastructure(configuration.GetRequiredSection("Infrastructure"));
 
         // CreateSlimBuilder omits the default host-filtering startup filter, so wire it
         // explicitly. The app emits its own authority (e.g. password-reset links) from the

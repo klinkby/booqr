@@ -1,4 +1,4 @@
-﻿using Klinkby.Booqr.Infrastructure.Models;
+﻿using Klinkby.Booqr.Api.Models;
 using Microsoft.Extensions.Options;
 
 namespace Klinkby.Booqr.Api.Util;

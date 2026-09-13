@@ -1,5 +1,7 @@
 ﻿using System.Text;
+using Klinkby.Booqr.Api.Models;
 using Klinkby.Booqr.Application.Models;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 // ReSharper disable once CheckNamespace
@@ -15,6 +17,21 @@ internal static class ServiceCollectionExtensions
         ConfigureHealthChecks(services);
         ConfigureJson(services);
         ConfigureRequestMetadata(services);
+    }
+
+    /// <summary>
+    ///     Binds and validates <see cref="TenancySettings" /> (tenant host-resolution config) from the
+    ///     given configuration section. Host resolution is an API-layer concern, so the option lives
+    ///     in and is registered by the Api project rather than Infrastructure.
+    /// </summary>
+    internal static IServiceCollection AddTenancy(this IServiceCollection services, IConfiguration configuration)
+    {
+        services
+            .AddSingleton<IValidateOptions<TenancySettings>, ValidateTenancySettings>()
+            .AddOptions<TenancySettings>()
+            .Bind(configuration)
+            .ValidateOnStart();
+        return services;
     }
 
     private static void ConfigureAuthentication(IServiceCollection services, IConfiguration configuration)

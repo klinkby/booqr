@@ -1,7 +1,7 @@
 using Klinkby.Booqr.Infrastructure.Services;
 using Npgsql;
 
-namespace Klinkby.Booqr.Control;
+namespace Klinkby.Booqr.Api.Admin;
 
 /// <summary>
 ///     Dispatch for admin mode (docs/1-design.md "2b. Admin CLI (admin mode)"), selected by a
@@ -17,8 +17,8 @@ namespace Klinkby.Booqr.Control;
 ///     convention.
 ///     <para>
 ///     Each command builds its own minimal <see cref="NpgsqlDataSource" /> from
-///     <see cref="AdminConfig" /> (environment variables) — never a web host, never DI. The
-///     provisioning/deprovision/rotation logic itself lives in <see cref="TenantProvisioner" /> so it
+///     <see cref="TenantProvisioner" /> (environment variables) — never a web host, never DI. The
+///     provisioning/deprovision/rotation logic itself lives in <see cref="AdminConfig" /> so it
 ///     can be exercised directly by integration tests without going through this process-args/env
 ///     seam.
 ///     </para>
@@ -155,7 +155,7 @@ public static class AdminRunner
                     await Console.Out.WriteLineAsync(
                         $"Tenant {tenantId} soft-deleted. Role \"t_{tenantId}\" was already dropped.");
                     return 0;
-                case DeprovisionOutcome.Deprovisioned:
+                // case DeprovisionOutcome.Deprovisioned:
                 default:
                     await Console.Out.WriteLineAsync($"Tenant {tenantId} soft-deleted and role \"t_{tenantId}\" dropped.");
                     return 0;

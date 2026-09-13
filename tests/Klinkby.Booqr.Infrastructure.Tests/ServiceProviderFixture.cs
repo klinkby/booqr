@@ -115,7 +115,7 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
         _services = new ServiceCollection()
             .AddSingleton<TimeProvider, FakeTimeProvider>()
             .AddSingleton(typeof(ILogger<>), typeof(NullLogger<>))
-            .AddInfrastructure(config)
+            .AddApiInfrastructure(config)
             // Register a test ITenantContext that resolves to tenant A by default.
             // This allows existing repository tests to work without modification;
             // they will connect as tenant A (the default). Tests that need to verify

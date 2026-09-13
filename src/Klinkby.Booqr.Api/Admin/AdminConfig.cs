@@ -1,6 +1,6 @@
 using Npgsql;
 
-namespace Klinkby.Booqr.Control;
+namespace Klinkby.Booqr.Api.Admin;
 
 /// <summary>
 ///     Environment-variable configuration contract for the admin CLI (<see cref="AdminRunner" />).

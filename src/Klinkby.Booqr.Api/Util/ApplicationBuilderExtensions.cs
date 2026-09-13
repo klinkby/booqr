@@ -1,8 +1,7 @@
-using Klinkby.Booqr.Control;
-using Klinkby.Booqr.Core;
-using Klinkby.Booqr.Infrastructure.Models;
+using Klinkby.Booqr.Api.Models;
 using Klinkby.Booqr.Infrastructure.Services;
 using Microsoft.Extensions.Options;
+using SlugValidator = Klinkby.Booqr.Api.Admin.SlugValidator;
 
 namespace Klinkby.Booqr.Api.Util;
 
@@ -93,12 +92,9 @@ internal static class ApplicationBuilderExtensions
             return null;
         }
 
-        foreach (var reserved in reservedSubdomains)
+        if (reservedSubdomains.Any(reserved => string.Equals(candidate, reserved, StringComparison.OrdinalIgnoreCase)))
         {
-            if (string.Equals(candidate, reserved, StringComparison.OrdinalIgnoreCase))
-            {
-                return null;
-            }
+            return null;
         }
 
         var lowerCandidate = candidate.ToLowerInvariant();

@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using Klinkby.Booqr.Infrastructure.Services;
 using Npgsql;
 
-namespace Klinkby.Booqr.Control;
+namespace Klinkby.Booqr.Api.Admin;
 
 /// <summary>
 ///     The DNS-label slug validator shared by <see cref="TenantProvisioner.Provision" /> — a public

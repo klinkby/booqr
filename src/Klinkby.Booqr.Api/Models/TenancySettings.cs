@@ -2,16 +2,17 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Options;
 
-namespace Klinkby.Booqr.Infrastructure.Models;
+namespace Klinkby.Booqr.Api.Models;
 
 /// <summary>
 ///     Provides configuration settings for multi-tenancy host resolution and policy.
 /// </summary>
 /// <remarks>
 ///     This record contains the core tenancy configuration that controls how the system resolves
-///     tenant identity from HTTP request hosts and manages domain-level routing policies.
-///     Bound from the <c>Tenancy</c> configuration section by
-///     <see cref="Microsoft.Extensions.DependencyInjection.ServiceCollectionExtensions.AddInfrastructure" />.
+///     tenant identity from HTTP request hosts and manages domain-level routing policies. Host
+///     resolution is an API-layer concern, so this lives in the Api project and is bound from the
+///     <c>Infrastructure:Tenancy</c> configuration section by the Api composition root
+///     (<c>Program.cs</c>).
 /// </remarks>
 public sealed record TenancySettings
 {

@@ -40,11 +40,6 @@
       <PackageReference Include="Microsoft.Extensions.Configuration" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
         <InternalsVisibleTo Include="$(AssemblyName).Tests" />
-        <!-- Klinkby.Booqr.Control (admin CLI) needs TenantCredentials.DerivePassword to provision/rotate
-             tenant role passwords byte-identically to what TenantDataSourceFactory derives at request time.
-             Control is a leaf admin tool over Infrastructure + Core (see docs/2-implementation.md Phase 5,
-             tests/Klinkby.Booqr.Tests/ControlTests.cs) — it never runs on a request path. -->
-        <InternalsVisibleTo Include="Klinkby.Booqr.Control" />
     </ItemGroup>
 
 </Project>

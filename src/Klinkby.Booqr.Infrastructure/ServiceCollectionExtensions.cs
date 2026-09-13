@@ -42,12 +42,8 @@ public static partial class ServiceCollectionExtensions
 
         services.AddWorkerInfrastructureCore(configuration);
 
-        // Bind and validate tenancy configuration (base domain, reserved subdomains).
-        services
-            .AddSingleton<IValidateOptions<TenancySettings>, ValidateTenancySettings>()
-            .AddOptions<TenancySettings>()
-            .Bind(configuration.GetSection("Tenancy"))
-            .ValidateOnStart();
+        // Tenancy host-resolution config (TenancySettings) is an API-layer concern and is bound by
+        // the Api composition root (Program.cs), not here.
 
         // Register tenant-aware multi-tenancy infrastructure (phases 2a and 2b).
         // 2a: Tenant data-source factory with per-tenant connection pooling and LRU cache.

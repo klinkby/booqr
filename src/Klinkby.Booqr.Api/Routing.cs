@@ -1,7 +1,7 @@
 ﻿using System.Net.Mime;
 using Klinkby.Booqr.Application.Commands.Employees;
 using Klinkby.Booqr.Application.Models;
-using Klinkby.Booqr.Infrastructure.Models;
+using Klinkby.Booqr.Api.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
 

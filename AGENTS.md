@@ -7,7 +7,7 @@
 Klinkby.Booqr is an AOT-compiled ASP.NET 10 booking management API built on minimalist clean architecture with vertical feature slices.
 The system emphasizes performance, security, and maintainability through extensive compile-time code generation (source generators for DI, logging, JSON, ORM, OpenAPI), Native AOT with aggressive trimming, and strict architectural boundaries enforced by automated tests.
 
-**Multi-tenant:** many businesses share one PostgreSQL database, isolated by **`FORCE ROW LEVEL SECURITY`** in a shared `app` schema plus **one login role per tenant** (`t_<id>`). The RLS policy is keyed on the connected role (`current_user` → `app.tenant_of()`), so isolation is DB-enforced and unforgeable — no per-request session variable. The API resolves the tenant from the request host (`<slug>.booqr.dk`) and connects as that tenant's role; the `Klinkby.Booqr.Control` admin CLI provisions tenants/roles. See `docs/1-design.md` for the full design.
+**Multi-tenant:** many businesses share one PostgreSQL database, isolated by **`FORCE ROW LEVEL SECURITY`** in a shared `app` schema plus **one login role per tenant** (`t_<id>`). The RLS policy is keyed on the connected role (`current_user` → `app.tenant_of()`), so isolation is DB-enforced and unforgeable — no per-request session variable. The API resolves the tenant from the request host (`<slug>.booqr.dk`) and connects as that tenant's role; the `admin` run-mode of the API image (`Api/Admin/`, selected by a leading `admin` arg) provisions tenants/roles. See `docs/1-design.md` for the full design.
 
 ## Repository Structure
 - **Klinkby.Booqr.slnx** - Use the new XML-based solution file
@@ -15,8 +15,7 @@ The system emphasizes performance, security, and maintainability through extensi
   - **Klinkby.Booqr.Core/** - Domain contracts, records, interfaces
   - **Klinkby.Booqr.Application/** - Business logic, Commands, Services
   - **Klinkby.Booqr.Infrastructure/** - Repositories, I/O agents, Dapper queries; also the tenant/registry/batch data sources, `SchemaMigrator`, and `Migrations/*.sql` (the migrator-owned `app` schema)
-  - **Klinkby.Booqr.Api/** - HTTP endpoints, Minimal API, JWT auth, tenant-resolution middleware; branches into admin mode on a leading `admin` arg, or into **worker mode** (`Worker/WorkerRunner.cs`, a generic host running the cross-tenant scheduled jobs as `booqr_batch`) on a leading `worker` arg
-  - **Klinkby.Booqr.Control/** - Control-plane admin CLI (provision/migrate/deprovision/rotate). References Infrastructure + Core; **Application and Infrastructure must NOT depend on it** (ArchUnit-enforced) so the elevated `booqr_migrator`/`booqr_batch` provisioning logic never runs on a request path.
+  - **Klinkby.Booqr.Api/** - HTTP endpoints, Minimal API, JWT auth, tenant-resolution middleware. Run-mode is selected by a leading arg: default = web/API host; `admin` = control-plane CLI (`Api/Admin/`: provision/migrate/deprovision/rotate, holding the elevated `booqr_migrator` creds + tenant master secret — never starts Kestrel); `worker` = generic host running the cross-tenant scheduled jobs as `booqr_batch` (`Api/Worker/WorkerRunner.cs`). All three share the one AOT image.
 - **redist/**
   - **initdb/** - one-time control-plane bootstrap (schemas, `public.tenants`, roles, `app.tenant_of()`); run by the Postgres container as superuser
   - **docker-compose.yml** - HAProxy, api, postgres, and the internal-only `admin` service
@@ -41,7 +40,7 @@ The solution follows a minimalist clean architecture with four distinct layers, 
 - **[Application](src/Klinkby.Booqr.Application/AGENTS.md)** - Business logic, Commands, Services (references Core only, no I/O)
 - **[Infrastructure](src/Klinkby.Booqr.Infrastructure/AGENTS.md)** - Repositories, database access, external services (references Core only)
 - **[API](src/Klinkby.Booqr.Api/AGENTS.md)** - HTTP endpoints, authentication, Minimal APIs (references all layers)
-- **Control** (`src/Klinkby.Booqr.Control/`) - Admin CLI over Infrastructure + Core. Off every request-path assembly (Application/Infrastructure must not depend on it).
+- **Admin** (`src/Klinkby.Booqr.Api/Admin/`) - Control-plane CLI (provision/migrate/deprovision/rotate) hosted in the API image's `admin` run-mode. It builds bare `NpgsqlDataSource`s from env (no web host, no DI graph) and never starts Kestrel, so the elevated `booqr_migrator` creds + tenant master secret never touch a request path — but note this is now a runtime/composition boundary, not the compile-time assembly boundary the former `Klinkby.Booqr.Control` project provided.
 
 Each layer has detailed guidelines in its respective `AGENTS.md` file. Click the links above for layer-specific architectural rules, patterns, and examples.
 
@@ -71,7 +70,7 @@ Architectural policies are validated automatically via `TngTech.ArchUnitNET` tes
 
 ### Security
 
-- **Tenant isolation**: `FORCE ROW LEVEL SECURITY` on every `app` table, policy `tenant_id = app.tenant_of(current_user)`; per-tenant `NOBYPASSRLS` login roles (`t_<id>`) with passwords derived as `base64url(HMAC-SHA384(master_secret, id))`. Cross-tenant scheduled jobs (reminder mail, refresh-token flush) run in a dedicated **`worker` run-mode container** (`Api/Program.cs` `worker` arg-branch → `Api/Worker/WorkerRunner.cs`, a generic host with no Kestrel/JWT/tenant data sources) as the separate `booqr_batch` (BYPASSRLS) role via `IBatchScope`. The worker holds **only** the `booqr_batch` credential — not the tenant HMAC master secret — so it cannot derive `t_<id>` passwords; the tenant-facing `api1` no longer carries `BOOQR_BATCH_PASSWORD`. The `tenant` JWT claim must match the host tenant (403 otherwise); DB RLS is the backstop.
+- **Tenant isolation**: `FORCE ROW LEVEL SECURITY` on every `app` table, policy `tenant_id = app.tenant_of(current_user)`; per-tenant `NOBYPASSRLS` login roles (`t_<id>`) with passwords derived as `base64url(HMAC-SHA256(master_secret, id))`. Cross-tenant scheduled jobs (reminder mail, refresh-token flush) run in a dedicated **`worker` run-mode container** (`Api/Program.cs` `worker` arg-branch → `Api/Worker/WorkerRunner.cs`, a generic host with no Kestrel/JWT/tenant data sources) as the separate `booqr_batch` (BYPASSRLS) role via `IBatchScope`. The worker holds **only** the `booqr_batch` credential — not the tenant HMAC master secret — so it cannot derive `t_<id>` passwords; the tenant-facing `api1` no longer carries `BOOQR_BATCH_PASSWORD`. The `tenant` JWT claim must match the host tenant (403 otherwise); DB RLS is the backstop.
 - **Refresh token rotation**: 240-bit entropy, family-based reuse detection, SHAKE128 hashing
 - **HttpOnly cookies**: Secure, SameSite=Strict, path-scoped
 - **Supply chain defense**: 7-day Dependabot cooldown, package source mapping, lock files
@@ -144,7 +143,7 @@ See **[tests/AGENTS.md](tests/AGENTS.md)** for comprehensive testing practices a
 
 9. **`ITenantContext` and the tenant connection**: commands needing the current tenant inject Core's `ITenantContext` (populated by the API's tenant-resolution middleware). The scoped tenant `DbConnection` resolves **lazily on first use** and fails closed if no tenant — so keep DB access out of DI construction, and mark tenant-optional endpoints with `TenantOptionalAttribute`.
 
-10. **Control-plane boundary**: put provisioning/migration logic in `Klinkby.Booqr.Control` only. Application and Infrastructure must not reference it (ArchUnit fails otherwise). New superuser-only DDL or `public.*` grants belong in `redist/initdb/*.sql`, not migrations.
+10. **Control-plane boundary**: put provisioning/migration logic in `src/Klinkby.Booqr.Api/Admin/` (the `admin` run-mode) only, and keep it off the web/request path — it must build its own bare `NpgsqlDataSource`s and never be reachable from an HTTP endpoint or the DI graph the web host resolves. New superuser-only DDL or `public.*` grants belong in `redist/initdb/*.sql`, not migrations. (Historically this was the separate `Klinkby.Booqr.Control` assembly with an ArchUnit guard; it now lives in the Api project, so the separation is by convention/run-mode, not a compile-time assembly boundary.)
 
 11. **AOT-safe**: this is a Native-AOT app — avoid reflection-based `DataAnnotations` (e.g. `[Range(typeof(TimeSpan), …)]` → IL2026). Verify the real gate with a `dotnet publish` (AOT) + run, not just a build.
 

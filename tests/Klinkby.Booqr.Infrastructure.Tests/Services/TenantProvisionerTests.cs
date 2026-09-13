@@ -1,5 +1,4 @@
-using Klinkby.Booqr.Control;
-using Klinkby.Booqr.Infrastructure.Services;
+using Klinkby.Booqr.Api.Admin;
 using Npgsql;
 
 namespace Klinkby.Booqr.Infrastructure.Tests.Services;
