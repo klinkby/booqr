@@ -6,16 +6,16 @@ namespace Klinkby.Booqr.Infrastructure.Tests.Services;
 ///     Known-answer test for <see cref="TenantCredentials.DerivePassword" />. This unit test runs
 ///     with no container (in-sandbox) and pins the exact contract Phase 5 (admin CLI provisioning)
 ///     must reproduce byte-for-byte: message = tenant id as an invariant-culture decimal ASCII
-///     string, MAC = HMAC-SHA384(UTF-8 master secret, message), encoding = base64url (RFC 4648 §5,
+///     string, MAC = HMAC-SHA256(UTF-8 master secret, message), encoding = base64url (RFC 4648 §5,
 ///     unpadded).
 /// </summary>
 public sealed class TenantCredentialsTests
 {
     // Known-answer vector. Recompute with:
-    //   HMAC-SHA384(key = UTF-8 "test-master-secret", message = UTF-8 "42") -> base64url, unpadded
+    //   HMAC-SHA256(key = UTF-8 "test-master-secret", message = UTF-8 "42") -> base64url, unpadded
     private const string MasterSecret = "test-master-secret";
     private const int TenantId = 42;
-    private const string ExpectedPassword = "IKRGqZ1vjm7lIsC_91hyZcLmyDkVSnkz5268K_21vlSXHTrz2GJPzsoPy0TE8SDm";
+    private const string ExpectedPassword = "w2YCiHL4Kt3NT0OYD0PvVMnWSoGi-zOxHpxhO1gvVKg";
 
     [Fact]
     public void GIVEN_KnownSecretAndTenantId_WHEN_DerivingPassword_THEN_MatchesKnownAnswerVector()
