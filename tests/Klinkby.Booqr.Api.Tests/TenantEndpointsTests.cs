@@ -135,6 +135,24 @@ public class TenantEndpointsTests
     }
 
     [Fact]
+    public async Task GIVEN_TenantClaimOnReservedHost_WHEN_AccessingTenantOptionalEndpoint_THEN_NotRejectedByClaimGuard()
+    {
+        // Reserved host (www) resolves no tenant, so HasTenant == false. A valid token carrying a
+        // tenant claim must NOT be 403'd on a TenantOptional endpoint (logout/refresh) — the claim
+        // guard is skipped there, mirroring TenantRequiredEndPointFilter's opt-out.
+        await using WebApiFixture fixture = new(allowedHosts: "www.booqr.dk", tenantRepository: new FakeTenantRepository(AliceTenant));
+        using HttpClient client = fixture.CreateClient();
+        using HttpRequestMessage request = new(HttpMethod.Post, new Uri("/api/auth/logout", UriKind.Relative));
+        request.Headers.Host = "www.booqr.dk";
+        request.Headers.Authorization =
+            new AuthenticationHeaderValue("Bearer", CreateToken(2, "Customer", AliceTenantId));
+
+        HttpResponseMessage response = await client.SendAsync(request);
+
+        Assert.NotEqual(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GIVEN_NoTenantResolved_WHEN_AccessingTenantRequiredEndpoint_THEN_NotFoundBeforeHandler()
     {
         await using WebApiFixture fixture = new(allowedHosts: "www.booqr.dk", tenantRepository: new FakeTenantRepository(AliceTenant));

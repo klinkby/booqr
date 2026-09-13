@@ -115,7 +115,7 @@ internal sealed class ExpiringQueryString(
         // case would share a signature and integrity could be bypassed for any case-sensitive
         // value. Canonicalizing only the hex digits of %XY triplets keeps every value's case
         // bound while surviving RFC 3986 normalization in transit.
-        var hashBytes = HMACSHA3_384.HashData(
+        var hashBytes = HMACSHA256.HashData(
             Convert.FromBase64String(_hmacKey),
             Encoding.UTF8.GetBytes(CanonicalizePercentEncoding(text)));
         var hashValue = Base64Url.EncodeToString(hashBytes);

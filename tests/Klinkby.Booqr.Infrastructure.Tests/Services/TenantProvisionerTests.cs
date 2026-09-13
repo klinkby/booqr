@@ -122,6 +122,51 @@ public sealed class TenantProvisionerTests(ServiceProviderFixture fixture)
     }
 
     [Fact]
+    public async Task GIVEN_SeedAdminFails_WHEN_Provisioning_THEN_CompensatesByDeprovisioningPartialTenant()
+    {
+        var slug = NewSlug("seedfail");
+
+        // Real migrator data source (row + role DDL commit against it), but a base connection string
+        // pointing at an unreachable port so the post-commit SeedAdminUser step — which opens a fresh
+        // tenant connection using baseConnectionString — fails to connect. This reproduces the
+        // partial-provision window the compensating cleanup guards.
+        await using NpgsqlDataSource migratorDataSource = fixture.CreateMigratorDataSource();
+        NpgsqlConnectionStringBuilder unreachable = new(fixture.BaseConnectionString)
+        {
+            Host = "127.0.0.1",
+            Port = 1,
+            Timeout = 1,
+            CommandTimeout = 1
+        };
+        TenantProvisioner sut = new(migratorDataSource, unreachable.ConnectionString, ServiceProviderFixture.MasterSecret);
+
+        // Act: provisioning must surface the seed failure, not swallow it.
+        await Assert.ThrowsAnyAsync<NpgsqlException>(
+            () => sut.Provision(slug, slug, $"a@{slug}.booqr.dk", TestContext.Current.CancellationToken));
+
+        // Assert: the compensating Deprovision ran, so no active tenant row and no orphaned role are
+        // left behind — a subsequent Provision for the same slug would not hit the pg_roles refusal.
+        await using NpgsqlConnection verifyConnection =
+            await fixture.OpenMigratorConnection(TestContext.Current.CancellationToken);
+
+        await using NpgsqlCommand activeRows = new(
+            "select count(*) from public.tenants where slug = $1 and deleted is null", verifyConnection);
+        activeRows.Parameters.Add(new NpgsqlParameter<string> { TypedValue = slug });
+        var activeCount = (long)(await activeRows.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
+        Assert.Equal(0, activeCount);
+
+        // The role for the (single) row that was created must have been dropped by the cleanup.
+        await using NpgsqlCommand orphanRoles = new(
+            """
+            select count(*) from pg_roles
+            where rolname in (select 't_' || id from public.tenants where slug = $1)
+            """, verifyConnection);
+        orphanRoles.Parameters.Add(new NpgsqlParameter<string> { TypedValue = slug });
+        var orphanCount = (long)(await orphanRoles.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
+        Assert.Equal(0, orphanCount);
+    }
+
+    [Fact]
     public async Task GIVEN_DeprovisionedTenant_WHEN_SlugReprovisioned_THEN_GetsNewIdAndRole()
     {
         var slug = NewSlug("reuse");
