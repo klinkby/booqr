@@ -15,7 +15,7 @@ The system emphasizes performance, security, and maintainability through extensi
   - **Klinkby.Booqr.Core/** - Domain contracts, records, interfaces
   - **Klinkby.Booqr.Application/** - Business logic, Commands, Services
   - **Klinkby.Booqr.Infrastructure/** - Repositories, I/O agents, Dapper queries; also the tenant/registry/batch data sources, `SchemaMigrator`, and `Migrations/*.sql` (the migrator-owned `app` schema)
-  - **Klinkby.Booqr.Api/** - HTTP endpoints, Minimal API, JWT auth, tenant-resolution middleware; branches into admin mode on a leading `admin` arg
+  - **Klinkby.Booqr.Api/** - HTTP endpoints, Minimal API, JWT auth, tenant-resolution middleware; branches into admin mode on a leading `admin` arg, or into **worker mode** (`Worker/WorkerRunner.cs`, a generic host running the cross-tenant scheduled jobs as `booqr_batch`) on a leading `worker` arg
   - **Klinkby.Booqr.Control/** - Control-plane admin CLI (provision/migrate/deprovision/rotate). References Infrastructure + Core; **Application and Infrastructure must NOT depend on it** (ArchUnit-enforced) so the elevated `booqr_migrator`/`booqr_batch` provisioning logic never runs on a request path.
 - **redist/**
   - **initdb/** - one-time control-plane bootstrap (schemas, `public.tenants`, roles, `app.tenant_of()`); run by the Postgres container as superuser
@@ -71,7 +71,7 @@ Architectural policies are validated automatically via `TngTech.ArchUnitNET` tes
 
 ### Security
 
-- **Tenant isolation**: `FORCE ROW LEVEL SECURITY` on every `app` table, policy `tenant_id = app.tenant_of(current_user)`; per-tenant `NOBYPASSRLS` login roles (`t_<id>`) with passwords derived as `base64url(HMAC-SHA256(master_secret, id))`. Cross-tenant background jobs use a separate `booqr_batch` (BYPASSRLS) role via `IBatchScope`. The `tenant` JWT claim must match the host tenant (403 otherwise); DB RLS is the backstop.
+- **Tenant isolation**: `FORCE ROW LEVEL SECURITY` on every `app` table, policy `tenant_id = app.tenant_of(current_user)`; per-tenant `NOBYPASSRLS` login roles (`t_<id>`) with passwords derived as `base64url(HMAC-SHA256(master_secret, id))`. Cross-tenant scheduled jobs (reminder mail, refresh-token flush) run in a dedicated **`worker` run-mode container** (`Api/Program.cs` `worker` arg-branch → `Api/Worker/WorkerRunner.cs`, a generic host with no Kestrel/JWT/tenant data sources) as the separate `booqr_batch` (BYPASSRLS) role via `IBatchScope`. The worker holds **only** the `booqr_batch` credential — not the tenant HMAC master secret — so it cannot derive `t_<id>` passwords; the tenant-facing `api1` no longer carries `BOOQR_BATCH_PASSWORD`. The `tenant` JWT claim must match the host tenant (403 otherwise); DB RLS is the backstop.
 - **Refresh token rotation**: 240-bit entropy, family-based reuse detection, SHAKE128 hashing
 - **HttpOnly cookies**: Secure, SameSite=Strict, path-scoped
 - **Supply chain defense**: 7-day Dependabot cooldown, package source mapping, lock files
