@@ -29,7 +29,12 @@ internal sealed class AuthenticatedRequestEndPointFilter : IEndpointFilter
         ClaimsPrincipal user = httpContext.User;
         ITenantContext tenantContext = httpContext.RequestServices.GetRequiredService<ITenantContext>();
 
-        if (user.Identity?.IsAuthenticated == true)
+        // Skip the claim-vs-host tenant guard for tenant-optional endpoints (auth
+        // refresh/logout, the OpenAPI document, etc.): those are reachable off-subdomain where no
+        // tenant resolves (HasTenant == false), so a valid token carrying a tenant claim must not be
+        // rejected — mirrors TenantRequiredEndPointFilter's opt-out. RLS remains the DB backstop.
+        var tenantOptional = httpContext.GetEndpoint()?.Metadata.GetMetadata<TenantOptionalAttribute>() is not null;
+        if (!tenantOptional && user.Identity?.IsAuthenticated == true)
         {
             var tenantClaimValue = user.FindFirst(TenantClaimType)?.Value;
             if (tenantClaimValue is not null

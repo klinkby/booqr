@@ -167,7 +167,33 @@ public sealed class TenantProvisioner(
         // Seed the initial admin user as the tenant role itself, so app.users.tenant_id is stamped
         // by its DEFAULT app.tenant_of(current_user) and satisfies the RLS WITH CHECK — booqr_migrator
         // is neither a tenant role nor BYPASSRLS and cannot insert into app.users directly.
-        int seedAdminUserId = await SeedAdminUser(tenantId, seedAdminEmail, cancellation);
+        //
+        // This runs on a fresh connection *after* the commit above, so a failure here (e.g. a
+        // transient connect failure to the just-created role) would otherwise leave a committed
+        // tenant row + role with no admin user — and the pg_roles orphan check would then refuse any
+        // re-run. Compensate by deprovisioning the partial tenant so a retry starts clean.
+        int seedAdminUserId;
+        try
+        {
+            seedAdminUserId = await SeedAdminUser(tenantId, seedAdminEmail, cancellation);
+        }
+        catch
+        {
+            // Best-effort rollback of the partial provision. Swallow cleanup failures so the original
+            // seed exception is what surfaces; a leftover row/role would still be recoverable via an
+            // explicit --deprovision.
+            try
+            {
+                await Deprovision(tenantId, CancellationToken.None);
+            }
+            catch (Exception cleanupEx) when (cleanupEx is NpgsqlException or InvalidOperationException)
+            {
+                // ignored — surface the original seed failure below. A leftover row/role remains
+                // recoverable via an explicit --deprovision.
+            }
+
+            throw;
+        }
 
         return new ProvisionResult(tenantId, slug!, role, seedAdminUserId, seedAdminEmail);
     }
