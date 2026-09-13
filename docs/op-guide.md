@@ -28,7 +28,7 @@
 
 **Secrets / env:**
 - `TENANCY__MASTER_SECRET` — HMAC key used to derive each tenant role's password
-  (`base64url(HMAC-SHA256(master_secret, tenant_id))`). Required by **both** the API (to connect as tenants)
+  (`base64url(HMAC-SHA384(master_secret, tenant_id))`). Required by **both** the API (to connect as tenants)
   and the admin container (to set/rotate passwords). Store in your secret manager; never in the image or VCS.
 - API connection string uses the **registry** role only. Admin connection string uses **migrator** (+ batch)
   credentials.

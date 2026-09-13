@@ -24,7 +24,7 @@ namespace Klinkby.Booqr.Infrastructure.Services;
 ///             </description>
 ///         </item>
 ///         <item>
-///             <description>MAC = HMAC-SHA256(key = UTF-8 bytes of <paramref name="masterSecret"/> parameter, message above).</description>
+///             <description>MAC = HMAC-SHA384(key = UTF-8 bytes of <paramref name="masterSecret"/> parameter, message above).</description>
 ///         </item>
 ///         <item>
 ///             <description>
@@ -41,22 +41,22 @@ namespace Klinkby.Booqr.Infrastructure.Services;
 ///         Never log <paramref name="masterSecret"/> or the returned password.
 ///     </para>
 /// </remarks>
-internal static class TenantCredentials
+public static class TenantCredentials
 {
     /// <summary>
     ///     Derives the password for tenant role <c>t_&lt;<paramref name="tenantId"/>&gt;</c>.
     /// </summary>
     /// <param name="masterSecret">The shared HMAC key (UTF-8 encoded). Never logged.</param>
     /// <param name="tenantId">The tenant's immutable integer id.</param>
-    /// <returns>The base64url-encoded (unpadded) HMAC-SHA256 digest. Never logged.</returns>
-    internal static string DerivePassword(string masterSecret, int tenantId)
+    /// <returns>The base64url-encoded (unpadded) HMAC-SHA384 digest. Never logged.</returns>
+    public static string DerivePassword(string masterSecret, int tenantId)
     {
         ReadOnlySpan<char> message = tenantId.ToString(CultureInfo.InvariantCulture);
         Span<byte> messageBytes = stackalloc byte[Encoding.UTF8.GetMaxByteCount(message.Length)];
         var messageByteCount = Encoding.UTF8.GetBytes(message, messageBytes);
 
-        Span<byte> hmac = stackalloc byte[HMACSHA256.HashSizeInBytes];
-        var written = HMACSHA256.HashData(
+        Span<byte> hmac = stackalloc byte[HMACSHA384.HashSizeInBytes];
+        var written = HMACSHA384.HashData(
             Encoding.UTF8.GetBytes(masterSecret),
             messageBytes[..messageByteCount],
             hmac);
