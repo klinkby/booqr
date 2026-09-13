@@ -1,8 +1,9 @@
-using Klinkby.Booqr.Application.Services;
+using Klinkby.Booqr.Application.Workers;
+using Klinkby.Booqr.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 
-namespace Klinkby.Booqr.Application.Tests.Services;
+namespace Klinkby.Booqr.Application.Tests.Workers;
 
 public class ScheduledBackgroundServiceTests
 {
@@ -38,6 +39,7 @@ public class ScheduledBackgroundServiceTests
             .ReturnsAsync(true)
             .Verifiable(Times.Once);
         services.AddSingleton(jobClaimMock.Object);
+        services.AddScoped<IBatchScope, TestBatchScope>();
         await using ServiceProvider serviceProvider = services.BuildServiceProvider();
 
         using CountdownEvent executed = new(1);
@@ -73,6 +75,7 @@ public class ScheduledBackgroundServiceTests
             .Callback(() => claimAttempted.Signal())
             .Verifiable(Times.Once);
         services.AddSingleton(jobClaimMock.Object);
+        services.AddScoped<IBatchScope, TestBatchScope>();
         await using ServiceProvider serviceProvider = services.BuildServiceProvider();
 
         using CountdownEvent executed = new(1);

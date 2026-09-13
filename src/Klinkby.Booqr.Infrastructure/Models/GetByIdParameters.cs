@@ -2,3 +2,4 @@
 
 internal record struct GetByIdParameters(int Id);
 internal record struct GetByLongIdParameters(long Id);
+internal record struct GetBySlugParameters(string Slug);

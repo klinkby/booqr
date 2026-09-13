@@ -13,13 +13,6 @@ namespace Klinkby.Booqr.Infrastructure.Models;
 internal sealed record InfrastructureSettings
 {
     /// <summary>
-    ///     Gets or initializes the PostgreSQL database connection string.
-    /// </summary>
-    /// <value>The connection string used to connect to the database.</value>
-    [Required]
-    public required string ConnectionString { get; set; }
-
-    /// <summary>
     ///     Gets or initializes the base address for the EmailLabs API.
     /// </summary>
     /// <value>

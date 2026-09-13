@@ -9,6 +9,9 @@ An AOT (Ahead-of-Time) enabled ASP.NET 10 Web API, designed to serve as a robust
 for an application requiring efficient and secure booking management with a PostgreSQL database. The service is designed
 on a minimalist clean architecture emphasizing performance and maintainability without ceremony.
 
+It is **multi-tenant**: many businesses share one PostgreSQL database, each seeing only its own
+data, with isolation enforced by the database itself.
+
 
 ## Features
 
@@ -23,8 +26,8 @@ on a minimalist clean architecture emphasizing performance and maintainability w
     *   [Custom infrastructure](https://github.com/klinkby/booqr-generators) query builder helper
 *   **[IAsyncEnumerable Streaming](https://learn.microsoft.com/dotnet/csharp/asynchronous-programming/generate-consume-asynchronous-stream)**: Unbuffered streaming for collection endpoints with async iteration
 *   **[Channels](https://learn.microsoft.com/dotnet/core/extensions/channels)**: Async pipelines for immediate response with deferred processing.
-*   **[Background Services](https://learn.microsoft.com/aspnet/core/fundamentals/host/hosted-services)**: Hosted services for email processing, activity recording, and CRON-scheduled reminder delivery.
-*   **Activity Tracking**: Efficient audit logging aspect.
+*   **[Background Services](https://learn.microsoft.com/aspnet/core/fundamentals/host/hosted-services)**: In-process email processing on the API; cross-tenant scheduled jobs (reminder delivery, refresh-token flush) run in a dedicated `worker` run-mode container that holds only the `BYPASSRLS` batch credential.
+*   **Activity Tracking**: Historic audit logging.
 *   **[Problem Details](https://datatracker.ietf.org/doc/html/rfc7807)**: Structured error responses using RFC 7807 (ProblemDetails) standard with detailed validation errors.
 *   **[CLEF structured logging](https://github.com/Serilog/serilog-formatting-compact)** via [NLog](https://nlog-project.org/): Compact Log Event Format for efficient json log sink.
 *   **Container Security**: Runs rootless in tiny [Alpine Linux](https://alpinelinux.org/) [images (~17MB image)](https://hub.docker.com/r/klinkby/booqr/tags) with immutable filesystem.
@@ -35,7 +38,8 @@ on a minimalist clean architecture emphasizing performance and maintainability w
 *   **HttpOnly Cookies**: Secure refresh token storage with `HttpOnly`, `Secure`, `SameSite=Strict`, and path-scoped attributes to prevent XSS and CSRF attacks.
 *   **Token Management**: SHAKE128 hashing for database storage, transactional token rotation, and automated daily cleanup of expired tokens.
 *   **Role-based Authorization**: Fine-grained access control using ASP.NET Core's built-in authorization policies.
-*   **Docker Compose**: Wraps the service with HAProxy gateway in the front, PostgreSQL in the back, and efficient UNIX
+*   **[Multi-Tenancy](docs/1-design.md)**: One shared PostgreSQL database isolated by [`FORCE ROW LEVEL SECURITY`](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) plus one login role per tenant (`t_<id>`). The RLS policy keys on the connected role (`current_user`), so isolation is DB-enforced and unforgeable — no per-request session variable. The API resolves each tenant from its subdomain (`<slug>.booqr.dk`); the API image's `admin` run-mode provisions tenants, roles, and migrations. Per-tenant role passwords are HMAC-derived; cross-tenant scheduled jobs run in a separate `worker` container as a dedicated `BYPASSRLS` role, decoupled from the tenant master secret so the internet-facing API never carries the batch credential.
+*   **Docker Compose**: Wraps the service with HAProxy gateway in the front, PostgreSQL in the back, a long-running internal-only `worker` container for cross-tenant scheduled jobs, an internal-only `admin` container for provisioning/migrations, and efficient UNIX
 sockets for inter-container communication.
 
 
@@ -49,7 +53,7 @@ application:
 infrastructure layers.
 *   [Infrastructure](src/Klinkby.Booqr.Infrastructure): Manages data access (e.g., interaction with PostgreSQL) and external service integrations.
 Includes `Klinkby.Booqr.Infrastructure.Generators` for code generation.
-*   [Api](src/Klinkby.Booqr.Api): The entry point of the application, containing middleware configuration and all things HTTP.
+*   [Api](src/Klinkby.Booqr.Api): The entry point of the application, containing middleware configuration and all things HTTP. Run-mode is chosen by a leading arg: the web/API host (default), the control-plane admin CLI (`Admin/`, `admin --migrate|--provision|--deprovision|--rotate`), and the scheduled `worker` (`Worker/`). The `admin` and `worker` modes run as the same image in separate internal containers; `admin` holds the elevated provisioning credentials and never starts the web pipeline.
 *   [Tests](tests): Contains unit and integration tests for various components of the solution, including
 `Klinkby.Booqr.Api.Tests`, `Klinkby.Booqr.Application.Tests`, and `Klinkby.Booqr.Infrastructure.Tests` using
 test containers to spin up a live PostgreSQL instance.

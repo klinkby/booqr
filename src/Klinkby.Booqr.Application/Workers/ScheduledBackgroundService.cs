@@ -1,7 +1,8 @@
+using Klinkby.Booqr.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Klinkby.Booqr.Application.Services;
+namespace Klinkby.Booqr.Application.Workers;
 
 /// <summary>
 ///     Abstract base class for services that run on a daily schedule.
@@ -59,6 +60,10 @@ internal abstract partial class ScheduledBackgroundService(
 
         await using (AsyncServiceScope scope = serviceProvider.CreateAsyncScope())
         {
+            // Job-claim coordination is cluster-wide, not per-tenant, so this scope must also opt
+            // into the cross-tenant booqr_batch (BYPASSRLS) connection (see docs/1-design.md
+            // "Background / scheduled work"). Enable before resolving IJobClaim.
+            scope.ServiceProvider.GetRequiredService<IBatchScope>().Enable();
             IJobClaim jobClaim = scope.ServiceProvider.GetRequiredService<IJobClaim>();
             claimed = await jobClaim.TryClaimAsync(JobName, DateOnly.FromDateTime(Now), stoppingToken);
         }

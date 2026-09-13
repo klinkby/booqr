@@ -1,9 +1,10 @@
 using System.Globalization;
-using Klinkby.Booqr.Application.Services;
+using Klinkby.Booqr.Application.Workers;
+using Klinkby.Booqr.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 
-namespace Klinkby.Booqr.Application.Tests.Services;
+namespace Klinkby.Booqr.Application.Tests.Workers;
 
 public class FlushTokenServiceTests
 {
@@ -36,6 +37,7 @@ public class FlushTokenServiceTests
             .Setup(m => m.DeleteOldClaimsAsync(It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(0);
         services.AddSingleton(jobClaimMock.Object);
+        services.AddScoped<IBatchScope, TestBatchScope>();
 
         await using ServiceProvider serviceProvider = services.BuildServiceProvider();
         using CountdownEvent cde = new(1);
@@ -92,6 +94,7 @@ public class FlushTokenServiceTests
             .Setup(m => m.TryClaimAsync(It.IsAny<string>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
         services.AddSingleton(jobClaimMock.Object);
+        services.AddScoped<IBatchScope, TestBatchScope>();
 
         await using ServiceProvider serviceProvider = services.BuildServiceProvider();
 

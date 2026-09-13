@@ -20,8 +20,13 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\src\Klinkby.Booqr.Api\Klinkby.Booqr.Api.csproj" />
         <ProjectReference Include="..\..\src\Klinkby.Booqr.Application\Klinkby.Booqr.Application.csproj" />
         <ProjectReference Include="..\..\src\Klinkby.Booqr.Infrastructure\Klinkby.Booqr.Infrastructure.csproj"/>
+        <!-- Phase 5: exercises Klinkby.Booqr.Control's TenantProvisioner directly against the
+             Testcontainers fixture. A test project referencing Control does not violate the
+             production layer boundary (ControlTests.cs only forbids the Application/Infrastructure
+             assemblies themselves from referencing Control). -->
     </ItemGroup>
 
     <ItemGroup>
@@ -32,8 +37,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Include="..\..\redist\initdb.sql">
-        <Link>initdb.sql</Link>
+      <EmbeddedResource Include="..\..\redist\initdb\01-control-plane.sql">
+        <Link>initdb\01-control-plane.sql</Link>
+      </EmbeddedResource>
+      <EmbeddedResource Include="..\..\redist\initdb\02-provisioning-engine.sql">
+        <Link>initdb\02-provisioning-engine.sql</Link>
       </EmbeddedResource>
     </ItemGroup>
 

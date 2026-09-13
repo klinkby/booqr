@@ -42,7 +42,18 @@ services:
       - /home/app/.aspnet/DataProtection-Keys
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - Infrastructure__ConnectionString=Host=/var/run/postgresql;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      # Tenancy (host -> tenant resolution middleware config).
+      - Infrastructure__Tenancy__BaseDomain=${TENANCY_BASE_DOMAIN}
+      - Infrastructure__Tenancy__ReservedSubdomains__0=www
+      - Infrastructure__Tenancy__ReservedSubdomains__1=api
+      # Per-tenant data-source factory: base connection (no credentials) + HMAC master secret used
+      # to derive each t_<id> role's password at request time. No POSTGRES_USER superuser creds here.
+      - Infrastructure__TenantDataSources__BaseConnectionString=Host=/var/run/postgresql;Database=${POSTGRES_DB}
+      - Infrastructure__TenantDataSources__MasterSecret=${TENANT_MASTER_SECRET}
+      # Registry connection (booqr_registry, SELECT-only on public.tenants) — resolves host -> tenant.
+      - Infrastructure__Registry__ConnectionString=Host=/var/run/postgresql;Database=${POSTGRES_DB}
+      - Infrastructure__Registry__RegistryUsername=booqr_registry
+      - Infrastructure__Registry__RegistryPassword=${BOOQR_REGISTRY_PASSWORD}
       - Kestrel__UnixSocketPath=/var/run/api/sock
     restart: unless-stopped
     stop_grace_period: 5s
@@ -60,6 +71,93 @@ services:
           cpus: '1.5'
         reservations:
           memory: 32M
+          cpus: '0.1'
+
+  # Scheduled worker: runs ReminderMail and other background jobs via WorkerRunner (no Kestrel, no
+  # HTTP socket). Holds ONLY the booqr_batch (BYPASSRLS) credential — decoupled from the tenant
+  # master secret, the registry credential, and JWT signing material — so a worker compromise can
+  # read/write cross-tenant `app` rows via booqr_batch but cannot derive any t_<id> tenant role
+  # password (TenantDataSources__MasterSecret) or mint tenant JWTs. Not on gateway-net and has no
+  # api_sock mount, so it is unreachable from the proxy/internet in either direction.
+  worker:
+    image: klinkby/booqr:178
+    command: ["worker"]
+    env_file:
+      - ./.env
+    networks:
+      - service-net
+    read_only: true
+    volumes:
+      - postgres_socket:/var/run/postgresql
+    tmpfs:
+      - /tmp:mode=1777,noexec,nosuid
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      # Cross-tenant booqr_batch (BYPASSRLS) connection for background/scheduled work only.
+      - Infrastructure__Batch__ConnectionString=Host=/var/run/postgresql;Database=${POSTGRES_DB}
+      - Infrastructure__Batch__BatchUsername=booqr_batch
+      - Infrastructure__Batch__BatchPassword=${BOOQR_BATCH_PASSWORD}
+    restart: unless-stopped
+    stop_grace_period: 5s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: [ "CMD-SHELL", "test -n \"$(find /tmp/worker-alive -mmin -2)\"" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.5'
+        reservations:
+          memory: 16M
+          cpus: '0.1'
+
+  # Admin CLI container: applies migrations and provisions/deprovisions/rotates tenants. Holds the
+  # elevated booqr_migrator credentials + tenant master secret — never the HAProxy `api` backend,
+  # never a long-running process. Invoke on demand, e.g.:
+  #   docker compose run --rm admin admin --migrate
+  #   docker compose run --rm admin admin --provision alice
+  #   docker compose run --rm admin admin --deprovision 3
+  #   docker compose run --rm admin admin --rotate
+  admin:
+    image: klinkby/booqr:178
+    env_file:
+      - ./.env
+    # Internal network / postgres socket only — no api_sock mount, not on the gateway-net/service-net
+    # split HAProxy routes through; unreachable from the proxy.
+    networks:
+      - service-net
+    read_only: true
+    volumes:
+      - postgres_socket:/var/run/postgresql
+    tmpfs:
+      - /tmp:mode=1777,noexec,nosuid
+    environment:
+      - BOOQR_ADMIN_CONNECTION_STRING=Host=/var/run/postgresql;Database=${POSTGRES_DB}
+      - BOOQR_MIGRATOR_USERNAME=booqr_migrator
+      - BOOQR_MIGRATOR_PASSWORD=${BOOQR_MIGRATOR_PASSWORD}
+      - BOOQR_TENANT_MASTER_SECRET=${TENANT_MASTER_SECRET}
+      - BOOQR_TENANT_MASTER_SECRET_NEW=${TENANT_MASTER_SECRET_NEW}
+    # No default command: `docker compose run --rm admin admin --migrate|--provision <slug>|--deprovision <id>|--rotate`.
+    # Not started by `docker compose up` (no `restart:`); a short-lived one-shot command, not a service.
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.5'
+        reservations:
+          memory: 16M
           cpus: '0.1'
 
   postgres:

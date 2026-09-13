@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Reflection;
 using Klinkby.Booqr.Api;
+using Klinkby.Booqr.Api.Admin;
+using Klinkby.Booqr.Api.Worker;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HostFiltering;
 using Microsoft.AspNetCore.OpenApi;
@@ -10,6 +12,27 @@ using NLog.Web;
 
 var timer = Stopwatch.StartNew();
 
+// Admin mode: same Native-AOT image, started with a leading "admin" argument, runs one
+// provisioning/migration command against the database and exits without starting Kestrel or any
+// part of the web pipeline (docs/1-design.md "2b. Admin CLI (admin mode)"). Detected before the
+// WebApplicationBuilder is created so the admin path never touches tenant/registry HTTP request
+// context. The actual admin commands (provision/migrate/deprovision/rotate) are Phase 5; here we
+// only detect the flag and dispatch to the AdminRunner seam Phase 5 fills in.
+if (args.Length > 0 && string.Equals(args[0], "admin", StringComparison.OrdinalIgnoreCase))
+{
+    return await AdminRunner.RunAsync(args[1..]);
+}
+
+// Worker mode: same Native-AOT image, started with a leading "worker" argument, runs the
+// cross-tenant scheduled jobs (reminder mail, refresh-token flush) as the booqr_batch
+// (BYPASSRLS) role on a generic host - no Kestrel, no JWT, no tenant data sources/master
+// secret. See Klinkby.Booqr.Api.Worker.WorkerRunner for the security-boundary rationale.
+if (args.Length > 0 && string.Equals(args[0], "worker", StringComparison.OrdinalIgnoreCase))
+{
+    return await WorkerRunner.RunAsync(args[1..]);
+}
+
+// Or API mode:
 WebApplicationBuilder builder = WebApplication.CreateSlimBuilder(args);
 
 // Detect if running in OpenAPI document generation mode
@@ -24,7 +47,7 @@ ConfigureMiddleware(app, isMockServer);
 ConfigureEndpoints(app);
 
 await RunApplicationAsync(app, timer);
-return;
+return 0;
 
 static void ConfigureLogging(WebApplicationBuilder builder, bool isMockServer)
 {
@@ -52,7 +75,8 @@ static void ConfigureServices(WebApplicationBuilder builder, bool isMockServer)
     {
         builder.Services
             .AddSingleton<TimeProvider>(static _ => TimeProvider.System)
-            .AddInfrastructure(configuration.GetRequiredSection("Infrastructure"));
+            .AddTenancy(configuration.GetRequiredSection("Infrastructure:Tenancy"))
+            .AddApiInfrastructure(configuration.GetRequiredSection("Infrastructure"));
 
         // CreateSlimBuilder omits the default host-filtering startup filter, so wire it
         // explicitly. The app emits its own authority (e.g. password-reset links) from the
@@ -101,6 +125,7 @@ static void ConfigureMiddleware(WebApplication app, bool isMockServer)
     }
 
     app.UseHostFiltering();
+    app.UseTenantResolution();
     app.UseAuthorization();
 
     if (app.Environment.IsDevelopment())

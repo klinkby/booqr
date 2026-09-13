@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Unicode;
+using Klinkby.Booqr.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -9,7 +10,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Klinkby.Booqr.Api.Tests;
 
-internal sealed class WebApiFixture(string? allowedHosts = null, bool withThrowingEndpoint = false)
+/// <summary>
+///     Optional stand-in for <see cref="ITenantRepository" />, letting tests resolve tenants
+///     deterministically without a live registry database (the fixture's connection strings point
+///     at an unreachable <c>postgres:5432</c> host). When <c>null</c> (the default), the real
+///     registry-backed repository is used and any attempt to reach it fails as it does today.
+/// </summary>
+internal sealed class WebApiFixture(
+    string? allowedHosts = null,
+    bool withThrowingEndpoint = false,
+    ITenantRepository? tenantRepository = null)
     : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -30,21 +40,42 @@ internal sealed class WebApiFixture(string? allowedHosts = null, bool withThrowi
             }
           },
           "Infrastructure": {
-            "ConnectionString": "Host=postgres:5432;Database=postgres;Username=postgres;Password=...",
             "MailClientApiKey": "...:...",
             "MailClientAccount": "1.....smtp",
-            "MailClientFromAddress": "no-reply@booqr.dk"
+            "MailClientFromAddress": "no-reply@booqr.dk",
+            "Tenancy": {
+              "BaseDomain": "booqr.dk",
+              "ReservedSubdomains": [ "www", "status", "mta-sts" ]
+            },
+            "TenantDataSources": {
+              "BaseConnectionString": "Host=postgres:5432;Database=postgres",
+              "MasterSecret": "test-master-secret",
+              "MaxPoolSize": 3,
+              "MaxCacheEntries": 64
+            },
+            "Registry": {
+              "ConnectionString": "Host=postgres:5432;Database=postgres",
+              "RegistryUsername": "booqr_registry",
+              "RegistryPassword": "test-registry-password",
+              "CacheTtl": "00:00:30",
+              "CacheSize": 256
+            },
+            "Batch": {
+              "ConnectionString": "Host=postgres:5432;Database=postgres",
+              "BatchUsername": "booqr_batch",
+              "BatchPassword": "test-batch-password"
+            }
           }
         }
         """;
         using MemoryStream stream = new(Encoding.UTF8.GetBytes(jsonConfig));
         IConfigurationBuilder configurationBuilder = new ConfigurationBuilder()
             .AddJsonStream(stream);
-        if (allowedHosts is not null)
-        {
-            configurationBuilder.AddInMemoryCollection(
-                new Dictionary<string, string?> { ["AllowedHosts"] = allowedHosts });
-        }
+        // In-memory WebApplicationFactory requests default to the "localhost" host, which the
+        // production appsettings.json AllowedHosts (*.booqr.dk) would reject. Default the test host
+        // filter to allow-all; tests that specifically exercise host filtering pass an explicit value.
+        configurationBuilder.AddInMemoryCollection(
+            new Dictionary<string, string?> { ["AllowedHosts"] = allowedHosts ?? "*" });
 
         IConfigurationRoot configuration = configurationBuilder.Build();
         builder.UseConfiguration(configuration);
@@ -58,7 +89,17 @@ internal sealed class WebApiFixture(string? allowedHosts = null, bool withThrowi
             builder.ConfigureTestServices(static services =>
                 services.AddSingleton<IStartupFilter, ThrowingStartupFilter>());
         }
-        else
+
+        if (tenantRepository is not null)
+        {
+            // Overrides the registry-backed ITenantRepository (which would otherwise try to reach
+            // the unreachable postgres:5432 host above) so tenant-resolution middleware and the
+            // GET /api/my-tenant endpoint resolve deterministically in-process.
+            builder.ConfigureTestServices(services =>
+                services.AddScoped(_ => tenantRepository));
+        }
+
+        if (!withThrowingEndpoint && tenantRepository is null)
         {
             builder.ConfigureTestServices(_ => { });
         }

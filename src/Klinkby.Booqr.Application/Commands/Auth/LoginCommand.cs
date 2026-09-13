@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Klinkby.Booqr.Core;
 using BCryptNet = BCrypt.Net.BCrypt;
 
 namespace Klinkby.Booqr.Application.Commands.Auth;
@@ -10,6 +11,7 @@ public sealed record LoginRequest(
 public sealed partial class LoginCommand(
     IUserRepository userRepository,
     IOAuth oauth,
+    ITenantContext tenantContext,
     ILogger<LoginCommand> logger) : ICommand<LoginRequest, Task<Result<OAuthTokenResponse>>>
 {
     private readonly LoggerMessages _log = new(logger);
@@ -23,6 +25,17 @@ public sealed partial class LoginCommand(
     public async Task<Result<OAuthTokenResponse>> Execute(LoginRequest query, CancellationToken cancellation = default)
     {
         ArgumentNullException.ThrowIfNull(query);
+
+        // Login must happen within a host-resolved tenant: GetByEmail below runs on the tenant
+        // connection (RLS confines it to the host tenant), but without a tenant at all there is no
+        // connection to authenticate against. Fail fast rather than let the connection provider
+        // throw InvalidOperationException at GetConnection() time. The claim-vs-host mismatch check
+        // for already-authenticated requests is a separate Phase 4 middleware concern.
+        if (!tenantContext.HasTenant)
+        {
+            _log.NoTenant();
+            return Problem.Unauthorized;
+        }
 
         var userName = query.Email.Trim();
         User? user = await userRepository.GetByEmail(userName, cancellation);
@@ -78,5 +91,8 @@ public sealed partial class LoginCommand(
 
         [LoggerMessage(133, LogLevel.Warning, "User {Id} has not confirmed sign up")]
         public partial void NotConfirmed(int id);
+
+        [LoggerMessage(134, LogLevel.Warning, "Login attempted with no host-resolved tenant")]
+        public partial void NoTenant();
     }
 }
