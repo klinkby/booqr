@@ -40,10 +40,6 @@ create unique index idx_users_tenant_email
     on app.users (tenant_id, email)
     where (deleted is null);
 
-create index idx_users_email
-    on app.users (email)
-    where (deleted is null);
-
 create table app.locations
 (
     id        integer generated always as identity
@@ -143,7 +139,9 @@ create table app.activities
     tenant_id int                      not null default app.tenant_of(current_user),
     timestamp timestamp with time zone not null,
     requestid char(23),
-    userid    integer                  not null,
+    userid    integer                  not null
+        constraint activities_users_id_fk
+            references app.users,
     entity    varchar(20)              not null,
     entityid  integer                  not null,
     action    varchar(30)              not null,
