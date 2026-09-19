@@ -68,6 +68,8 @@ public partial class AddBookingCommand(
                                      ?? throw new InvalidOperationException("Booking was created but not found");
             await transaction.Commit(cancellation);
 
+            await activityRecorder.Add<Booking>(new(query.AuthenticatedUserId, newId, query.TenantId), cancellation);
+
             Message message = ComposeMessage(details);
             await channelWriter.WriteAsync(message, cancellation);
 
@@ -119,7 +121,6 @@ public partial class AddBookingCommand(
             _ => throw new UnreachableException("Covers enum has no more values.")
         };
         await updateStrategy;
-        activityRecorder.Add<Booking>(new(query.AuthenticatedUserId, newId));
 
         return (newId, true);
     }

@@ -91,7 +91,7 @@ public class UpdateUserProfileCommandTests
         // Assert
         Assert.IsType<Result<bool>.Success>(result);
         _activityRecorder.Verify(
-            x => x.Update(It.IsAny<ActivityQuery<User>>()),
+            x => x.Update(It.IsAny<ActivityQuery<User>>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -114,7 +114,7 @@ public class UpdateUserProfileCommandTests
         // Assert
         Assert.IsType<Result<bool>.Fault>(result);
         _activityRecorder.Verify(
-            x => x.Update(It.IsAny<ActivityQuery<User>>()),
+            x => x.Update(It.IsAny<ActivityQuery<User>>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 }

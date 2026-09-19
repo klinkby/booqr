@@ -13,7 +13,7 @@ public class ExpiringQueryStringTests
         {
             HmacKey = Convert.ToBase64String(
                 RandomNumberGenerator.GetBytes(
-                    HMACSHA3_384.HashSizeInBytes))
+                    HMACSHA256.HashSizeInBytes))
         });
     private readonly FakeTimeProvider _timeProvider = new();
 

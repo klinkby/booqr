@@ -29,7 +29,7 @@ public class DeleteUserCommandTest
         _users.Verify(x => x.Delete(req.Id, It.IsAny<CancellationToken>()),
             expected ? Times.Once : Times.Never);
         _activityRecorder.Verify(x => x.Delete(
-                It.Is<ActivityQuery<User>>(u => u.EntityId == req.Id)),
+                It.Is<ActivityQuery<User>>(u => u.EntityId == req.Id), It.IsAny<CancellationToken>()),
             expected ? Times.Once : Times.Never);
     }
 }

@@ -425,6 +425,23 @@
           "Microsoft.IdentityModel.Abstractions": "8.22.0"
         }
       },
+      "Microsoft.IdentityModel.Protocols": {
+        "type": "Transitive",
+        "resolved": "8.19.2",
+        "contentHash": "sGxSsSrZXNmca6D+jHH2rVRyo2nNRd/g4H9CFbPmLLq0xgoH1U0orLWE5minfijw7+zq49tBs7txenbfAErRoQ==",
+        "dependencies": {
+          "Microsoft.IdentityModel.Tokens": "8.19.2"
+        }
+      },
+      "Microsoft.IdentityModel.Protocols.OpenIdConnect": {
+        "type": "Transitive",
+        "resolved": "8.19.2",
+        "contentHash": "1XOcyY36cVymzE3qKdzKaUEZ4Pzt7ZpSa14JZoPPK1NLFUkQDs85TCqpV6XDo0YjFXj6nVK00AfOHppjghjhtw==",
+        "dependencies": {
+          "Microsoft.IdentityModel.Protocols": "8.19.2",
+          "System.IdentityModel.Tokens.Jwt": "8.19.2"
+        }
+      },
       "Microsoft.IdentityModel.Tokens": {
         "type": "Transitive",
         "resolved": "8.22.0",
@@ -486,6 +503,16 @@
         "contentHash": "WcSp3+vP+yHNgS8EV5J7pZ9IRpeDuARBPN28by8zqff1wJQXm26PVU8L3/fYLBJVU7BtDyqNVWq2KlCVvSSR4A==",
         "dependencies": {
           "Microsoft.NETCore.Platforms": "1.1.0"
+        }
+      },
+      "NLog.Extensions.Logging": {
+        "type": "Transitive",
+        "resolved": "6.1.4",
+        "contentHash": "gDJjgF9LjG1Zsy3o/3BVUk5gFcCozYzrzKTZjcnE43FghchoQ9Xi4ra2dGEU+ftJf9oM0Kzs06y1r2SjfhDBGQ==",
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.0",
+          "Microsoft.Extensions.Logging": "10.0.0",
+          "NLog": "6.1.4"
         }
       },
       "Npgsql": {
@@ -642,6 +669,18 @@
           "xunit.v3.runner.common": "[4.0.0]"
         }
       },
+      "klinkby.booqr.api": {
+        "type": "Project",
+        "dependencies": {
+          "Klinkby.Booqr.Application": "[1.0.0, )",
+          "Klinkby.Booqr.Infrastructure": "[1.0.0, )",
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.11, )",
+          "Microsoft.AspNetCore.OpenApi": "[10.0.0-preview.7.25380.108, 10.0.0-preview.7.25380.108]",
+          "Microsoft.OpenApi": "[2.12.2, 2.12.2]",
+          "NLog": "[6.1.4, )",
+          "NLog.Web.AspNetCore": "[6.1.4, )"
+        }
+      },
       "klinkby.booqr.application": {
         "type": "Project",
         "dependencies": {
@@ -692,6 +731,24 @@
         "requested": "[1.0.52, )",
         "resolved": "1.0.52",
         "contentHash": "2ZmljAW3tJ5wJZGva5ba2Tz9LMcvWMMl8O/NtpZ4GEBcnNbxCOMYFmhtbWnUBNADJLkDZp0lg5yTlu5Pg4i7xQ=="
+      },
+      "Microsoft.AspNetCore.Authentication.JwtBearer": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.11, )",
+        "resolved": "10.0.11",
+        "contentHash": "Dy9yElSej0rVQL8LBpCLatWTKXNH6h6VBVFmGndTCf1Wge0jSvH9U8mml6ddVDAQ089q1/fDYlhyukHSgx8unQ==",
+        "dependencies": {
+          "Microsoft.IdentityModel.Protocols.OpenIdConnect": "8.19.2"
+        }
+      },
+      "Microsoft.AspNetCore.OpenApi": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.0-preview.7.25380.108, 10.0.0-preview.7.25380.108]",
+        "resolved": "10.0.0-preview.7.25380.108",
+        "contentHash": "pxdr69OAbH/IB8+vkJAi3aZzlmsrbhqQQcsc6J7C23X5lA/RiW03OhGc+5IQxUc+21QcCR0aGHz759VWllet1w==",
+        "dependencies": {
+          "Microsoft.OpenApi": "2.0.0"
+        }
       },
       "Microsoft.Extensions.Configuration": {
         "type": "CentralTransitive",
@@ -763,6 +820,27 @@
         "dependencies": {
           "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.11",
           "Microsoft.Extensions.Options": "10.0.11"
+        }
+      },
+      "Microsoft.OpenApi": {
+        "type": "CentralTransitive",
+        "requested": "[2.12.2, 2.12.2]",
+        "resolved": "2.12.2",
+        "contentHash": "ZkT7qiJe0Kj0+DTZOZo+xrDy1kNmdsWFQVPIQLNx9ZJ0T9cB2LG7r+Bi60so8/+yg1nkS7QCPadrzsTG4VPKrA=="
+      },
+      "NLog": {
+        "type": "CentralTransitive",
+        "requested": "[6.1.4, )",
+        "resolved": "6.1.4",
+        "contentHash": "ft6Lv17uoFuHTGWiY47FEXH7VA5HMHp973zodaOZAJyFg6mHL9RdXjqdNkRJXFo5plQJR+LPt5e6aAZU8KSDog=="
+      },
+      "NLog.Web.AspNetCore": {
+        "type": "CentralTransitive",
+        "requested": "[6.1.4, )",
+        "resolved": "6.1.4",
+        "contentHash": "kM79afVMCJx5Nb3nyponqOTKPjFNVKNzCPCyMKJXRVUv+BLOCjFGpAzMfriO8u0skc3kZwLUY2ZJUb5SGNZ9Ug==",
+        "dependencies": {
+          "NLog.Extensions.Logging": "6.1.4"
         }
       },
       "Npgsql.DependencyInjection": {

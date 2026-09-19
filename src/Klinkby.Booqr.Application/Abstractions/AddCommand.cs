@@ -32,7 +32,7 @@ public abstract partial class AddCommand<TRequest, TItem>(
         TItem item = Map(query);
         var newId = await repository.Add(item, cancellation);
         _log.UserCreateItem(query.AuthenticatedUserId, item.GetType().Name, newId);
-        activityRecorder.Add<TItem>(new(query.AuthenticatedUserId, newId));
+        await activityRecorder.Add<TItem>(new(query.AuthenticatedUserId, newId, query.TenantId), cancellation);
         return newId;
     }
 

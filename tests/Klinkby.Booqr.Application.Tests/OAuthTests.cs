@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
+using Klinkby.Booqr.Core;
 using Microsoft.Extensions.Options;
 
 namespace Klinkby.Booqr.Application.Tests;
@@ -11,7 +12,7 @@ public class OAuthTests
     internal async Task GIVEN_User_WHEN_GenerateTokenResponse_THEN_ReturnsToken(User user, JwtSettings settings)
     {
         var repoMock = CreateRepositoryMock();
-        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
+        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), CreateTenantContext(), NullLogger<OAuth>.Instance);
 
         (var actual, _) = await sut.GenerateTokenResponse(user, null, TestContext.Current.CancellationToken);
         Assert.NotNull(actual);
@@ -26,7 +27,7 @@ public class OAuthTests
     internal async Task GIVEN_User_WHEN_GenerateTokenResponse_THEN_AddToRepository(User user, JwtSettings settings)
     {
         var repoMock = CreateRepositoryMock();
-        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
+        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), CreateTenantContext(), NullLogger<OAuth>.Instance);
 
         await sut.GenerateTokenResponse(user, null, TestContext.Current.CancellationToken);
 
@@ -38,7 +39,7 @@ public class OAuthTests
     internal async Task GIVEN_ExistingFamily_WHEN_GenerateTokenResponse_THEN_PreservesFamily(User user, Guid family, JwtSettings settings)
     {
         var repoMock = CreateRepositoryMock();
-        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
+        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), CreateTenantContext(), NullLogger<OAuth>.Instance);
 
         await sut.GenerateTokenResponse(user, family, TestContext.Current.CancellationToken);
 
@@ -51,7 +52,7 @@ public class OAuthTests
         JwtSettings settings)
     {
         var repoMock = CreateRepositoryMock();
-        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
+        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), CreateTenantContext(), NullLogger<OAuth>.Instance);
 
         (var actual, _) = await sut.GenerateTokenResponse(user, null, TestContext.Current.CancellationToken);
 
@@ -74,7 +75,7 @@ public class OAuthTests
         JwtSettings settings)
     {
         var repoMock = CreateRepositoryMock();
-        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
+        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), CreateTenantContext(), NullLogger<OAuth>.Instance);
 
         (var actual, _) = await sut.GenerateTokenResponse(user, null, TestContext.Current.CancellationToken);
 
@@ -89,7 +90,7 @@ public class OAuthTests
     {
         var repoMock = new Mock<IRefreshTokenRepository>();
         var timeProvider = TestHelpers.TimeProvider;
-        var sut = new OAuth(repoMock.Object, timeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
+        var sut = new OAuth(repoMock.Object, timeProvider, Options.Create(settings), CreateTenantContext(), NullLogger<OAuth>.Instance);
 
         repoMock.Setup(x => x.RevokeSingle(It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
@@ -111,7 +112,7 @@ public class OAuthTests
         var repoMock = new Mock<IRefreshTokenRepository>();
         repoMock.Setup(x => x.GetByHash(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((RefreshToken?)null);
-        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
+        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), CreateTenantContext(), NullLogger<OAuth>.Instance);
 
         var actual = await sut.GetValidRefreshToken(refreshToken, TestContext.Current.CancellationToken);
 
@@ -126,7 +127,7 @@ public class OAuthTests
         tokenMetadata = tokenMetadata with { Revoked = DateTime.UtcNow.AddMinutes(-1) };
         repoMock.Setup(x => x.GetByHash(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(tokenMetadata);
-        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
+        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), CreateTenantContext(), NullLogger<OAuth>.Instance);
 
         var actual = await sut.GetValidRefreshToken(refreshToken, TestContext.Current.CancellationToken);
 
@@ -144,7 +145,7 @@ public class OAuthTests
         tokenMetadata = tokenMetadata with { Revoked = null, Expires = now.AddMinutes(-1) };
         repoMock.Setup(x => x.GetByHash(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(tokenMetadata);
-        var sut = new OAuth(repoMock.Object, timeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
+        var sut = new OAuth(repoMock.Object, timeProvider, Options.Create(settings), CreateTenantContext(), NullLogger<OAuth>.Instance);
 
         var actual = await sut.GetValidRefreshToken(refreshToken, TestContext.Current.CancellationToken);
 
@@ -161,7 +162,7 @@ public class OAuthTests
         tokenMetadata = tokenMetadata with { Revoked = null, Expires = now.AddMinutes(1) };
         repoMock.Setup(x => x.GetByHash(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(tokenMetadata);
-        var sut = new OAuth(repoMock.Object, timeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
+        var sut = new OAuth(repoMock.Object, timeProvider, Options.Create(settings), CreateTenantContext(), NullLogger<OAuth>.Instance);
 
         var actual = await sut.GetValidRefreshToken(refreshToken, TestContext.Current.CancellationToken);
 
@@ -177,7 +178,7 @@ public class OAuthTests
         var repoMock = new Mock<IRefreshTokenRepository>();
         repoMock.Setup(x => x.GetByHash(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(tokenMetadata);
-        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
+        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), CreateTenantContext(), NullLogger<OAuth>.Instance);
 
         await sut.RevokeTokenFamily(refreshToken, TestContext.Current.CancellationToken);
 
@@ -191,7 +192,7 @@ public class OAuthTests
         var repoMock = new Mock<IRefreshTokenRepository>();
         repoMock.Setup(x => x.GetByHash(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((RefreshToken?)null);
-        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
+        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), CreateTenantContext(), NullLogger<OAuth>.Instance);
 
         await sut.RevokeTokenFamily(refreshToken, TestContext.Current.CancellationToken);
 
@@ -205,7 +206,7 @@ public class OAuthTests
         var repoMock = new Mock<IRefreshTokenRepository>();
         repoMock.Setup(x => x.GetByHash(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((RefreshToken?)null);
-        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), NullLogger<OAuth>.Instance);
+        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), CreateTenantContext(), NullLogger<OAuth>.Instance);
 
         var actual = await sut.GetValidRefreshToken(new string('a', 100_000), TestContext.Current.CancellationToken);
 
@@ -217,5 +218,51 @@ public class OAuthTests
         var repo = new Mock<IRefreshTokenRepository>();
         repo.Setup(x => x.Add(It.Is<RefreshToken>(m => m.Hash.Length == 40), It.IsAny<CancellationToken>()));
         return repo;
+    }
+
+    private static ITenantContext CreateTenantContext(bool hasTenant = true, int tenantId = 7)
+    {
+        var mock = new Mock<ITenantContext>();
+        mock.SetupGet(x => x.HasTenant).Returns(hasTenant);
+        mock.SetupGet(x => x.TenantId).Returns(hasTenant ? tenantId : 0);
+        return mock.Object;
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_HostResolvedTenant_WHEN_GenerateTokenResponse_THEN_AccessTokenHasTenantClaim(User user,
+        JwtSettings settings)
+    {
+        var repoMock = CreateRepositoryMock();
+        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), CreateTenantContext(tenantId: 42), NullLogger<OAuth>.Instance);
+
+        (var actual, _) = await sut.GenerateTokenResponse(user, null, TestContext.Current.CancellationToken);
+
+        var handler = new JwtSecurityTokenHandler
+        {
+            MapInboundClaims = false
+        };
+        var jwt = handler.ReadJwtToken(actual.AccessToken);
+
+        Assert.Equal("42", jwt.Claims.First(c => c.Type == "tenant").Value);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_NoTenant_WHEN_GenerateTokenResponse_THEN_AccessTokenHasNoTenantClaim(User user,
+        JwtSettings settings)
+    {
+        var repoMock = CreateRepositoryMock();
+        var sut = new OAuth(repoMock.Object, TestHelpers.TimeProvider, Options.Create(settings), CreateTenantContext(hasTenant: false), NullLogger<OAuth>.Instance);
+
+        (var actual, _) = await sut.GenerateTokenResponse(user, null, TestContext.Current.CancellationToken);
+
+        var handler = new JwtSecurityTokenHandler
+        {
+            MapInboundClaims = false
+        };
+        var jwt = handler.ReadJwtToken(actual.AccessToken);
+
+        Assert.DoesNotContain(jwt.Claims, c => c.Type == "tenant");
     }
 }

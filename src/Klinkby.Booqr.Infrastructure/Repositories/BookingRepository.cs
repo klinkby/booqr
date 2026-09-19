@@ -1,4 +1,6 @@
-﻿namespace Klinkby.Booqr.Infrastructure.Repositories;
+﻿using System.Globalization;
+
+namespace Klinkby.Booqr.Infrastructure.Repositories;
 
 [QueryFields("customerid", "serviceid", "notes")]
 internal sealed partial class BookingRepository(IConnectionProvider connectionProvider, TimeProvider timeProvider)
@@ -30,8 +32,8 @@ internal sealed partial class BookingRepository(IConnectionProvider connectionPr
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
         var result = await connection.ExecuteScalarAsync($"{InsertQuery}", WithCreated(newItem));
-        Debug.Assert(result is int);
-        return (int)result;
+        Debug.Assert(result is int or long);
+        return Convert.ToInt32(result, CultureInfo.InvariantCulture);
     }
 
     public async Task<bool> Update(Booking item, CancellationToken cancellation)

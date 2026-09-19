@@ -7,13 +7,19 @@
 Klinkby.Booqr is an AOT-compiled ASP.NET 10 booking management API built on minimalist clean architecture with vertical feature slices.
 The system emphasizes performance, security, and maintainability through extensive compile-time code generation (source generators for DI, logging, JSON, ORM, OpenAPI), Native AOT with aggressive trimming, and strict architectural boundaries enforced by automated tests.
 
+**Multi-tenant:** many businesses share one PostgreSQL database, isolated by **`FORCE ROW LEVEL SECURITY`** in a shared `app` schema plus **one login role per tenant** (`t_<id>`). The RLS policy is keyed on the connected role (`current_user` → `app.tenant_of()`), so isolation is DB-enforced and unforgeable — no per-request session variable. The API resolves the tenant from the request host (`<slug>.booqr.dk`) and connects as that tenant's role; the `admin` run-mode of the API image (`Api/Admin/`, selected by a leading `admin` arg) provisions tenants/roles. See `docs/1-design.md` for the full design.
+
 ## Repository Structure
 - **Klinkby.Booqr.slnx** - Use the new XML-based solution file
 - **src/**
   - **Klinkby.Booqr.Core/** - Domain contracts, records, interfaces
   - **Klinkby.Booqr.Application/** - Business logic, Commands, Services
-  - **Klinkby.Booqr.Infrastructure/** - Repositories, I/O agents, Dapper queries
-  - **Klinkby.Booqr.Api/** - HTTP endpoints, Minimal API, JWT auth
+  - **Klinkby.Booqr.Infrastructure/** - Repositories, I/O agents, Dapper queries; also the tenant/registry/batch data sources, `SchemaMigrator`, and `Migrations/*.sql` (the migrator-owned `app` schema)
+  - **Klinkby.Booqr.Api/** - HTTP endpoints, Minimal API, JWT auth, tenant-resolution middleware. Run-mode is selected by a leading arg: default = web/API host; `admin` = control-plane CLI (`Api/Admin/`: provision/migrate/deprovision/rotate, holding the elevated `booqr_migrator` creds + tenant master secret — never starts Kestrel); `worker` = generic host running the cross-tenant scheduled jobs as `booqr_batch` (`Api/Worker/WorkerRunner.cs`). All three share the one AOT image.
+- **redist/**
+  - **initdb/** - one-time control-plane bootstrap (schemas, `public.tenants`, roles, `app.tenant_of()`); run by the Postgres container as superuser
+  - **docker-compose.yml** - HAProxy, api, postgres, and the internal-only `admin` service
+  - **web-gateway/haproxy.cfg** - routes `*.booqr.dk`; apex→www redirect
 - **tests/**
   - **Klinkby.Booqr.Tests/** - ArchUnit architectural policy tests
   - **Klinkby.Booqr.Core.Tests/** - Core domain unit tests
@@ -34,6 +40,7 @@ The solution follows a minimalist clean architecture with four distinct layers, 
 - **[Application](src/Klinkby.Booqr.Application/AGENTS.md)** - Business logic, Commands, Services (references Core only, no I/O)
 - **[Infrastructure](src/Klinkby.Booqr.Infrastructure/AGENTS.md)** - Repositories, database access, external services (references Core only)
 - **[API](src/Klinkby.Booqr.Api/AGENTS.md)** - HTTP endpoints, authentication, Minimal APIs (references all layers)
+- **Admin** (`src/Klinkby.Booqr.Api/Admin/`) - Control-plane CLI (provision/migrate/deprovision/rotate) hosted in the API image's `admin` run-mode. It builds bare `NpgsqlDataSource`s from env (no web host, no DI graph) and never starts Kestrel, so the elevated `booqr_migrator` creds + tenant master secret never touch a request path — but note this is now a runtime/composition boundary, not the compile-time assembly boundary the former `Klinkby.Booqr.Control` project provided.
 
 Each layer has detailed guidelines in its respective `AGENTS.md` file. Click the links above for layer-specific architectural rules, patterns, and examples.
 
@@ -63,6 +70,7 @@ Architectural policies are validated automatically via `TngTech.ArchUnitNET` tes
 
 ### Security
 
+- **Tenant isolation**: `FORCE ROW LEVEL SECURITY` on every `app` table, policy `tenant_id = app.tenant_of(current_user)`; per-tenant `NOBYPASSRLS` login roles (`t_<id>`) with passwords derived as `base64url(HMAC-SHA256(master_secret, id))`. Cross-tenant scheduled jobs (reminder mail, refresh-token flush) run in a dedicated **`worker` run-mode container** (`Api/Program.cs` `worker` arg-branch → `Api/Worker/WorkerRunner.cs`, a generic host with no Kestrel/JWT/tenant data sources) as the separate `booqr_batch` (BYPASSRLS) role via `IBatchScope`. The worker holds **only** the `booqr_batch` credential — not the tenant HMAC master secret — so it cannot derive `t_<id>` passwords; the tenant-facing `api1` no longer carries `BOOQR_BATCH_PASSWORD`. The `tenant` JWT claim must match the host tenant (403 otherwise); DB RLS is the backstop.
 - **Refresh token rotation**: 240-bit entropy, family-based reuse detection, SHAKE128 hashing
 - **HttpOnly cookies**: Secure, SameSite=Strict, path-scoped
 - **Supply chain defense**: 7-day Dependabot cooldown, package source mapping, lock files
@@ -130,3 +138,15 @@ See **[tests/AGENTS.md](tests/AGENTS.md)** for comprehensive testing practices a
 6. **Transactions in tests**: Infrastructure tests must rollback transactions to keep database clean.
 
 7. **Authorization first**: Application commands must validate user access before calling repositories.
+
+8. **Tenant isolation is DB-enforced — do not hand-roll it**: RLS + the `tenant_id DEFAULT app.tenant_of(current_user)` column scope every query automatically. **Never add `WHERE tenant_id = …`** to a query, and never write `tenant_id` on a normal tenant connection (the DEFAULT stamps it; `WITH CHECK` rejects other values). The only exception is the `booqr_batch` (BYPASSRLS) path, which sets `tenant_id` explicitly.
+
+9. **`ITenantContext` and the tenant connection**: commands needing the current tenant inject Core's `ITenantContext` (populated by the API's tenant-resolution middleware). The scoped tenant `DbConnection` resolves **lazily on first use** and fails closed if no tenant — so keep DB access out of DI construction, and mark tenant-optional endpoints with `TenantOptionalAttribute`.
+
+10. **Control-plane boundary**: put provisioning/migration logic in `src/Klinkby.Booqr.Api/Admin/` (the `admin` run-mode) only, and keep it off the web/request path — it must build its own bare `NpgsqlDataSource`s and never be reachable from an HTTP endpoint or the DI graph the web host resolves. New superuser-only DDL or `public.*` grants belong in `redist/initdb/*.sql`, not migrations. (Historically this was the separate `Klinkby.Booqr.Control` assembly with an ArchUnit guard; it now lives in the Api project, so the separation is by convention/run-mode, not a compile-time assembly boundary.)
+
+11. **AOT-safe**: this is a Native-AOT app — avoid reflection-based `DataAnnotations` (e.g. `[Range(typeof(TimeSpan), …)]` → IL2026). Verify the real gate with a `dotnet publish` (AOT) + run, not just a build.
+
+12. **`LoggerMessage` convention**: high-performance logging uses source-generated `[LoggerMessage]` partial methods, never `logger.LogInformation(...)` with interpolation (Release/publish treats `CA1848`/`CA1873` as errors). Nest the source-gen class as a `private sealed partial class LoggerMessages(ILogger logger)` inside the type that logs (see `ActivityRepository`, `HeartbeatService`), carrying `[ExcludeFromCodeCoverage]` and a `CA1823` suppression on the `_logger` field. **Each `[LoggerMessage(eventId, …)]` id must be unique within its assembly** — the source generator does not check this and duplicates silently collide in the emitted logs. Pick an unused id (grep `\[LoggerMessage\(` across the project first); the API reserves 1–3 for `ProgramLoggerMessages` and 1070–1076 for the worker/heartbeat.
+
+13. **Known `bigint` id truncation (bookings/calendar)**: `bookings.id` and `calendar.id` are `bigint` in the DB (`Migrations/0001_baseline.sql`, "bigint promotion"), but the C# domain models their ids as `int` — they read `Id` through the shared `Audit.Id` / `IId` (both `int`), and the shared request/route types (`ByIdRequest`, `AuthenticatedByIdRequest`, `{id:int}`) are `int` too. Consequently `BookingRepository.Add` narrows the returned identity with `Convert.ToInt32`, which throws `OverflowException` once an identity exceeds `int.MaxValue` (~2.1B). This is **known and unfixed**: a correct fix must thread `long` through the shared id types (or give bookings/calendar bespoke `long` keys), and touches every entity's wire contract because `IId`/`Audit`/`ByIdRequest`/`{id:int}` are shared. Do **not** silently "fix" only `BookingRepository.Add` in isolation — that just moves the truncation elsewhere. Note the other ids (`customerid`, `serviceid`, `employeeid`, `userid`, and the non-promoted tables) are genuinely `integer`, so their `int` mapping is correct.

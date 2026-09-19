@@ -20,8 +20,14 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\src\Klinkby.Booqr.Api\Klinkby.Booqr.Api.csproj" />
         <ProjectReference Include="..\..\src\Klinkby.Booqr.Application\Klinkby.Booqr.Application.csproj" />
         <ProjectReference Include="..\..\src\Klinkby.Booqr.Infrastructure\Klinkby.Booqr.Infrastructure.csproj"/>
+        <!-- Phase 5: exercises the admin run-mode's TenantProvisioner (now in
+             Klinkby.Booqr.Api/Admin, reached via the Api project reference above) directly against
+             the Testcontainers fixture. The admin/request-path separation is now a runtime boundary
+             (admin mode never starts Kestrel or touches the web-host DI graph), not the compile-time
+             assembly boundary the former Klinkby.Booqr.Control project provided. -->
     </ItemGroup>
 
     <ItemGroup>
@@ -32,8 +38,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Include="..\..\redist\initdb.sql">
-        <Link>initdb.sql</Link>
+      <EmbeddedResource Include="..\..\redist\initdb\01-control-plane.sql">
+        <Link>initdb\01-control-plane.sql</Link>
+      </EmbeddedResource>
+      <EmbeddedResource Include="..\..\redist\initdb\02-provisioning-engine.sql">
+        <Link>initdb\02-provisioning-engine.sql</Link>
       </EmbeddedResource>
     </ItemGroup>
 

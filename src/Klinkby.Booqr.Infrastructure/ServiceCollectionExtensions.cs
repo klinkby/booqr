@@ -35,11 +35,58 @@ public static partial class ServiceCollectionExtensions
     ///         <item><description>All repository implementations</description></item>
     ///     </list>
     /// </remarks>
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services,
+    public static IServiceCollection AddApiInfrastructure(this IServiceCollection services,
         IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
+        services.AddWorkerInfrastructureCore(configuration);
+
+        // Tenancy host-resolution config (TenancySettings) is an API-layer concern and is bound by
+        // the Api composition root (Program.cs), not here.
+
+        // Register tenant-aware multi-tenancy infrastructure (phases 2a and 2b).
+        // 2a: Tenant data-source factory with per-tenant connection pooling and LRU cache.
+        services.AddTenantDataSources(configuration);
+        // 2b: Tenant registry data source (booqr_registry role) and cached resolution.
+        // Must be called after AddRepositories() so the CachingTenantRepository override wins.
+        services.AddTenantRegistry(configuration);
+
+        return services;
+    }
+
+    /// <summary>
+    ///     Adds the worker-only subset of infrastructure services: options, mail, repositories, and the
+    ///     cross-tenant <c>booqr_batch</c> (<c>BYPASSRLS</c>) data source (<see cref="BatchServiceCollectionExtensions.AddBatchDataSource"/>).
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+    /// <param name="configuration">The configuration containing infrastructure settings.</param>
+    /// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+    /// <remarks>
+    ///     <para>
+    ///         Security boundary (worker run-mode): this method deliberately does <b>not</b> call
+    ///         <c>AddTenantDataSources</c> or <c>AddTenantRegistry</c>. Those pull in the tenant
+    ///         master secret (<c>TenantDataSources:MasterSecret</c>) used to derive every tenant's
+    ///         per-tenant login-role password, and open per-tenant, RLS-scoped connections. The
+    ///         worker process only ever needs to run cross-tenant scheduled jobs (reminder mail,
+    ///         token flush) as the fixed <c>booqr_batch</c> (<c>BYPASSRLS</c>, <c>NOBYPASSRLS</c>-exempt)
+    ///         role, so it must never hold the master secret or be able to mint/resolve a tenant
+    ///         connection — reducing blast radius if the worker process is compromised.
+    ///     </para>
+    /// </remarks>
+    public static IServiceCollection AddWorkerInfrastructure(this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        services.AddWorkerInfrastructureCore(configuration);
+        services.AddBatchDataSource(configuration);
+
+        return services;
+    }
+
+    private static void AddWorkerInfrastructureCore(this IServiceCollection services, IConfiguration configuration)
+    {
         services
             .AddSingleton<IValidateOptions<InfrastructureSettings>, ValidateInfrastructureSettings>()
             .AddOptions<InfrastructureSettings>()
@@ -47,24 +94,10 @@ public static partial class ServiceCollectionExtensions
             .ValidateOnStart();
 
         services.ConfigureEmailLabsHttpClient();
-        services.AddNpgsqlSlimDataSource(
-            "",
-            (serviceProvider, builder) =>
-            {
-                InfrastructureSettings settings =
-                    serviceProvider.GetRequiredService<IOptions<InfrastructureSettings>>().Value;
-                builder.ConnectionStringBuilder.ConnectionString = settings.ConnectionString;
-                builder.EnableArrays();
-                PostgreSql(
-                    serviceProvider.GetRequiredService<ILogger<InfrastructureSettings>>(),
-                    builder.ConnectionStringBuilder.Host);
-            }, serviceKey: nameof(ConnectionProvider));
         services.AddSingleton<IMailClient, EmailLabsMailClient>();
         services.AddScoped<ITransaction, Transaction>();
         services.AddScoped<IConnectionProvider, ConnectionProvider>();
         services.AddRepositories();
-
-        return services;
     }
 
     private static void ConfigureEmailLabsHttpClient(this IServiceCollection services)
@@ -98,9 +131,6 @@ public static partial class ServiceCollectionExtensions
         AssignableTo = typeof(IRepository),
         AsImplementedInterfaces = true)]
     private static partial void AddRepositories(this IServiceCollection services);
-
-    [LoggerMessage(1040, LogLevel.Information, "PostgreSQL is at {Host}")]
-    private static partial void PostgreSql(ILogger logger, string? host);
 
     [LoggerMessage(1041, LogLevel.Information, "EmailLabs is at {Host}")]
     private static partial void EmailLabs(ILogger logger, Uri host);

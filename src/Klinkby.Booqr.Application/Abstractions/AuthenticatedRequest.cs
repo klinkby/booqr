@@ -13,6 +13,8 @@ namespace Klinkby.Booqr.Application.Abstractions;
 public interface IAuthenticatedRequest
 {
     void SetUser(ClaimsPrincipal user);
+
+    void SetTenantId(int tenantId);
 }
 
 /// <summary>
@@ -25,6 +27,7 @@ public abstract record AuthenticatedRequest : IAuthenticatedRequest
     private const string SubClaimType = "sub";
     private static readonly ClaimsPrincipal DefaultClaimsPrincipal = new(new ClaimsIdentity());
     private ClaimsPrincipal _user = DefaultClaimsPrincipal;
+    private int _tenantId;
 
     [JsonIgnore]
     public ClaimsPrincipal User
@@ -33,10 +36,23 @@ public abstract record AuthenticatedRequest : IAuthenticatedRequest
         init => _user = value;
     }
 
+    [JsonIgnore]
+    public int TenantId
+    {
+        get => _tenantId;
+        init => _tenantId = value;
+    }
+
     [SuppressMessage("Design", "CA1033:Interface methods should be callable by child types", Justification = "Callable by AuthenticatedRequestEndPointFilter only")]
     void IAuthenticatedRequest.SetUser(ClaimsPrincipal user)
     {
         _user = user;
+    }
+
+    [SuppressMessage("Design", "CA1033:Interface methods should be callable by child types", Justification = "Callable by AuthenticatedRequestEndPointFilter only")]
+    void IAuthenticatedRequest.SetTenantId(int tenantId)
+    {
+        _tenantId = tenantId;
     }
 
     [JsonIgnore]
@@ -62,6 +78,7 @@ public abstract record AuthenticatedRequest : IAuthenticatedRequest
     ///     True when the authenticated user is staff (Employee or Admin) and therefore not
     ///     subject to the customer-scoped data-access restrictions.
     /// </summary>
+    [JsonIgnore]
     [MemberNotNullWhen(true, nameof(User))]
     public bool IsStaff
     {

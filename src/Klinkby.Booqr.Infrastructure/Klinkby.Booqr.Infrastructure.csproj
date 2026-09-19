@@ -25,6 +25,11 @@
         <InterceptorsNamespaces>$(InterceptorsNamespaces);Dapper.AOT;Microsoft.Extensions.Configuration.Binder.SourceGeneration</InterceptorsNamespaces>
     </PropertyGroup>
 
+    <ItemGroup Label="Migrations">
+        <EmbeddedResource Include="Migrations\*.sql" />
+        <None Remove="Migrations\*.sql" />
+    </ItemGroup>
+
     <PropertyGroup>
         <!-- CA1812: Avoid uninstantiated internal classes -->
         <!-- CS1591: Missing XML comment for publicly visible type or member (for source-generated code) -->

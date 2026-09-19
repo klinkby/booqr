@@ -27,7 +27,9 @@ public sealed class ActivityRepositoryTests(ServiceProviderFixture serviceProvid
         }
 
         Assert.InRange(newId, 1, long.MaxValue);
-        Assert.Equal(expected with { Id = actual!.Id }, actual);
+        // tenant_id is stamped by the DB DEFAULT app.tenant_of(current_user) for the
+        // fixture's default tenant connection, not by the (random) AutoFixture value.
+        Assert.Equal(expected with { Id = actual!.Id, TenantId = serviceProvider.TenantAId }, actual);
     }
 
     [Theory]
@@ -147,7 +149,7 @@ public sealed class ActivityRepositoryTests(ServiceProviderFixture serviceProvid
 
         Assert.InRange(newId, 1, long.MaxValue);
         Assert.Null(actual!.RequestId);
-        Assert.Equal(expected with { Id = actual.Id }, actual);
+        Assert.Equal(expected with { Id = actual.Id, TenantId = serviceProvider.TenantAId }, actual);
     }
 
     [Theory]

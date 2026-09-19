@@ -32,7 +32,7 @@ public class DeleteVacancyCommandTests
         var fault = Assert.IsType<Result<bool>.Fault>(result);
         Assert.Equal(Problem.Conflict.Type, fault.Problem.Type);
         _calendar.Verify(x => x.Delete(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
-        _activityRecorder.Verify(x => x.Delete(It.IsAny<ActivityQuery<CalendarEvent>>()), Times.Never);
+        _activityRecorder.Verify(x => x.Delete(It.IsAny<ActivityQuery<CalendarEvent>>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
