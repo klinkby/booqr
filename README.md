@@ -43,6 +43,10 @@ data, with isolation enforced by the database itself.
 sockets for inter-container communication.
 
 
+## Known Limitations
+
+*   **`bigint` id truncation on bookings/calendar**: The `bookings.id` and `calendar.id` columns are `bigint` in the database (see `Migrations/0001_baseline.sql` — "bigint promotion"), but the C# domain represents entity ids as `int` via the shared `Audit.Id` / `IId` (and `int`-keyed shared request/route types `ByIdRequest`, `{id:int}`). `BookingRepository.Add` narrows the returned identity with `Convert.ToInt32`, which throws `OverflowException` once an identity value exceeds `int.MaxValue` (~2.1 billion). A full fix requires threading `long` through the shared id types and the booking/calendar endpoints; it is deferred because those types are shared by every entity and widening them changes the wire contract for `int`-keyed entities too.
+
 ## Project Structure
 
 The **Klinkby.Booqr** solution is organized into several projects, each responsible for a distinct aspect of the
