@@ -6,7 +6,7 @@ namespace Klinkby.Booqr.Infrastructure.Tests.Services;
 /// <summary>
 ///     Integration tests for <see cref="TenantProvisioner" /> (Phase 5 admin CLI provisioning),
 ///     exercised directly against the Testcontainers fixture rather than through
-///     <c>Klinkby.Booqr.Control.AdminRunner</c>'s process-args/env-var seam — see
+///     <c>Klinkby.Booqr.Api.Admin.AdminRunner</c>'s process-args/env-var seam — see
 ///     <c>docs/2-implementation.md</c> Phase 5, "If AdminRunner's static seams make testing hard,
 ///     refactor into an injectable class".
 /// </summary>

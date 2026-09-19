@@ -5,8 +5,10 @@ namespace Klinkby.Booqr.Api.Admin;
 /// <summary>
 ///     Environment-variable configuration contract for the admin CLI (<see cref="AdminRunner" />).
 ///     Deliberately reads plain environment variables (not <c>IOptions</c>/appsettings binding) —
-///     the admin container is a short-lived CLI process, not the web host, and this keeps Control
-///     free of any ASP.NET/hosting dependency.
+///     the admin run-mode is a short-lived CLI process that builds no host and no DI graph, so there
+///     is no <c>IServiceProvider</c> to resolve <c>IOptions</c> from; reading env vars directly keeps
+///     it free of any ASP.NET/hosting dependency and lets each command validate only the variables it
+///     needs (see <see cref="Require" />).
 /// </summary>
 /// <remarks>
 ///     <para>

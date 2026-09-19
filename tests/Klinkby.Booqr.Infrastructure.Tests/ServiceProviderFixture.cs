@@ -157,7 +157,7 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
 
     /// <summary>
     ///     Builds an <see cref="NpgsqlDataSource" /> connected as <c>booqr_migrator</c>. Used by tests
-    ///     exercising <c>Klinkby.Booqr.Control.TenantProvisioner</c> directly, which (like
+    ///     exercising <c>Klinkby.Booqr.Api.Admin.TenantProvisioner</c> directly, which (like
     ///     <see cref="SchemaMigrator" />) takes an already-built migrator data source rather than
     ///     constructing its own.
     /// </summary>

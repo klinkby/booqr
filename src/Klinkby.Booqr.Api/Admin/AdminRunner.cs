@@ -10,11 +10,13 @@ namespace Klinkby.Booqr.Api.Admin;
 ///     <c>admin --rotate</c>.
 /// </summary>
 /// <remarks>
-///     Lives in <c>Klinkby.Booqr.Control</c> — the control-plane assembly that holds the elevated
-///     <c>booqr_migrator</c>/<c>booqr_batch</c> provisioning logic. Keeping it out of the
-///     request-path assemblies (Api/Application) makes "the migrator/batch credentials never run on
-///     a request path" a compile-time boundary (enforced by <c>ControlTests</c>), not just a
-///     convention.
+///     Part of the <c>admin</c> run-mode of the API image (this project's <c>Admin/</c> folder),
+///     selected by a leading <c>admin</c> arg in <c>Program.cs</c>. It holds the elevated
+///     <c>booqr_migrator</c>/<c>booqr_batch</c> provisioning logic. Keeping "the migrator/batch
+///     credentials never run on a request path" true is now a <b>runtime/composition</b> boundary
+///     (the admin mode never starts Kestrel and never touches the web host's DI graph), not the
+///     compile-time assembly boundary the former <c>Klinkby.Booqr.Control</c> project (with its
+///     <c>ControlTests</c> guard) provided.
 ///     <para>
 ///     Each command builds its own minimal <see cref="NpgsqlDataSource" /> from
 ///     <see cref="TenantProvisioner" /> (environment variables) — never a web host, never DI. The
@@ -104,10 +106,10 @@ public static class AdminRunner
             await Console.Out.WriteLineAsync($"Seeded admin user id {result.SeedAdminUserId} <{result.SeedAdminEmail}>.");
             await Console.Out.WriteLineAsync(
                 "No activation link was emitted: signed-link generation (ExpiringQueryString/PasswordSettings.HmacKey) "
-                + "lives in Klinkby.Booqr.Application, which Control must not reference (see docs/2-implementation.md "
-                + "layer boundaries; escalated to the orchestrator per the Phase-5 spec). Trigger activation for this "
-                + "user via the app's existing password-reset flow (POST /api/users/reset-password or equivalent) "
-                + "against the tenant's own subdomain.");
+                + "is request-path logic in Klinkby.Booqr.Application that the admin run-mode deliberately keeps off "
+                + "the provisioning path (see docs/2-implementation.md layer boundaries; escalated to the orchestrator "
+                + "per the Phase-5 spec). Trigger activation for this user via the app's existing password-reset flow "
+                + "(POST /api/users/reset-password or equivalent) against the tenant's own subdomain.");
             return 0;
         }
         catch (ArgumentException ex)
