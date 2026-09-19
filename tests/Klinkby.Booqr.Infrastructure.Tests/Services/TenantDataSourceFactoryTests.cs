@@ -22,7 +22,7 @@ public sealed class TenantDataSourceFactoryTests(ServiceProviderFixture serviceP
             maxEntries: 8);
 
         var tenantId = serviceProvider.TenantAId;
-        using TenantDataSourceLease lease = sut.Acquire(tenantId, ServiceProviderFixture.TenantRole(tenantId));
+        using TenantDataSourceLease lease = sut.Acquire(tenantId);
 
         await using NpgsqlConnection connection = await lease.DataSource.OpenConnectionAsync(TestContext.Current.CancellationToken);
 
@@ -54,8 +54,8 @@ public sealed class TenantDataSourceFactoryTests(ServiceProviderFixture serviceP
 
         try
         {
-            using TenantDataSourceLease leaseA = sut.Acquire(serviceProvider.TenantAId, ServiceProviderFixture.TenantRole(serviceProvider.TenantAId));
-            using TenantDataSourceLease leaseB = sut.Acquire(serviceProvider.TenantBId, ServiceProviderFixture.TenantRole(serviceProvider.TenantBId));
+            using TenantDataSourceLease leaseA = sut.Acquire(serviceProvider.TenantAId);
+            using TenantDataSourceLease leaseB = sut.Acquire(serviceProvider.TenantBId);
 
             await using NpgsqlConnection connectionA = await leaseA.DataSource.OpenConnectionAsync(TestContext.Current.CancellationToken);
             await using NpgsqlConnection connectionB = await leaseB.DataSource.OpenConnectionAsync(TestContext.Current.CancellationToken);
@@ -88,8 +88,8 @@ public sealed class TenantDataSourceFactoryTests(ServiceProviderFixture serviceP
         var tenantId = serviceProvider.TenantAId;
         var role = ServiceProviderFixture.TenantRole(tenantId);
 
-        TenantDataSourceLease first = sut.Acquire(tenantId, role);
-        TenantDataSourceLease second = sut.Acquire(tenantId, role);
+        TenantDataSourceLease first = sut.Acquire(tenantId);
+        TenantDataSourceLease second = sut.Acquire(tenantId);
 
         Assert.Same(first.DataSource, second.DataSource);
 

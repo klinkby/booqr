@@ -95,7 +95,7 @@ public static class TenantDataSourceServiceCollectionExtensions
             }
 
             TenantDataSourceFactory factory = serviceProvider.GetRequiredService<TenantDataSourceFactory>();
-            return factory.Acquire(tenantContext.TenantId, tenantContext.DbRole);
+            return factory.Acquire(tenantContext.TenantId);
         });
 
         // Scoped keyed DbConnection: one per scope (unopened — ConnectionProvider opens it lazily),

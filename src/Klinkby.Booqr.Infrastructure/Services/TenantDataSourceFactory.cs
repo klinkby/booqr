@@ -55,13 +55,18 @@ internal sealed class TenantDataSourceFactory : IDisposable
 
     /// <summary>
     ///     Acquires a lease on the (lazily built, cached) <see cref="NpgsqlDataSource" /> for
-    ///     <paramref name="tenantId" />/<paramref name="dbRole" />. Dispose the lease to release it;
-    ///     never dispose the underlying <see cref="NpgsqlDataSource" /> directly.
+    ///     <paramref name="tenantId" />. Dispose the lease to release it; never dispose the underlying
+    ///     <see cref="NpgsqlDataSource" /> directly.
     /// </summary>
-    internal TenantDataSourceLease Acquire(int tenantId, string dbRole)
+    /// <remarks>
+    ///     The connection's PostgreSQL login role is derived here as <c>t_&lt;id&gt;</c> from
+    ///     <paramref name="tenantId" /> alone (matching <c>TenantProvisioner.TenantRole</c>), so the
+    ///     cache key (the id) and the authenticated identity (the role + its id-derived password) are
+    ///     the same single source of truth. The caller does not supply the role — that would let a
+    ///     mismatched role/id pair authenticate under the wrong identity on a cache miss.
+    /// </remarks>
+    internal TenantDataSourceLease Acquire(int tenantId)
     {
-        ArgumentException.ThrowIfNullOrEmpty(dbRole);
-
         lock (_gate)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
@@ -75,7 +80,7 @@ internal sealed class TenantDataSourceFactory : IDisposable
 
             EvictIfNeededLocked();
 
-            NpgsqlDataSource dataSource = BuildDataSource(tenantId, dbRole);
+            NpgsqlDataSource dataSource = BuildDataSource(tenantId);
             Entry entry = new(dataSource) { LeaseCount = 1 };
             _entries[tenantId] = entry;
             _lruOrder.AddFirst(tenantId);
@@ -98,8 +103,11 @@ internal sealed class TenantDataSourceFactory : IDisposable
         }
     }
 
-    private NpgsqlDataSource BuildDataSource(int tenantId, string dbRole)
+    private NpgsqlDataSource BuildDataSource(int tenantId)
     {
+        // Role and password both derive from tenantId (the cache key) — a single source of truth.
+        // Keep in lock-step with TenantProvisioner.TenantRole ("t_<id>").
+        var dbRole = $"t_{tenantId}";
         var password = TenantCredentials.DerivePassword(_masterSecret, tenantId);
 
         NpgsqlConnectionStringBuilder connectionStringBuilder = new(_baseConnectionString)
