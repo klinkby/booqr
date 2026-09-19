@@ -46,6 +46,7 @@ services:
       - Infrastructure__Tenancy__BaseDomain=${TENANCY_BASE_DOMAIN}
       - Infrastructure__Tenancy__ReservedSubdomains__0=www
       - Infrastructure__Tenancy__ReservedSubdomains__1=api
+      - Infrastructure__Tenancy__ReservedSubdomains__2=status
       # Per-tenant data-source factory: base connection (no credentials) + HMAC master secret used
       # to derive each t_<id> role's password at request time. No POSTGRES_USER superuser creds here.
       - Infrastructure__TenantDataSources__BaseConnectionString=Host=/var/run/postgresql;Database=${POSTGRES_DB}
