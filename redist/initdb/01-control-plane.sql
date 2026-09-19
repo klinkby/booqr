@@ -42,6 +42,14 @@ create unique index idx_tenants_slug
     on public.tenants (slug)
     where (deleted is null);
 
+-- Guards the unforgeable role -> tenant mapping app.tenant_of() reads: no two
+-- live tenants may share a db_role, so the function's lookup returns exactly
+-- one id (a duplicate would break RLS tenant isolation). Partial-unique so a
+-- soft-deleted tenant's db_role can be reused.
+create unique index idx_tenants_db_role
+    on public.tenants (db_role)
+    where (deleted is null);
+
 -------------------------------------------------------------
 -- Migration ledger
 -------------------------------------------------------------
