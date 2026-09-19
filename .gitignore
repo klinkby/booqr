@@ -1,6 +1,7 @@
 ﻿*.DotSettings.user
 appsettings.Development.json
 .env
+redist/env/*.env
 bin/
 obj/
 .idea/
