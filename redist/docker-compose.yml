@@ -213,8 +213,6 @@ services:
       - ./kli_sock:/run/kli
     networks:
       - gateway-net
-    env_file:
-      - ./web-gateway/gateway.env
     tmpfs:
       - /tmp:mode=1777,noexec,nosuid
     restart: unless-stopped
