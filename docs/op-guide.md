@@ -39,6 +39,47 @@
 > boundary). It cannot create/drop schemas or roles, and RLS still contains query-level cross-tenant access.
 > If you need to contain full app compromise, move tenant credentials to a per-tenant secret store.
 
+**Role model:**
+
+```mermaid
+graph TD
+    subgraph API["API container (internet-facing)"]
+        registry["booqr_registry<br/>LOGIN · SELECT public.tenants"]
+        t1["t_1 · t_2 · … t_&lt;id&gt;<br/>LOGIN · NOBYPASSRLS"]
+    end
+    subgraph Admin["admin / worker container (internal only)"]
+        migrator["booqr_migrator<br/>LOGIN · CREATE / CREATEROLE<br/>owns app + public objects"]
+        batch["booqr_batch<br/>LOGIN · BYPASSRLS"]
+    end
+
+    tenantgrp(["booqr_tenant<br/>NOLOGIN group · DML grant set on app"])
+
+    t1 -- "member of" --> tenantgrp
+    migrator -- "GRANT booqr_tenant TO t_&lt;id&gt;<br/>(admin option, inherit false)" --> t1
+    migrator -- "owns / migrates" --> appschema[["app schema<br/>business tables · FORCE RLS"]]
+    migrator -- "writes" --> registrytbl[["public schema<br/>tenants · schema_migrations"]]
+    registry -- "reads (host→tenant)" --> registrytbl
+
+    t1 -- "DML, RLS-filtered by app.tenant_of(current_user)" --> appschema
+    batch -- "cross-tenant DML, RLS bypassed" --> appschema
+
+    classDef netface fill:#b3245e,stroke:#7a0f3d,stroke-width:2px,color:#fff;
+    classDef internal fill:#1f6fb2,stroke:#0d4576,stroke-width:2px,color:#fff;
+    class registry,t1 netface;
+    class migrator,batch internal;
+```
+
+- **`booqr_tenant`** is a `NOLOGIN` group carrying the DML grant set; each per-tenant `t_<id>` login role
+  becomes a member. Only `booqr_migrator` (with `ADMIN OPTION`, `INHERIT FALSE`) can add members.
+- **`t_<id>`** roles reach `app` tables through the group and are contained by RLS — `app.tenant_of(current_user)`
+  scopes every row.
+- **`booqr_batch`** is **not** a member of `booqr_tenant`; it is granted the same `app` DML directly (a
+  co-equal grantee in the migrator's `ALTER DEFAULT PRIVILEGES`), and is `BYPASSRLS`, so cross-tenant
+  scheduled work stamps `tenant_id` explicitly. It lives only in the admin/worker context, never on the
+  request path.
+- **`booqr_migrator`** owns and evolves the `app` schema and writes the registry; it is the only role that can
+  perform DDL or role management.
+
 ## 3. First-time bring-up
 
 1. Provision the database with the control-plane `initdb` scripts mounted (fresh/empty data dir triggers
