@@ -93,6 +93,7 @@ Architectural policies are validated automatically via `TngTech.ArchUnitNET` tes
 - **Alpine Linux**: Minimal container images, rootless execution, immutable filesystem
 - **GitHub Actions**: CI/CD with Docker image builds, CodeQL, Codecov
 - **UNIX sockets**: Efficient inter-container communication
+- **Contributing**: Default branch is `main`; repo has no PR template.
 
 ## Testing Guidelines
 
