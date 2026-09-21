@@ -10,9 +10,9 @@
       },
       "Dapper.AOT": {
         "type": "Direct",
-        "requested": "[1.0.52, )",
-        "resolved": "1.0.52",
-        "contentHash": "2ZmljAW3tJ5wJZGva5ba2Tz9LMcvWMMl8O/NtpZ4GEBcnNbxCOMYFmhtbWnUBNADJLkDZp0lg5yTlu5Pg4i7xQ=="
+        "requested": "[1.1.0, )",
+        "resolved": "1.1.0",
+        "contentHash": "xcvzWs28jBBmQk4VB9fmTbIN3AztSb3KwuUXoWZJfcl5YtKnrN3N+GvXOOLkzZbNKGIcq0tQLch7pWPKUsjSyQ=="
       },
       "DotNet.ReproducibleBuilds": {
         "type": "Direct",
