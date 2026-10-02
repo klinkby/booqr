@@ -4,6 +4,7 @@
 [![codecov](https://codecov.io/github/klinkby/booqr/graph/badge.svg?token=GNQ7UPJ35G)](https://codecov.io/github/klinkby/booqr)
 [![CodeQL](https://github.com/klinkby/booqr/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/klinkby/booqr/actions/workflows/github-code-scanning/codeql)
 [![License](https://img.shields.io/github/license/klinkby/booqr.svg)](LICENSE)
+[![Up?](https://badge.uptimerobot.com/psp/466b3388996be3edcb693165bebba153.svg?style=logo&theme=dark)](https://stats.uptimerobot.com/icVHn7BsVj?utm_source=status_badge&utm_medium=referral)
 
 An AOT (Ahead-of-Time) enabled ASP.NET 10 Web API, designed to serve as a robust backend
 for an application requiring efficient and secure booking management with a PostgreSQL database. The service is designed
