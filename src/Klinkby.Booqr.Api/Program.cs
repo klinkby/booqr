@@ -147,14 +147,31 @@ static void ConfigureEndpoints(WebApplication app)
     app.MapApiRoutes();
 }
 
+// Let a reverse proxy running as another user connect to the unix socket.
+static void SetUnixSocketPermissions(IConfiguration configuration)
+{
+    var unixSocketPath = configuration["Kestrel:UnixSocketPath"];
+    if (string.IsNullOrWhiteSpace(unixSocketPath) || OperatingSystem.IsWindows())
+    {
+        return;
+    }
+
+    File.SetUnixFileMode(unixSocketPath,
+        UnixFileMode.UserRead | UnixFileMode.UserWrite |
+        UnixFileMode.GroupRead | UnixFileMode.GroupWrite |
+        UnixFileMode.OtherRead | UnixFileMode.OtherWrite);
+}
+
 static async Task RunApplicationAsync(WebApplication app, Stopwatch timer)
 {
     ProgramLoggerMessages log = new(app.Services.GetRequiredService<ILogger<Program>>());
-    log.AppLaunch(timer.Elapsed);
 
     try
     {
-        await app.RunAsync();
+        await app.StartAsync();
+        SetUnixSocketPermissions(app.Configuration);
+        log.AppLaunch(timer.Elapsed);
+        await app.WaitForShutdownAsync();
         log.AppShutdown(timer.Elapsed);
     }
     catch (Exception exception)
