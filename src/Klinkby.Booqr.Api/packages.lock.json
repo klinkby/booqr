@@ -64,11 +64,11 @@
       },
       "NLog.Web.AspNetCore": {
         "type": "Direct",
-        "requested": "[6.1.4, )",
-        "resolved": "6.1.4",
-        "contentHash": "kM79afVMCJx5Nb3nyponqOTKPjFNVKNzCPCyMKJXRVUv+BLOCjFGpAzMfriO8u0skc3kZwLUY2ZJUb5SGNZ9Ug==",
+        "requested": "[6.2.1, )",
+        "resolved": "6.2.1",
+        "contentHash": "2cjcjTgwbvJl+COgZBMpMq1Iq/7gZazRMrkkglcvdxvPY1D0YcbjFCtiOLWVsYIQbt+cbSp791Pwqqz8r/NG8w==",
         "dependencies": {
-          "NLog.Extensions.Logging": "6.1.4"
+          "NLog.Extensions.Logging": "6.2.1"
         }
       },
       "SmartAnalyzers.ExceptionAnalyzer": {
@@ -188,10 +188,10 @@
       },
       "NLog.Extensions.Logging": {
         "type": "Transitive",
-        "resolved": "6.1.4",
-        "contentHash": "gDJjgF9LjG1Zsy3o/3BVUk5gFcCozYzrzKTZjcnE43FghchoQ9Xi4ra2dGEU+ftJf9oM0Kzs06y1r2SjfhDBGQ==",
+        "resolved": "6.2.1",
+        "contentHash": "VVISyXM6nU6akAK9dzit/Yy/Q050PVpW0FZM6ceSA7oZUvMtQZlE0VlNx1VUBe3Uo540/9Ee05RiKlPvyR8dUQ==",
         "dependencies": {
-          "NLog": "6.1.4"
+          "NLog": "6.2.1"
         }
       },
       "Npgsql": {
