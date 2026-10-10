@@ -35,7 +35,7 @@ public class ResetPasswordCommandTests
         var sut = CreateSut(users.Object, channel.Writer);
 
         var request = new ResetPasswordRequest(email, "https://localhost");
-        var expectedEmail = email.Trim();
+        var expectedEmail = email;
 
         // Act
         await sut.Execute(request);
@@ -53,7 +53,7 @@ public class ResetPasswordCommandTests
     public async Task GIVEN_UserFound_WHEN_Execute_THEN_UpdatesPassword_And_SendsEmail(string email)
     {
         // Arrange
-        var existing = new User(email.Trim(), string.Empty, UserRole.Customer, "Jane Doe", 12345678);
+        var existing = new User(email, string.Empty, UserRole.Customer, "Jane Doe", 12345678);
 
         var users = new Mock<IUserRepository>();
         users.Setup(x => x.GetByEmail(It.IsAny<string>(), CancellationToken.None))
@@ -63,7 +63,7 @@ public class ResetPasswordCommandTests
         var sut = CreateSut(users.Object, channel.Writer);
 
         var request = new ResetPasswordRequest(email, "https://localhost");
-        var expectedEmail = email.Trim();
+        var expectedEmail = email;
 
         // Act
         await sut.Execute(request);

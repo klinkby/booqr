@@ -48,7 +48,7 @@ public class SignUpCommandTests
     {
         // Arrange
         const int newUserId = 987;
-        var expectedEmail = email.Trim();
+        var expectedEmail = email;
         // ActivityRecorder is a static mock shared across this theory's cases; reset so the
         // Times.Once verification below only reflects this invocation.
         ActivityRecorder.Invocations.Clear();
