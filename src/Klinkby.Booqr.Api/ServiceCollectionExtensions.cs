@@ -2,6 +2,7 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using Klinkby.Booqr.Api.Models;
+using Klinkby.Booqr.Application;
 using Klinkby.Booqr.Application.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -86,7 +87,7 @@ internal static class ServiceCollectionExtensions
         services.AddRateLimiter(static options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-            options.OnRejected = static (context, _) =>
+            options.OnRejected = static async (context, cancellation) =>
             {
                 if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out TimeSpan retryAfter))
                 {
@@ -94,7 +95,13 @@ internal static class ServiceCollectionExtensions
                         ((int)Math.Ceiling(retryAfter.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
                 }
 
-                return ValueTask.CompletedTask;
+                // Same RFC 7807 shape as the HAProxy gateway and the command Problem responses.
+                Problem problem = Problem.TooManyRequests;
+                HttpResponse response = context.HttpContext.Response;
+                response.ContentType = "application/problem+json";
+                await response.WriteAsync(
+                    $$"""{"type":"{{problem.Type}}","title":"{{problem.Title}}","status":{{problem.HttpStatusCode}},"traceId":"{{context.HttpContext.TraceIdentifier}}"}""",
+                    cancellation);
             };
             options.AddPolicy(RateLimitPolicies.ChangePassword, static context =>
             {
