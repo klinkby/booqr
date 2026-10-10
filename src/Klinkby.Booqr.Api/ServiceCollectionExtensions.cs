@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Text;
 using System.Threading.RateLimiting;
+using Klinkby.Booqr.Api;
 using Klinkby.Booqr.Api.Models;
 using Klinkby.Booqr.Application;
 using Klinkby.Booqr.Application.Models;
