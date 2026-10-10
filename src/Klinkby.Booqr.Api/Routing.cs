@@ -341,9 +341,11 @@ internal static class Routing
                     CancellationToken cancellation) => command
                     .Execute(request with { QueryString = context.Request.QueryString.Value ?? "" }, cancellation)
                     .ToNoContent())
+            .RequireRateLimiting(RateLimitPolicies.ChangePassword)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status412PreconditionFailed)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
             .WithName("changePassword")
             .WithSummary("Change password");
 

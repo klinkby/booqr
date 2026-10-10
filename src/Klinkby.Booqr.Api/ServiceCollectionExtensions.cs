@@ -1,5 +1,9 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
+using System.Threading.RateLimiting;
+using Klinkby.Booqr.Api;
 using Klinkby.Booqr.Api.Models;
+using Klinkby.Booqr.Application;
 using Klinkby.Booqr.Application.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -17,6 +21,7 @@ internal static class ServiceCollectionExtensions
         ConfigureHealthChecks(services);
         ConfigureJson(services);
         ConfigureRequestMetadata(services);
+        ConfigureRateLimiting(services);
     }
 
     /// <summary>
@@ -69,6 +74,46 @@ internal static class ServiceCollectionExtensions
         services.AddProblemDetails(static options =>
             options.CustomizeProblemDetails = Klinkby.Booqr.Api.ProblemDetailsCustomizer.Customize);
         services.AddExceptionHandler<Klinkby.Booqr.Api.GlobalExceptionHandler>();
+    }
+
+    /// <summary>
+    ///     Throttles <c>POST /users/change-password</c> per tenant host and user id taken from the link's
+    ///     <c>id</c> query parameter. The id is read before the link signature is verified, so it is only
+    ///     a partition key: non-numeric values share one bucket, which keeps the number of partitions
+    ///     bounded. The coarse per-IP limit is enforced by the HAProxy gateway.
+    /// </summary>
+    private static void ConfigureRateLimiting(IServiceCollection services)
+    {
+        services.AddRateLimiter(static options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            options.OnRejected = static async (context, cancellation) =>
+            {
+                if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out TimeSpan retryAfter))
+                {
+                    context.HttpContext.Response.Headers.RetryAfter =
+                        ((int)Math.Ceiling(retryAfter.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
+                }
+
+                // Same RFC 7807 shape as the HAProxy gateway and the command Problem responses.
+                Problem problem = Problem.TooManyRequests;
+                HttpResponse response = context.HttpContext.Response;
+                response.ContentType = "application/problem+json";
+                await response.WriteAsync(
+                    $$"""{"type":"{{problem.Type}}","title":"{{problem.Title}}","status":{{problem.HttpStatusCode}},"traceId":"{{context.HttpContext.TraceIdentifier}}"}""",
+                    cancellation);
+            };
+            options.AddPolicy(RateLimitPolicies.ChangePassword, static context =>
+            {
+                var validId = int.TryParse(context.Request.Query["id"].ToString(), CultureInfo.InvariantCulture, out var id);
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    $"{context.Request.Host.Host}/{(validId ? id : -1)}",
+                    static _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5, Window = TimeSpan.FromHours(1), QueueLimit = 0
+                    });
+            });
+        });
     }
 
     private static void ConfigureHealthChecks(IServiceCollection services)
