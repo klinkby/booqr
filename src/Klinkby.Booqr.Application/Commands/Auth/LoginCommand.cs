@@ -1,11 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 using Klinkby.Booqr.Core;
 using BCryptNet = BCrypt.Net.BCrypt;
 
 namespace Klinkby.Booqr.Application.Commands.Auth;
 
 public sealed record LoginRequest(
-    [Required] [StringLength(0xff)] string Email,
+    [Required] [StringLength(0xff)] [property: JsonConverter(typeof(EmailJsonConverter))] string Email,
     [Required] [StringLength(0xff)] string Password) : RefreshTokenDto;
 
 public sealed partial class LoginCommand(
@@ -37,7 +38,7 @@ public sealed partial class LoginCommand(
             return Problem.Unauthorized;
         }
 
-        var userName = query.Email.Trim();
+        var userName = query.Email;
         User? user = await userRepository.GetByEmail(userName, cancellation);
 
         // Always run bcrypt — for unknown and unconfirmed accounts against a dummy hash —

@@ -14,6 +14,7 @@ public sealed record ResetPasswordRequest(
         ^(?(")(".+?(?<!\\)"@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-\w]*[0-9a-z]*\.)+[a-z0-9][\-a-z0-9]{0,22}[a-z0-9]))$
         """, ErrorMessage = "Email is not valid"
     )]
+    [property: JsonConverter(typeof(EmailJsonConverter))]
     string Email,
 
     [property: JsonIgnore]
@@ -35,7 +36,7 @@ public sealed partial class ResetPasswordCommand(
         ArgumentNullException.ThrowIfNull(query);
 
         _log.ResetPassword(query.Email);
-        User? user = await userRepository.GetByEmail(query.Email.Trim(), cancellation);
+        User? user = await userRepository.GetByEmail(query.Email, cancellation);
         if (user != null)
         {
             Message message = ComposeMessage(user, query.Authority);

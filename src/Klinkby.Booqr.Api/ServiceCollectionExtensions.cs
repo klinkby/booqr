@@ -67,8 +67,7 @@ internal static class ServiceCollectionExtensions
     private static void ConfigureProblemDetails(IServiceCollection services)
     {
         services.AddProblemDetails(static options =>
-            options.CustomizeProblemDetails = static context =>
-                context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier);
+            options.CustomizeProblemDetails = Klinkby.Booqr.Api.ProblemDetailsCustomizer.Customize);
         services.AddExceptionHandler<Klinkby.Booqr.Api.GlobalExceptionHandler>();
     }
 
