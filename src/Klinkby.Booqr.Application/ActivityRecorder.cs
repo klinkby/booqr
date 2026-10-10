@@ -41,6 +41,14 @@ public interface IActivityRecorder
     /// <param name="query">The activity query containing user and entity information.</param>
     /// <param name="cancellation">A token to cancel the operation.</param>
     Task Delete<TItem>(ActivityQuery<TItem> query, CancellationToken cancellation = default);
+
+    /// <summary>
+    /// Records an activity for changing the role of an entity (a privileged operation).
+    /// </summary>
+    /// <typeparam name="TItem">The type of the entity whose role changed.</typeparam>
+    /// <param name="query">The activity query containing user and entity information.</param>
+    /// <param name="cancellation">A token to cancel the operation.</param>
+    Task ChangeRole<TItem>(ActivityQuery<TItem> query, CancellationToken cancellation = default);
 }
 
 /// <remarks>
@@ -63,6 +71,9 @@ internal sealed class ActivityRecorder(
         activities.Record(CreateActivity(query), cancellation);
 
     public Task Delete<TItem>(ActivityQuery<TItem> query, CancellationToken cancellation = default) =>
+        activities.Record(CreateActivity(query), cancellation);
+
+    public Task ChangeRole<TItem>(ActivityQuery<TItem> query, CancellationToken cancellation = default) =>
         activities.Record(CreateActivity(query), cancellation);
 
     private Activity CreateActivity<TItem>(ActivityQuery<TItem> query, [CallerMemberName] string action = "") =>

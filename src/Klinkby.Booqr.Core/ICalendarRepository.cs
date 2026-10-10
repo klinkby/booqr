@@ -67,4 +67,13 @@ public interface ICalendarRepository : IRepository<CalendarEvent>
     ///     if found, otherwise <c>null</c>.
     /// </returns>
     Task<CalendarEvent?> GetByBookingId(int bookingId, CancellationToken cancellation = default);
+
+    /// <summary>
+    ///     Determines whether the employee has any non-deleted calendar event ending after the given time.
+    /// </summary>
+    /// <param name="employeeId">The unique identifier of the employee.</param>
+    /// <param name="from">The point in time after which an event's end counts as future.</param>
+    /// <param name="cancellation">A token to cancel the operation.</param>
+    /// <returns>A task whose result is <c>true</c> if such an event exists; otherwise <c>false</c>.</returns>
+    Task<bool> HasFutureEvents(int employeeId, DateTime from, CancellationToken cancellation = default);
 }

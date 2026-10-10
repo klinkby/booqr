@@ -117,4 +117,33 @@ public class UpdateUserProfileCommandTests
             x => x.Update(It.IsAny<ActivityQuery<User>>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_JsonBodyWithRole_WHEN_Execute_THEN_PatchDoesNotChangeRole(
+        UpdateUserProfileRequest request)
+    {
+        // Arrange: a customer smuggles "role" into the profile body (mass assignment).
+        string json = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            name = request.Name,
+            phone = request.Phone,
+            role = UserRole.Admin
+        });
+        UpdateUserProfileRequest bound = System.Text.Json.JsonSerializer.Deserialize<UpdateUserProfileRequest>(
+            json, System.Text.Json.JsonSerializerOptions.Web)!;
+        bound = bound with { Id = request.Id, User = CreateUser(request.Id, UserRole.Customer) };
+        _repo.Setup(x => x.Patch(It.IsAny<PartialUser>(), CancellationToken.None))
+            .ReturnsAsync(true);
+        UpdateUserProfileCommand sut = CreateSut();
+
+        // Act
+        Result<bool> result = await sut.Execute(bound);
+
+        // Assert: the COALESCE patch leaves role untouched only when Role is null.
+        Assert.IsType<Result<bool>.Success>(result);
+        _repo.Verify(
+            x => x.Patch(It.Is<PartialUser>(p => p.Id == request.Id && p.Role == null), CancellationToken.None),
+            Times.Once);
+    }
 }

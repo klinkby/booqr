@@ -421,6 +421,22 @@ internal static class Routing
             .WithName("updateUser")
             .WithSummary("Update a user");
 
+        group.MapPut($"{IdRoutePattern}/role",
+                static (ChangeUserRoleCommand command,
+                    int id,
+                    [FromBody] ChangeUserRoleRequest request,
+                    CancellationToken cancellation) => command
+                    .Execute(request with { Id = id }, cancellation)
+                    .ToNoContent())
+            .RequireAuthorization(UserRole.Admin)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status412PreconditionFailed)
+            .WithName("changeUserRole")
+            .WithSummary("Change a user's role (admin only)");
+
         group.MapDelete(IdRoutePattern,
                 static (DeleteUserCommand command,
                     [AsParameters] AuthenticatedByIdRequest request,
