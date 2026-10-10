@@ -81,4 +81,59 @@ public class UserEndpointsAuthorizationTests
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
+
+    public static TheoryData<string> RoleChangePaths => ["/api/users/2/role"];
+
+    [Theory]
+    [MemberData(nameof(RoleChangePaths))]
+    public async Task GIVEN_Anonymous_WHEN_ChangingUserRole_THEN_Unauthorized(string path)
+    {
+        await using WebApiFixture fixture = new();
+        using HttpClient client = fixture.CreateClient();
+        using StringContent body = new("""{"role":"Employee"}""", Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response = await client.PutAsync(new Uri(path, UriKind.Relative), body);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    public static TheoryData<string, string> NonAdminRoleChangeCases =>
+        [
+            ("/api/users/2/role", "Customer"),
+            ("/api/users/2/role", "Employee")
+        ];
+
+    [Theory]
+    [MemberData(nameof(NonAdminRoleChangeCases))]
+    public async Task GIVEN_NonAdminToken_WHEN_ChangingUserRole_THEN_Forbidden(string path, string role)
+    {
+        // Role changes are admin-only; Customer and Employee tokens must be rejected before
+        // the endpoint or database is reached.
+        await using WebApiFixture fixture = new();
+        using HttpClient client = fixture.CreateClient();
+        SetBearer(client, CreateToken(2, role));
+        using StringContent body = new("""{"role":"Admin"}""", Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response = await client.PutAsync(new Uri(path, UriKind.Relative), body);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Theory]
+    [MemberData(nameof(RoleChangePaths))]
+    public async Task GIVEN_AdminToken_WHEN_ChangingToUnknownRole_THEN_BadRequest(string path)
+    {
+        // Validation rejects anything outside the Customer/Employee/Admin allow-list before
+        // the command (and its database access) runs.
+        await using WebApiFixture fixture = new();
+        using HttpClient client = fixture.CreateClient();
+        SetBearer(client, CreateToken(1, UserRole.Admin));
+        using StringContent body = new("""{"role":"Root"}""", Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response = await client.PutAsync(new Uri(path, UriKind.Relative), body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        string problem = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Role", problem, StringComparison.Ordinal);
+    }
 }

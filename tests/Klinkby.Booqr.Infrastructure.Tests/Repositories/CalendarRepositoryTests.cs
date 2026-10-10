@@ -284,4 +284,44 @@ public sealed class CalendarRepositoryTests(ServiceProviderFixture serviceProvid
             await _transaction.Rollback(CancellationToken.None);
         }
     }
+
+    [Theory]
+    [IntegrationAutoData]
+    public async Task GIVEN_Events_WHEN_HasFutureEvents_THEN_TrueOnlyForLiveFutureEventOfEmployee(
+        User employee, User otherEmployee, User deletedEmployee, User pastEmployee, Location location,
+        DateTime startDate, TimeSpan duration)
+    {
+        DateTime endDate = startDate.Add(duration);
+        bool future;
+        bool past;
+        bool deleted;
+        bool other;
+        await _transaction.Begin();
+        try
+        {
+            var employeeId = await _users.Add(employee with { Role = UserRole.Employee });
+            var otherId = await _users.Add(otherEmployee with { Role = UserRole.Employee });
+            var deletedId = await _users.Add(deletedEmployee with { Role = UserRole.Employee });
+            var pastId = await _users.Add(pastEmployee with { Role = UserRole.Employee });
+            var locationId = await _locations.Add(location);
+            await _sut.Add(new CalendarEvent(employeeId, locationId, null, startDate, endDate));
+            await _sut.Add(new CalendarEvent(pastId, locationId, null, startDate, endDate));
+            var deletedEventId = await _sut.Add(new CalendarEvent(deletedId, locationId, null, startDate, endDate));
+            await _sut.Delete(deletedEventId);
+
+            future = await _sut.HasFutureEvents(employeeId, startDate);
+            past = await _sut.HasFutureEvents(pastId, endDate.Add(duration));
+            deleted = await _sut.HasFutureEvents(deletedId, startDate);
+            other = await _sut.HasFutureEvents(otherId, startDate);
+        }
+        finally
+        {
+            await _transaction.Rollback();
+        }
+
+        Assert.True(future);
+        Assert.False(past);
+        Assert.False(deleted);
+        Assert.False(other);
+    }
 }

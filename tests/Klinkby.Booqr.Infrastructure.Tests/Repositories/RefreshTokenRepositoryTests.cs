@@ -102,4 +102,37 @@ public sealed class RefreshTokenRepositoryTests(ServiceProviderFixture servicePr
             await _transaction.Rollback();
         }
     }
+
+    [Theory]
+    [IntegrationAutoData]
+    public async Task GIVEN_TokensOfTwoUsers_WHEN_RevokeAllForUser_THEN_OnlyThatUsersLiveTokensRevoked(
+        User user1, User user2, RefreshToken token1, RefreshToken token2, RefreshToken token3, DateTime revokeTime)
+    {
+        await _transaction.Begin();
+        try
+        {
+            var userId1 = await _userRepository.Add(user1);
+            var userId2 = await _userRepository.Add(user2);
+            var t1 = token1 with { Hash = token1.Hash[..40], UserId = userId1, Revoked = null, ReplacedBy = null };
+            var t2 = token2 with { Hash = token2.Hash[..40], UserId = userId1, Family = Guid.NewGuid(), Revoked = null, ReplacedBy = null };
+            var other = token3 with { Hash = token3.Hash[..40], UserId = userId2, Revoked = null, ReplacedBy = null };
+            await _sut.Add(t1);
+            await _sut.Add(t2);
+            await _sut.Add(other);
+
+            var revokedCount = await _sut.RevokeAllForUser(userId1, revokeTime);
+            var actual1 = await _sut.GetByHash(t1.Hash);
+            var actual2 = await _sut.GetByHash(t2.Hash);
+            var actualOther = await _sut.GetByHash(other.Hash);
+
+            Assert.Equal(2, revokedCount);
+            Assert.Equal(revokeTime.ToUniversalTime(), actual1?.Revoked?.ToUniversalTime());
+            Assert.Equal(revokeTime.ToUniversalTime(), actual2?.Revoked?.ToUniversalTime());
+            Assert.Null(actualOther?.Revoked);
+        }
+        finally
+        {
+            await _transaction.Rollback();
+        }
+    }
 }

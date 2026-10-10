@@ -40,6 +40,32 @@ internal sealed partial class UserRepository(IConnectionProvider connectionProvi
     }
 
 
+    public async Task<User?> GetByIdForUpdate(int id, CancellationToken cancellation = default)
+    {
+        DbConnection connection = await connectionProvider.GetConnection(cancellation);
+        return await connection.QuerySingleOrDefaultAsync<User>(
+            $"""
+             SELECT id,{CommaSeparated},created,modified,deleted
+             FROM {TableName}
+             WHERE deleted IS NULL AND id=@id
+             FOR UPDATE
+             """, new { id });
+    }
+
+    public async Task<IReadOnlyList<int>> LockAdmins(CancellationToken cancellation = default)
+    {
+        DbConnection connection = await connectionProvider.GetConnection(cancellation);
+        IEnumerable<int> ids = await connection.QueryAsync<int>(
+            $"""
+             SELECT id
+             FROM {TableName}
+             WHERE role=@role AND deleted IS NULL
+             ORDER BY id
+             FOR UPDATE
+             """, new { role = UserRole.Admin });
+        return ids.ToList();
+    }
+
     #region IRepository
 
     /// <inheritdoc />

@@ -44,6 +44,14 @@ internal sealed partial class CalendarRepository(IConnectionProvider connectionP
               """, new GetByIdParameters(bookingId));
     }
 
+    public async Task<bool> HasFutureEvents(int employeeId, DateTime from, CancellationToken cancellation = default)
+    {
+        DbConnection connection = await connectionProvider.GetConnection(cancellation);
+        return await connection.ExecuteScalarAsync<bool>(
+            $"SELECT EXISTS(SELECT 1 FROM {TableName} WHERE employeeid=@employeeId AND deleted IS NULL AND endtime > @from)",
+            new { employeeId, from });
+    }
+
     #region IRepository
 
     public async IAsyncEnumerable<CalendarEvent> GetAll(IPageQuery pageQuery,
