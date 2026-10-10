@@ -7,7 +7,7 @@ public class ResetPasswordCommandTests
 {
     private readonly static TimeProvider TimeProvider = TestHelpers.TimeProvider;
     private static ResetPasswordCommand CreateSut(IUserRepository users, ChannelWriter<Message> writer)
-        => new(users, CreateExpiringQueryString(TimeProvider), writer, Options.Create(new PasswordSettings { HmacKey = "" }), NullLogger<ResetPasswordCommand>.Instance);
+        => new(users, CreateExpiringQueryString(TimeProvider), writer, Options.Create(new PasswordSettings { HmacKey = "" }), TestHelpers.CreateTenantContext(), NullLogger<ResetPasswordCommand>.Instance);
 
     [Fact]
     public async Task GIVEN_NullRequest_WHEN_Execute_THEN_ThrowsArgumentNullException()
@@ -77,5 +77,6 @@ public class ResetPasswordCommandTests
         Assert.True(hasMessage && message is not null);
         // The command currently uses the original (untrimmed) email when composing the message
         Assert.Equal(existing.Email, message!.To);
+        Assert.Contains(TestHelpers.TenantName, message.Body, StringComparison.InvariantCulture);
     }
 }

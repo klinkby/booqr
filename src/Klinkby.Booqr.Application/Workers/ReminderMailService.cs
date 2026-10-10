@@ -66,6 +66,9 @@ internal sealed partial class ReminderMailService(
     {
         GetBookingDetailsCommand command = scopedServices.GetRequiredService<GetBookingDetailsCommand>();
         IMailClient mailClient = scopedServices.GetRequiredService<IMailClient>();
+        IReadOnlyDictionary<int, string> tenantNames = await scopedServices
+            .GetRequiredService<ITenantNameRepository>()
+            .GetDisplayNames(cancellationToken);
 
         var messageCount = 0;
         var items = await
@@ -77,7 +80,14 @@ internal sealed partial class ReminderMailService(
                 break;
             }
 
-            Message message = ComposeMessage(booking);
+            if (!tenantNames.TryGetValue(booking.TenantId, out var tenantName))
+            {
+                // deprovisioned tenant
+                log.UnknownTenant(booking.Id, booking.TenantId);
+                continue;
+            }
+
+            Message message = ComposeMessage(booking, tenantName);
             await TrySendReminder(message, mailClient, log, cancellationToken);
             Interlocked.Increment(ref messageCount);
         }
@@ -85,11 +95,12 @@ internal sealed partial class ReminderMailService(
         return messageCount;
     }
 
-    private static Message ComposeMessage(BookingDetails booking)
+    private static Message ComposeMessage(BookingDetails booking, string tenantName)
     {
         return EmbeddedResource.Properties_Reminder_handlebars.ComposeMessage(
             booking.CustomerEmail,
             StringResources.ReminderSubject,
+            tenantName,
             new Dictionary<string, string>
             {
                 ["id"] = booking.Id.ToString(CultureInfo.InvariantCulture),
@@ -127,6 +138,9 @@ internal sealed partial class ReminderMailService(
 
         [LoggerMessage(272, LogLevel.Information, "No reminder emails to send")]
         public partial void NothingToSend();
+
+        [LoggerMessage(273, LogLevel.Warning, "Skip reminder for booking {BookingId} of unknown tenant {TenantId}")]
+        public partial void UnknownTenant(int bookingId, int tenantId);
 
         [LoggerMessage(274, LogLevel.Information, "Reminder emails is sent at {TimeOfDay}")]
         public partial void ReminderMailServiceStart(TimeSpan timeOfDay);

@@ -45,6 +45,7 @@ The Infrastructure layer implements technical concerns like database access and 
 - **Npgsql 10**: PostgreSQL driver with async/streaming support
 - **Connection pooling**: Via `Npgsql.DependencyInjection`
 - **Schema bootstrapping**: Automatic on startup
+- **Views**: always `with (security_invoker = true)`, enforced by `SchemaMigrator` (see root `AGENTS.md` note 14)
 
 ## Repository Pattern
 

@@ -20,16 +20,8 @@ public class SignUpCommandTests
             _channel.Writer,
             ActivityRecorder.Object,
             Options.Create(new PasswordSettings { HmacKey = "" }),
-            CreateTenantContext(),
+            TestHelpers.CreateTenantContext(TenantId),
             NullLogger<SignUpCommand>.Instance);
-
-    private static ITenantContext CreateTenantContext()
-    {
-        var mock = new Mock<ITenantContext>();
-        mock.SetupGet(x => x.HasTenant).Returns(true);
-        mock.SetupGet(x => x.TenantId).Returns(TenantId);
-        return mock.Object;
-    }
 
     [Fact]
     public async Task GIVEN_NullRequest_WHEN_Execute_THEN_ThrowsArgumentNullException()
@@ -78,6 +70,7 @@ public class SignUpCommandTests
 
         Assert.Equal(expectedEmail, message.To);
         Assert.Contains(expectedEmail,  message.Body, StringComparison.InvariantCulture);
+        Assert.Contains(TestHelpers.TenantName, message.Body, StringComparison.InvariantCulture);
 
         // The Phase 1 placeholder (tenant_id=0) must now carry the host-resolved tenant from
         // ITenantContext.

@@ -60,6 +60,7 @@ public sealed partial class SignUpCommand(
         EmbeddedResource.Properties_SignUp_handlebars.ComposeMessage(
             user.Email,
             StringResources.SignUpSubject,
+            tenantContext.DisplayName,
             new Dictionary<string, string>
             {
                 ["name"] = user.Email,
