@@ -16,5 +16,5 @@ internal sealed class TenantNameRepository(IConnectionProvider connectionProvide
         return rows.ToDictionary(x => x.Id, x => x.DisplayName);
     }
 
-    private sealed record TenantDisplayName(int Id, string DisplayName);
+    internal sealed record TenantDisplayName(int Id, string DisplayName);
 }
