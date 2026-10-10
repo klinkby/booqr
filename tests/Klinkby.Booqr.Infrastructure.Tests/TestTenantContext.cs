@@ -15,6 +15,7 @@ internal sealed class TestTenantContext : ITenantContext
         TenantId = tenantId;
         DbRole = $"t_{tenantId}";
         Slug = $"tenant{tenantId}";
+        DisplayName = $"Tenant {tenantId}";
         HasTenant = true;
     }
 
@@ -23,6 +24,8 @@ internal sealed class TestTenantContext : ITenantContext
     public string DbRole { get; }
 
     public string Slug { get; }
+
+    public string DisplayName { get; }
 
     public bool HasTenant { get; }
 }

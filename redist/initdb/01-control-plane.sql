@@ -90,6 +90,11 @@ create role booqr_batch login bypassrls password 'changeme_booqr_batch';
 grant usage on schema public to booqr_registry;
 grant select on public.tenants to booqr_registry;
 
+-- The reminder-mail job brands each mail with the owning tenant's display name.
+-- Column-level so batch cannot read db_role/slug it has no use for.
+grant usage on schema public to booqr_batch;
+grant select (id, display_name, deleted) on public.tenants to booqr_batch;
+
 -- The migrator connects to record applied migrations in public.schema_migrations
 -- and to write the tenant registry during provisioning (docs/1-design.md §1:
 -- "writes public.tenants"). CREATE was revoked from PUBLIC above, so USAGE on the

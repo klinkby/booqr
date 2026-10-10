@@ -12,7 +12,6 @@ public class AddBookingCommandTest
     private readonly Mock<ITransaction> _mockTransaction;
     private readonly Mock<IActivityRecorder> _activityRecorder = new();
     private readonly Channel<Message> _channel;
-
     public AddBookingCommandTest()
     {
         _mockBookingRepository = new Mock<IBookingRepository>();
@@ -31,6 +30,7 @@ public class AddBookingCommandTest
             _mockTransaction.Object,
             _channel.Writer,
             _activityRecorder.Object,
+            TestHelpers.CreateTenantContext(),
             NullLogger<AddBookingCommand>.Instance);
     }
 
@@ -336,6 +336,7 @@ public class AddBookingCommandTest
         Assert.False(string.IsNullOrWhiteSpace(message!.Body));
         Assert.False(string.IsNullOrWhiteSpace(message.To));
         Assert.False(string.IsNullOrWhiteSpace(message.Subject));
+        Assert.Contains(TestHelpers.TenantName, message.Body, StringComparison.InvariantCulture);
     }
 
     #region GetCoverage Tests

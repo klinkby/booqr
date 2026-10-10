@@ -46,8 +46,15 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
     private const string TenantMasterSecret = "changeme_tenant_master_secret";
 
     private ServiceProvider? _services;
+    private ServiceProvider? _workerServices;
 
     internal IServiceProvider Services => _services!;
+
+    /// <summary>
+    ///     The worker run-mode composition (<c>AddWorkerInfrastructure</c>): repositories resolve the
+    ///     <c>booqr_batch</c> connection once <see cref="IBatchScope.Enable" /> is called on a scope.
+    /// </summary>
+    internal IServiceProvider WorkerServices => _workerServices!;
 
     /// <summary>Id of the first provisioned tenant (also the default DI connection's tenant).</summary>
     internal int TenantAId { get; private set; }
@@ -122,12 +129,18 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
             // multi-tenant isolation can open separate connections via OpenTenantConnection().
             .AddScoped<ITenantContext>(_ => new TestTenantContext(TenantAId))
             .BuildServiceProvider();
+        _workerServices = new ServiceCollection()
+            .AddSingleton<TimeProvider, FakeTimeProvider>()
+            .AddSingleton(typeof(ILogger<>), typeof(NullLogger<>))
+            .AddWorkerInfrastructure(config)
+            .BuildServiceProvider();
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
         await SqlContainer.DisposeAsync();
         await _services!.DisposeAsync();
+        await _workerServices!.DisposeAsync();
     }
 
     /// <summary>
@@ -243,7 +256,7 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
         var tenantId = await connection.ExecuteScalarAsync<int>(
             """
             insert into public.tenants (slug, db_role, display_name)
-            values (@slug, 'pending', @slug)
+            values (@slug, 'pending', 'Display ' || @slug)
             returning id
             """, new { slug });
 

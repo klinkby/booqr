@@ -25,6 +25,7 @@ public sealed partial class ResetPasswordCommand(
     IExpiringQueryString expiringQueryString,
     ChannelWriter<Message> channelWriter,
     IOptions<PasswordSettings> passwordSettings,
+    ITenantContext tenantContext,
     ILogger<ResetPasswordCommand> logger
 ) : ICommand<ResetPasswordRequest, Task<Result<bool>>>
 {
@@ -56,6 +57,7 @@ public sealed partial class ResetPasswordCommand(
         EmbeddedResource.Properties_PasswordReset_handlebars.ComposeMessage(
             user.Email,
             StringResources.ResetPasswordSubject,
+            tenantContext.DisplayName,
             new()
             {
                 ["name"] = user.Name ?? user.Email,

@@ -33,6 +33,13 @@ public interface ITenantContext
     string Slug { get; }
 
     /// <summary>
+    ///     Gets the display name of the resolved tenant (e.g. shown in outgoing mail), or an empty
+    ///     string when no tenant was resolved.
+    /// </summary>
+    /// <value>The tenant display name, or an empty string when <see cref="HasTenant"/> is <c>false</c>.</value>
+    string DisplayName { get; }
+
+    /// <summary>
     ///     Gets a value indicating whether a tenant was successfully resolved from the request host.
     /// </summary>
     /// <remarks>

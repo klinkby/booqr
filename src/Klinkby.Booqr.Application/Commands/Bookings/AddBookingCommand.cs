@@ -30,6 +30,7 @@ public partial class AddBookingCommand(
     ITransaction transaction,
     ChannelWriter<Message> channelWriter,
     IActivityRecorder activityRecorder,
+    ITenantContext tenantContext,
     ILogger<AddBookingCommand> logger)
     : ICommand<AddBookingRequest, Task<Result<int>>>
 {
@@ -205,11 +206,12 @@ public partial class AddBookingCommand(
     private static Booking Map(AddBookingRequest query) =>
         new(query.CustomerId!.Value, query.ServiceId, query.Notes);
 
-    private static Message ComposeMessage(BookingDetails booking)
+    private Message ComposeMessage(BookingDetails booking)
     {
         return EmbeddedResource.Properties_NewBooking_handlebars.ComposeMessage(
             booking.CustomerEmail,
             StringResources.NewBooking,
+            tenantContext.DisplayName,
             new Dictionary<string, string>
             {
                 ["id"] = booking.Id.ToString(CultureInfo.InvariantCulture),

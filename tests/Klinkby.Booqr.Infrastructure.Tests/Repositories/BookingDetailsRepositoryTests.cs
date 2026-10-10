@@ -50,5 +50,6 @@ public sealed class BookingDetailsRepositoryTests(ServiceProviderFixture service
         Assert.Equal(employee.Name, actual.Employee);
         Assert.Equal(customer.Name, actual.CustomerName);
         Assert.Equal(customer.Email, actual.CustomerEmail);
+        Assert.Equal(serviceProvider.TenantAId, actual.TenantId);
     }
 }

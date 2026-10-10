@@ -1,4 +1,5 @@
-﻿using Klinkby.Booqr.Application.Workers;
+﻿using System.Collections.Concurrent;
+using Klinkby.Booqr.Application.Workers;
 using Klinkby.Booqr.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -18,12 +19,17 @@ public class ReminderMailServiceTest
         DateTime now = timeProvider.GetUtcNow().UtcDateTime;
         ServiceCollection services = CreateServiceCollection();
         using CountdownEvent cde = new(bookingDetails.Length);
+        ConcurrentQueue<Message> sent = new();
 
         Mock<IMailClient> mailClientMock = new();
         mailClientMock
             .Setup(m => m.Send(It.IsAny<Message>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
-            .Callback(() => cde.Signal())
+            .Callback<Message, CancellationToken>((message, _) =>
+            {
+                sent.Enqueue(message);
+                cde.Signal();
+            })
             .Verifiable(Times.Exactly(bookingDetails.Length));
         services.AddSingleton(mailClientMock.Object);
 
@@ -34,6 +40,16 @@ public class ReminderMailServiceTest
             .Returns(() => bookingDetails.ToAsyncEnumerable())
             .Verifiable(Times.Once);
         services.AddSingleton(repoMock.Object);
+
+        Dictionary<int, string> tenantNames = bookingDetails
+            .Select(b => b.TenantId)
+            .Distinct()
+            .ToDictionary(id => id, id => $"Tenant {id}");
+        Mock<ITenantNameRepository> tenantNameMock = new();
+        tenantNameMock
+            .Setup(m => m.GetDisplayNames(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tenantNames);
+        services.AddSingleton(tenantNameMock.Object);
         await using ServiceProvider serviceProvider = services.BuildServiceProvider();
         var settings = new ReminderMailSettings
             {
@@ -57,6 +73,9 @@ public class ReminderMailServiceTest
         // assert
         mailClientMock.Verify();
         repoMock.Verify();
+        Assert.All(bookingDetails, booking =>
+            Assert.Contains(sent, m => m.To == booking.CustomerEmail
+                                       && m.Body.Contains(tenantNames[booking.TenantId], StringComparison.InvariantCulture)));
     }
 
     private static ServiceCollection CreateServiceCollection()

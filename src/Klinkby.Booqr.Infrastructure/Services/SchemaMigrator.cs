@@ -30,7 +30,8 @@ public sealed class SchemaMigrator(NpgsqlDataSource migratorDataSource)
     ///     row-level-security coverage guard.
     /// </summary>
     /// <exception cref="InvalidOperationException">
-    ///     Thrown if the coverage guard finds an <c>app</c> table without enabled + forced RLS.
+    ///     Thrown if the coverage guard finds an <c>app</c> table without enabled + forced RLS, or an
+    ///     <c>app</c> view that is not <c>security_invoker</c>.
     /// </exception>
     public async Task Migrate(CancellationToken cancellation = default)
     {
@@ -98,9 +99,10 @@ public sealed class SchemaMigrator(NpgsqlDataSource migratorDataSource)
 
     /// <summary>
     ///     RLS coverage guard: fails the migration if any table (relkind = 'r') in schema
-    ///     <c>app</c> lacks both <c>ENABLE</c> and <c>FORCE ROW LEVEL SECURITY</c>. Views are
-    ///     excluded — RLS applies through their underlying base tables. Cluster-wide coordination
-    ///     tables in <see cref="RlsExemptTables" /> are also excluded by design.
+    ///     <c>app</c> lacks both <c>ENABLE</c> and <c>FORCE ROW LEVEL SECURITY</c>, or any view
+    ///     (relkind = 'v') lacks <c>security_invoker</c>. An owner-privileged view applies RLS as
+    ///     <c>booqr_migrator</c>, so <c>booqr_batch</c> (BYPASSRLS) would see zero rows through it.
+    ///     Cluster-wide coordination tables in <see cref="RlsExemptTables" /> are excluded by design.
     /// </summary>
     private async Task AssertRlsCoverage(CancellationToken cancellation)
     {
@@ -111,9 +113,11 @@ public sealed class SchemaMigrator(NpgsqlDataSource migratorDataSource)
             from pg_class c
             join pg_namespace n on n.oid = c.relnamespace
             where n.nspname = 'app'
-              and c.relkind = 'r'
-              and (c.relrowsecurity = false or c.relforcerowsecurity = false)
-              and c.relname <> all(@exempt)
+              and ((c.relkind = 'r'
+                    and (c.relrowsecurity = false or c.relforcerowsecurity = false)
+                    and c.relname <> all(@exempt))
+                or (c.relkind = 'v'
+                    and not coalesce('security_invoker=true' = any(c.reloptions), false)))
             order by c.relname
             """, connection);
         command.Parameters.AddWithValue("exempt", RlsExemptTables);
@@ -130,7 +134,7 @@ public sealed class SchemaMigrator(NpgsqlDataSource migratorDataSource)
         if (unprotected.Count > 0)
         {
             throw new InvalidOperationException(
-                $"RLS coverage guard failed: table(s) without enabled+forced row level security: {string.Join(", ", unprotected)}");
+                $"RLS coverage guard failed: table(s) without enabled+forced row level security or view(s) without security_invoker: {string.Join(", ", unprotected)}");
         }
     }
 
