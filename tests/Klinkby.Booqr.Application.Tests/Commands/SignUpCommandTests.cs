@@ -85,4 +85,20 @@ public class SignUpCommandTests
             x => x.Add(It.Is<ActivityQuery<User>>(q => q.TenantId == TenantId), It.IsAny<CancellationToken>()),
             Times.Once);
     }
+
+    [Fact]
+    public async Task GIVEN_DuplicateEmail_WHEN_Execute_THEN_NoSignUpMessageIsSent()
+    {
+        // Arrange: the unique (tenant_id, email) index makes the repository fail the second insert
+        _users.Setup(x => x.Add(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("duplicate email"));
+        SignUpCommand sut = CreateSut();
+
+        // Act
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => sut.Execute(new SignUpRequest("user@example.com", "https://localhost")));
+
+        // Assert
+        Assert.False(_channel.Reader.TryRead(out _));
+    }
 }

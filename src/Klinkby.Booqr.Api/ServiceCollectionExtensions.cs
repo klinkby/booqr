@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
+using System.Threading.RateLimiting;
 using Klinkby.Booqr.Api.Models;
 using Klinkby.Booqr.Application.Models;
 using Microsoft.Extensions.Options;
@@ -17,6 +19,7 @@ internal static class ServiceCollectionExtensions
         ConfigureHealthChecks(services);
         ConfigureJson(services);
         ConfigureRequestMetadata(services);
+        ConfigureRateLimiting(services);
     }
 
     /// <summary>
@@ -70,6 +73,40 @@ internal static class ServiceCollectionExtensions
             options.CustomizeProblemDetails = static context =>
                 context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier);
         services.AddExceptionHandler<Klinkby.Booqr.Api.GlobalExceptionHandler>();
+    }
+
+    /// <summary>
+    ///     Throttles <c>POST /users/change-password</c> per tenant host and user id taken from the link's
+    ///     <c>id</c> query parameter. The id is read before the link signature is verified, so it is only
+    ///     a partition key: non-numeric values share one bucket, which keeps the number of partitions
+    ///     bounded. The coarse per-IP limit is enforced by the HAProxy gateway.
+    /// </summary>
+    private static void ConfigureRateLimiting(IServiceCollection services)
+    {
+        services.AddRateLimiter(static options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            options.OnRejected = static (context, _) =>
+            {
+                if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out TimeSpan retryAfter))
+                {
+                    context.HttpContext.Response.Headers.RetryAfter =
+                        ((int)Math.Ceiling(retryAfter.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
+                }
+
+                return ValueTask.CompletedTask;
+            };
+            options.AddPolicy(RateLimitPolicies.ChangePassword, static context =>
+            {
+                var validId = int.TryParse(context.Request.Query["id"].ToString(), CultureInfo.InvariantCulture, out var id);
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    $"{context.Request.Host.Host}/{(validId ? id : -1)}",
+                    static _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5, Window = TimeSpan.FromHours(1), QueueLimit = 0
+                    });
+            });
+        });
     }
 
     private static void ConfigureHealthChecks(IServiceCollection services)
