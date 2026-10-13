@@ -60,6 +60,57 @@ public sealed class BatchIsolationTests(ServiceProviderFixture serviceProvider)
     }
 
     /// <summary>
+    ///     GIVEN a booking in tenant A, WHEN reading app.bookingdetails as batch (the reminder job) and
+    ///     as tenant B, THEN batch sees it and tenant B does not (security_invoker view).
+    /// </summary>
+    [Fact]
+    public async Task GIVEN_TenantBooking_WHEN_SelectingBookingDetails_THEN_VisibleToBatchButNotOtherTenant()
+    {
+        await using NpgsqlConnection connectionA =
+            await serviceProvider.OpenTenantConnection(serviceProvider.TenantAId, CancellationToken.None);
+        await using NpgsqlConnection connectionB =
+            await serviceProvider.OpenTenantConnection(serviceProvider.TenantBId, CancellationToken.None);
+        await using NpgsqlConnection batchConnection =
+            await serviceProvider.OpenBatchConnection(CancellationToken.None);
+
+        var marker = Guid.NewGuid().ToString("N");
+        long bookingId = await connectionA.ExecuteScalarAsync<long>(
+            """
+            with u as (insert into app.users (email, role, created, modified)
+                       values (@marker || '@example.com', 'Employee', now(), now()) returning id),
+                 l as (insert into app.locations (name, created, modified) values (@marker, now(), now()) returning id),
+                 s as (insert into app.services (name, duration, created, modified)
+                       values (@marker, '1 hour', now(), now()) returning id),
+                 b as (insert into app.bookings (customerid, serviceid, created, modified)
+                       select u.id, s.id, now(), now() from u, s returning id),
+                 c as (insert into app.calendar (employeeid, starttime, endtime, locationid, bookingid, created, modified)
+                       select u.id, now(), now() + interval '1 hour', l.id, b.id, now(), now() from u, l, b returning bookingid)
+            select bookingid from c
+            """, new { marker });
+        try
+        {
+            int? batchTenantId = await batchConnection.QuerySingleOrDefaultAsync<int?>(
+                "select tenantid from app.bookingdetails where id = @bookingId", new { bookingId });
+            int? tenantBTenantId = await connectionB.QuerySingleOrDefaultAsync<int?>(
+                "select tenantid from app.bookingdetails where id = @bookingId", new { bookingId });
+
+            Assert.Equal(serviceProvider.TenantAId, batchTenantId);
+            Assert.Null(tenantBTenantId);
+        }
+        finally
+        {
+            await batchConnection.ExecuteAsync(
+                """
+                delete from app.calendar where bookingid = @bookingId;
+                delete from app.bookings where id = @bookingId;
+                delete from app.users where email = @marker || '@example.com';
+                delete from app.locations where name = @marker;
+                delete from app.services where name = @marker;
+                """, new { bookingId, marker });
+        }
+    }
+
+    /// <summary>
     ///     GIVEN two tenants, each with a row in app.locations, WHEN querying as tenant A,
     ///     THEN only tenant A's row is visible; tenant B's row is NOT visible due to RLS.
     ///     This proves that non-BYPASSRLS tenant roles remain confined to their own data and

@@ -15,12 +15,10 @@ public interface IMutableTenantContext : ITenantContext
     ///     Assigns the resolved tenant to this scope. Idempotent per scope: the middleware calls it
     ///     at most once before any tenant-scoped data access.
     /// </summary>
-    /// <param name="tenantId">The resolved tenant's positive integer id.</param>
-    /// <param name="dbRole">The tenant's PostgreSQL login role (e.g. <c>t_42</c>).</param>
-    /// <param name="slug">The tenant's public slug (e.g. <c>acme</c>).</param>
+    /// <param name="tenant">The resolved tenant registry record.</param>
     [SuppressMessage("Naming", "CA1716:Identifiers should not match keywords",
         Justification = "'Set' reads clearly as the mutator for this scoped context; not a public library API surface.")]
-    void Set(int tenantId, string dbRole, string slug);
+    void Set(Tenant tenant);
 }
 
 /// <inheritdoc cref="IMutableTenantContext" />
@@ -32,17 +30,21 @@ internal sealed class TenantContext : IMutableTenantContext
 
     public string Slug { get; private set; } = string.Empty;
 
+    public string DisplayName { get; private set; } = string.Empty;
+
     public bool HasTenant { get; private set; }
 
-    public void Set(int tenantId, string dbRole, string slug)
+    public void Set(Tenant tenant)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(tenantId, 0);
-        ArgumentException.ThrowIfNullOrEmpty(dbRole);
-        ArgumentException.ThrowIfNullOrEmpty(slug);
+        ArgumentNullException.ThrowIfNull(tenant);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(tenant.Id, 0);
+        ArgumentException.ThrowIfNullOrEmpty(tenant.DbRole);
+        ArgumentException.ThrowIfNullOrEmpty(tenant.Slug);
 
-        TenantId = tenantId;
-        DbRole = dbRole;
-        Slug = slug;
+        TenantId = tenant.Id;
+        DbRole = tenant.DbRole;
+        Slug = tenant.Slug;
+        DisplayName = tenant.DisplayName;
         HasTenant = true;
     }
 }

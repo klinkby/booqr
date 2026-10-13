@@ -19,6 +19,9 @@ public record Problem(string Type, string Title, int HttpStatusCode, string? Det
     public static Problem Conflict { get; } =
         new(Prefix + "conflict", "Resource conflict", 409);
 
+    public static Problem TooManyRequests { get; } =
+        new(Prefix + "haste", "Too many requests", 429);
+
     public static Problem MidAirCollision { get; } =
         new(Prefix + "mid-air-collision", "State changed during operation", 412);
 }

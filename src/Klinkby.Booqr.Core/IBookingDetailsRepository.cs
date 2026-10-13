@@ -16,6 +16,7 @@
 /// <param name="CustomerId">The unique identifier of the customer.</param>
 /// <param name="CustomerName">The name of the customer, or <c>null</c> if not available.</param>
 /// <param name="CustomerEmail">The email address of the customer.</param>
+/// <param name="TenantId">The identifier of the tenant that owns the booking.</param>
 public sealed record BookingDetails(
     int Id,
     DateTime StartTime,
@@ -25,7 +26,8 @@ public sealed record BookingDetails(
     string? Employee,
     int CustomerId,
     string? CustomerName,
-    string CustomerEmail);
+    string CustomerEmail,
+    int TenantId);
 
 /// <summary>
 ///     Provides data access operations for <see cref="BookingDetails"/> views.

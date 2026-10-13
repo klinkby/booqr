@@ -38,6 +38,14 @@ internal sealed partial class RefreshTokenRepository(IConnectionProvider connect
             new { Family=family, Timestamp=timestamp });
     }
 
+    public async Task<int> RevokeAllForUser(int userId, DateTime timestamp, CancellationToken cancellation = default)
+    {
+        DbConnection connection = await connectionProvider.GetConnection(cancellation);
+        return await connection.ExecuteAsync(
+            $"UPDATE {TableName} SET revoked=@Timestamp WHERE userid=@UserId AND revoked IS NULL AND replacedby IS NULL",
+            new { UserId = userId, Timestamp = timestamp });
+    }
+
     public async Task<int> Delete(DateTime before, CancellationToken cancellation = default)
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);

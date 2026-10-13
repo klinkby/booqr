@@ -57,7 +57,7 @@ internal static class ApplicationBuilderExtensions
                 {
                     IMutableTenantContext tenantContext =
                         context.RequestServices.GetRequiredService<IMutableTenantContext>();
-                    tenantContext.Set(tenant.Id, tenant.DbRole, slug);
+                    tenantContext.Set(tenant);
                 }
             }
 

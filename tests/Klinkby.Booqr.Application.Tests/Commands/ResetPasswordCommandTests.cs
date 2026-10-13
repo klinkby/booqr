@@ -7,7 +7,7 @@ public class ResetPasswordCommandTests
 {
     private readonly static TimeProvider TimeProvider = TestHelpers.TimeProvider;
     private static ResetPasswordCommand CreateSut(IUserRepository users, ChannelWriter<Message> writer)
-        => new(users, CreateExpiringQueryString(TimeProvider), writer, Options.Create(new PasswordSettings { HmacKey = "" }), NullLogger<ResetPasswordCommand>.Instance);
+        => new(users, CreateExpiringQueryString(TimeProvider), writer, Options.Create(new PasswordSettings { HmacKey = "" }), TestHelpers.CreateTenantContext(), NullLogger<ResetPasswordCommand>.Instance);
 
     [Fact]
     public async Task GIVEN_NullRequest_WHEN_Execute_THEN_ThrowsArgumentNullException()
@@ -35,7 +35,7 @@ public class ResetPasswordCommandTests
         var sut = CreateSut(users.Object, channel.Writer);
 
         var request = new ResetPasswordRequest(email, "https://localhost");
-        var expectedEmail = email.Trim();
+        var expectedEmail = email;
 
         // Act
         await sut.Execute(request);
@@ -53,7 +53,7 @@ public class ResetPasswordCommandTests
     public async Task GIVEN_UserFound_WHEN_Execute_THEN_UpdatesPassword_And_SendsEmail(string email)
     {
         // Arrange
-        var existing = new User(email.Trim(), string.Empty, UserRole.Customer, "Jane Doe", 12345678);
+        var existing = new User(email, string.Empty, UserRole.Customer, "Jane Doe", 12345678);
 
         var users = new Mock<IUserRepository>();
         users.Setup(x => x.GetByEmail(It.IsAny<string>(), CancellationToken.None))
@@ -63,7 +63,7 @@ public class ResetPasswordCommandTests
         var sut = CreateSut(users.Object, channel.Writer);
 
         var request = new ResetPasswordRequest(email, "https://localhost");
-        var expectedEmail = email.Trim();
+        var expectedEmail = email;
 
         // Act
         await sut.Execute(request);
@@ -77,5 +77,6 @@ public class ResetPasswordCommandTests
         Assert.True(hasMessage && message is not null);
         // The command currently uses the original (untrimmed) email when composing the message
         Assert.Equal(existing.Email, message!.To);
+        Assert.Contains(TestHelpers.TenantName, message.Body, StringComparison.InvariantCulture);
     }
 }

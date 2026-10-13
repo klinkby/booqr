@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
+using Klinkby.Booqr.Application.Util;
 
 namespace Klinkby.Booqr.Application.Commands.Users;
 
@@ -9,8 +11,9 @@ public record UpdateUserProfileRequest(
     [property: Required]
     [property: StringLength(0xff)]
     string Name,
-    [property: Range(45_10_00_00_00, 49_99_99_99_99)]
-    long Phone
+    [property: Range(3_521_000, 49_999_999_999_999_999)]
+    [property: JsonConverter(typeof(BlankToNullLongJsonConverter))]
+    long? Phone
 ) : AuthenticatedRequest, IId;
 
 public sealed partial class UpdateUserProfileCommand(
@@ -40,7 +43,7 @@ public sealed partial class UpdateUserProfileCommand(
 
         _log.PatchUser(query.AuthenticatedUserId, query.Id);
         PartialUser partialItem = Map(query);
-        var updated = await repository.Patch(partialItem, cancellation);
+        var updated = await repository.UpdateProfile(partialItem, cancellation);
         if (!updated)
         {
             return Problem.MidAirCollision with { Detail = $"User {query.Id} was already updated." };

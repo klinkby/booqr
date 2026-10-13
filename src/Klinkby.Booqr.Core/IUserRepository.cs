@@ -152,4 +152,33 @@ public interface IUserRepository : IRepository<User>
     ///     Thrown if <paramref name="partialUser"/> is <c>null</c>.
     /// </exception>
     Task<bool> Patch(PartialUser partialUser, CancellationToken cancellation = default);
+
+    /// <summary>
+    ///     Updates the profile fields of a user. Unlike <see cref="Patch"/>, a <c>null</c>
+    ///     <see cref="PartialUser.Phone"/> clears the stored phone number; <see cref="PartialUser.Name"/> is only
+    ///     changed when non-null.
+    /// </summary>
+    /// <param name="partialUser">The user id, name, phone and optional version for optimistic concurrency.</param>
+    /// <param name="cancellation">A token to cancel the operation.</param>
+    /// <returns><c>true</c> if updated; <c>false</c> on an optimistic concurrency conflict.</returns>
+    Task<bool> UpdateProfile(PartialUser partialUser, CancellationToken cancellation = default);
+
+    /// <summary>
+    ///     Retrieves a non-deleted user by id and takes a row lock (<c>SELECT ... FOR UPDATE</c>).
+    ///     Must be called inside a transaction.
+    /// </summary>
+    /// <param name="id">The unique identifier of the user.</param>
+    /// <param name="cancellation">A token to cancel the operation.</param>
+    /// <returns>
+    ///     A task whose result is the locked <see cref="User"/>, or <c>null</c> if not found or deleted.
+    /// </returns>
+    Task<User?> GetByIdForUpdate(int id, CancellationToken cancellation = default);
+
+    /// <summary>
+    ///     Row-locks all non-deleted users having the <see cref="UserRole.Admin"/> role, ordered by id.
+    ///     Must be called inside a transaction.
+    /// </summary>
+    /// <param name="cancellation">A token to cancel the operation.</param>
+    /// <returns>A task whose result is the ids of the locked admin users.</returns>
+    Task<IReadOnlyList<int>> LockAdmins(CancellationToken cancellation = default);
 }

@@ -20,16 +20,8 @@ public class SignUpCommandTests
             _channel.Writer,
             ActivityRecorder.Object,
             Options.Create(new PasswordSettings { HmacKey = "" }),
-            CreateTenantContext(),
+            TestHelpers.CreateTenantContext(TenantId),
             NullLogger<SignUpCommand>.Instance);
-
-    private static ITenantContext CreateTenantContext()
-    {
-        var mock = new Mock<ITenantContext>();
-        mock.SetupGet(x => x.HasTenant).Returns(true);
-        mock.SetupGet(x => x.TenantId).Returns(TenantId);
-        return mock.Object;
-    }
 
     [Fact]
     public async Task GIVEN_NullRequest_WHEN_Execute_THEN_ThrowsArgumentNullException()
@@ -48,7 +40,7 @@ public class SignUpCommandTests
     {
         // Arrange
         const int newUserId = 987;
-        var expectedEmail = email.Trim();
+        var expectedEmail = email;
         // ActivityRecorder is a static mock shared across this theory's cases; reset so the
         // Times.Once verification below only reflects this invocation.
         ActivityRecorder.Invocations.Clear();
@@ -78,11 +70,28 @@ public class SignUpCommandTests
 
         Assert.Equal(expectedEmail, message.To);
         Assert.Contains(expectedEmail,  message.Body, StringComparison.InvariantCulture);
+        Assert.Contains(TestHelpers.TenantName, message.Body, StringComparison.InvariantCulture);
 
         // The Phase 1 placeholder (tenant_id=0) must now carry the host-resolved tenant from
         // ITenantContext.
         ActivityRecorder.Verify(
             x => x.Add(It.Is<ActivityQuery<User>>(q => q.TenantId == TenantId), It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task GIVEN_DuplicateEmail_WHEN_Execute_THEN_NoSignUpMessageIsSent()
+    {
+        // Arrange: the unique (tenant_id, email) index makes the repository fail the second insert
+        _users.Setup(x => x.Add(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("duplicate email"));
+        SignUpCommand sut = CreateSut();
+
+        // Act
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => sut.Execute(new SignUpRequest("user@example.com", "https://localhost")));
+
+        // Assert
+        Assert.False(_channel.Reader.TryRead(out _));
     }
 }

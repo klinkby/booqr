@@ -111,6 +111,13 @@ graph TD
     re-attached.
 - **List/inspect tenants:** query `public.tenants` as `booqr_registry` (or the migrator). Deleted tenants
   have a non-null `deleted`.
+- **Change a user's role** (Customer/Employee/Admin): a tenant admin calls `PUT /api/users/{id}/role`
+  with `{"role":"Employee"}`. The caller's Admin role is re-verified against the DB under a lock of all
+  admin rows (defeats stale admin JWTs; a tenant can never lose its last admin). Self-change is
+  forbidden. Demotion to Customer is refused with 409 while the user has future calendar entries. All
+  of the target's refresh tokens are revoked, but an already-issued access token keeps the old role
+  until it expires (≤ `Jwt:AccessExpires`, default 1h). Audited as activity `ChangeRole` plus a
+  warning log (event 253).
 - **Data export for one tenant** (e.g. offboarding): connect as `booqr_batch` (BYPASSRLS) and filter
   `WHERE tenant_id = <id>` per table. Never hand a tenant another tenant's export.
 

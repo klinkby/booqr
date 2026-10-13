@@ -19,7 +19,20 @@ public sealed class TestBatchScope : IBatchScope
 
 internal static class TestHelpers
 {
+    public const string TenantName = "Acme Klinik";
+    public const string TenantSlug = "acme";
+
     public static FakeTimeProvider TimeProvider => new();
+
+    public static ITenantContext CreateTenantContext(int tenantId = 7)
+    {
+        var mock = new Mock<ITenantContext>();
+        mock.SetupGet(x => x.HasTenant).Returns(true);
+        mock.SetupGet(x => x.TenantId).Returns(tenantId);
+        mock.SetupGet(x => x.DisplayName).Returns(TenantName);
+        mock.SetupGet(x => x.Slug).Returns(TenantSlug);
+        return mock.Object;
+    }
 
     public static ClaimsPrincipal CreateUser(int id = 42, params string[] roles)
     {

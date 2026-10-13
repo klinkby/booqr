@@ -40,6 +40,32 @@ internal sealed partial class UserRepository(IConnectionProvider connectionProvi
     }
 
 
+    public async Task<User?> GetByIdForUpdate(int id, CancellationToken cancellation = default)
+    {
+        DbConnection connection = await connectionProvider.GetConnection(cancellation);
+        return await connection.QuerySingleOrDefaultAsync<User>(
+            $"""
+             SELECT id,{CommaSeparated},created,modified,deleted
+             FROM {TableName}
+             WHERE deleted IS NULL AND id=@id
+             FOR UPDATE
+             """, new { id });
+    }
+
+    public async Task<IReadOnlyList<int>> LockAdmins(CancellationToken cancellation = default)
+    {
+        DbConnection connection = await connectionProvider.GetConnection(cancellation);
+        IEnumerable<int> ids = await connection.QueryAsync<int>(
+            $"""
+             SELECT id
+             FROM {TableName}
+             WHERE role=@role AND deleted IS NULL
+             ORDER BY id
+             FOR UPDATE
+             """, new { role = UserRole.Admin });
+        return ids.ToList();
+    }
+
     #region IRepository
 
     /// <inheritdoc />
@@ -79,6 +105,17 @@ internal sealed partial class UserRepository(IConnectionProvider connectionProvi
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
         return 1 == await connection.ExecuteAsync($"{PatchQuery}", WithModified(item));
+    }
+
+    public async Task<bool> UpdateProfile(PartialUser item, CancellationToken cancellation)
+    {
+        DbConnection connection = await connectionProvider.GetConnection(cancellation);
+        return 1 == await connection.ExecuteAsync(
+            $"""
+             UPDATE {TableName}
+             SET name = COALESCE(@Name, name), phone = @Phone, modified = @Modified
+             WHERE deleted IS NULL AND id = @Id AND (@Version IS NULL OR modified = @Version)
+             """, WithModified(item));
     }
 
     public async Task<bool> Delete(int id, CancellationToken cancellation)

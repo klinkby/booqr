@@ -341,9 +341,11 @@ internal static class Routing
                     CancellationToken cancellation) => command
                     .Execute(request with { QueryString = context.Request.QueryString.Value ?? "" }, cancellation)
                     .ToNoContent())
+            .RequireRateLimiting(RateLimitPolicies.ChangePassword)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status412PreconditionFailed)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
             .WithName("changePassword")
             .WithSummary("Change password");
 
@@ -418,6 +420,22 @@ internal static class Routing
             .ProducesValidationProblem()
             .WithName("updateUser")
             .WithSummary("Update a user");
+
+        group.MapPut($"{IdRoutePattern}/role",
+                static (ChangeUserRoleCommand command,
+                    int id,
+                    [FromBody] ChangeUserRoleRequest request,
+                    CancellationToken cancellation) => command
+                    .Execute(request with { Id = id }, cancellation)
+                    .ToNoContent())
+            .RequireAuthorization(UserRole.Admin)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status412PreconditionFailed)
+            .WithName("changeUserRole")
+            .WithSummary("Change a user's role (admin only)");
 
         group.MapDelete(IdRoutePattern,
                 static (DeleteUserCommand command,

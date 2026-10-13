@@ -29,11 +29,12 @@ internal sealed partial class ReminderMailService(
 {
     private readonly LoggerMessages _log = new(logger);
     protected override TimeSpan TriggerTimeOfDay => reminderMailSettings.Value.TimeOfDay;
+    protected override TimeZoneInfo TriggerTimeZone => MailTime.Copenhagen;
     protected override string JobName => "reminder-mail";
 
     protected override async Task ExecuteScheduledTaskAsync(CancellationToken stoppingToken)
     {
-        var timestamp = DateOnly.FromDateTime(Now);
+        var timestamp = MailTime.LocalDate(Now).AddDays(1); // remind about tomorrow (Danish date)
         await using AsyncServiceScope serviceScope = ServiceProvider.CreateAsyncScope();
         // Cross-tenant batch work: reminder mail spans all tenants, so this scope runs as
         // booqr_batch (BYPASSRLS) rather than a per-tenant connection (docs/1-design.md
@@ -66,6 +67,9 @@ internal sealed partial class ReminderMailService(
     {
         GetBookingDetailsCommand command = scopedServices.GetRequiredService<GetBookingDetailsCommand>();
         IMailClient mailClient = scopedServices.GetRequiredService<IMailClient>();
+        IReadOnlyDictionary<int, string> tenantNames = await scopedServices
+            .GetRequiredService<ITenantNameRepository>()
+            .GetDisplayNames(cancellationToken);
 
         var messageCount = 0;
         var items = await
@@ -77,7 +81,14 @@ internal sealed partial class ReminderMailService(
                 break;
             }
 
-            Message message = ComposeMessage(booking);
+            if (!tenantNames.TryGetValue(booking.TenantId, out var tenantName))
+            {
+                // deprovisioned tenant
+                log.UnknownTenant(booking.Id, booking.TenantId);
+                continue;
+            }
+
+            Message message = ComposeMessage(booking, tenantName);
             await TrySendReminder(message, mailClient, log, cancellationToken);
             Interlocked.Increment(ref messageCount);
         }
@@ -85,15 +96,16 @@ internal sealed partial class ReminderMailService(
         return messageCount;
     }
 
-    private static Message ComposeMessage(BookingDetails booking)
+    private static Message ComposeMessage(BookingDetails booking, string tenantName)
     {
         return EmbeddedResource.Properties_Reminder_handlebars.ComposeMessage(
             booking.CustomerEmail,
             StringResources.ReminderSubject,
+            tenantName,
             new Dictionary<string, string>
             {
                 ["id"] = booking.Id.ToString(CultureInfo.InvariantCulture),
-                ["start"] = booking.StartTime.ToString("hh:mm d/M", CultureInfo.InvariantCulture),
+                ["start"] = MailTime.FormatStart(booking.StartTime),
                 ["duration"] = booking.Duration.ToString("hh':'mm", CultureInfo.InvariantCulture),
                 ["name"] = booking.CustomerName ?? booking.CustomerEmail,
                 ["employee"] = booking.Employee ?? "?",
@@ -127,6 +139,9 @@ internal sealed partial class ReminderMailService(
 
         [LoggerMessage(272, LogLevel.Information, "No reminder emails to send")]
         public partial void NothingToSend();
+
+        [LoggerMessage(273, LogLevel.Warning, "Skip reminder for booking {BookingId} of unknown tenant {TenantId}")]
+        public partial void UnknownTenant(int bookingId, int tenantId);
 
         [LoggerMessage(274, LogLevel.Information, "Reminder emails is sent at {TimeOfDay}")]
         public partial void ReminderMailServiceStart(TimeSpan timeOfDay);

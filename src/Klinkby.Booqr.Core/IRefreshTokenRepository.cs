@@ -80,4 +80,15 @@ public interface IRefreshTokenRepository : IRepository
     ///     A task that represents the asynchronous operation. The task result contains the number of items deleted.
     /// </returns>
     Task<int> Delete(DateTime before, CancellationToken cancellation = default);
+
+    /// <summary>
+    ///     Revokes all live refresh tokens belonging to the specified user, across all families.
+    /// </summary>
+    /// <param name="userId">The identifier of the user whose tokens are revoked.</param>
+    /// <param name="timestamp">The time at which the tokens are marked as revoked.</param>
+    /// <param name="cancellation">The token used to propagate notification that the operation should be canceled.</param>
+    /// <returns>
+    ///     A task that represents the asynchronous operation. The task result contains the number of items revoked.
+    /// </returns>
+    Task<int> RevokeAllForUser(int userId, DateTime timestamp, CancellationToken cancellation = default);
 }
