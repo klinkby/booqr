@@ -72,7 +72,7 @@ public class SignUpCommandTests
         Assert.True(hasMessage && message is not null);
 
         Assert.Equal(expectedEmail, message.To);
-        Assert.Contains(expectedEmail,  message.Body, StringComparison.InvariantCulture);
+        Assert.Contains(user.Name!, message.Body, StringComparison.InvariantCulture);
         Assert.Contains(TestHelpers.TenantName, message.Body, StringComparison.InvariantCulture);
 
         // The Phase 1 placeholder (tenant_id=0) must now carry the host-resolved tenant from

@@ -73,7 +73,7 @@ public sealed partial class SignUpCommand(
             tenantContext.DisplayName,
             new Dictionary<string, string>
             {
-                ["name"] = user.Email,
+                ["name"] = user.Name ?? user.Email,
                 ["resetlink"] = authority
                                 + _settings.ResetPath
                                 + expiringQueryString.Create(
