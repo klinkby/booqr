@@ -3,8 +3,9 @@ namespace Klinkby.Booqr.Infrastructure.Tests.Repositories;
 [Collection(nameof(ServiceProviderFixture))]
 public sealed class JobClaimRepositoryTests(ServiceProviderFixture serviceProvider)
 {
-    private readonly IJobClaim _sut = serviceProvider.Services.GetRequiredService<IJobClaim>();
-    private readonly ITransaction _transaction = serviceProvider.Services.GetRequiredService<ITransaction>();
+    // Resolved from the worker container: in production IJobClaim runs only as booqr_batch.
+    private readonly IJobClaim _sut = serviceProvider.WorkerServices.GetRequiredService<IJobClaim>();
+    private readonly ITransaction _transaction = serviceProvider.WorkerServices.GetRequiredService<ITransaction>();
 
     [Theory]
     [IntegrationAutoData]
