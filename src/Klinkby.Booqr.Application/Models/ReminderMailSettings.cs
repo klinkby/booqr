@@ -6,7 +6,7 @@
 internal sealed record ReminderMailSettings
 {
     /// <summary>
-    /// Gets or sets the time of day when reminder emails should be sent. Defaults to 16:00:00 (4:00 PM).
+    /// Gets or sets the Danish (Europe/Copenhagen) time of day when reminder emails should be sent. Defaults to 18:00:00 (6:00 PM).
     /// </summary>
-    public TimeSpan TimeOfDay { get; set; } = new(16, 00, 00);
+    public TimeSpan TimeOfDay { get; set; } = new(18, 00, 00);
 }
