@@ -337,6 +337,7 @@ public class AddBookingCommandTest
         Assert.False(string.IsNullOrWhiteSpace(message.To));
         Assert.False(string.IsNullOrWhiteSpace(message.Subject));
         Assert.Contains(TestHelpers.TenantName, message.Body, StringComparison.InvariantCulture);
+        Assert.Contains($"https://{TestHelpers.TenantSlug}.booqr.dk/profile", message.Body, StringComparison.InvariantCulture);
     }
 
     #region GetCoverage Tests

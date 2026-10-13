@@ -220,7 +220,8 @@ public partial class AddBookingCommand(
                 ["name"] = booking.CustomerName ?? booking.CustomerEmail,
                 ["employee"] = booking.Employee ?? "?",
                 ["location"] = booking.Location,
-                ["service"] = booking.Service
+                ["service"] = booking.Service,
+                ["slug"] = tenantContext.Slug
             });
     }
     [ExcludeFromCodeCoverage]
