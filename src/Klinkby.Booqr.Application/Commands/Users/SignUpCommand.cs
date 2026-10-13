@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
+using Klinkby.Booqr.Application.Util;
 using Klinkby.Booqr.Core;
 using Microsoft.Extensions.Options;
 
@@ -18,6 +19,15 @@ public sealed record SignUpRequest(
     )]
     [property: JsonConverter(typeof(EmailJsonConverter))]
     string Email,
+
+    [property: Required]
+    [property: StringLength(0xff)]
+    string Name,
+
+    [property: Required]
+    [property: Range(3_521_000, 49_999_999_999_999_999)]
+    [property: JsonConverter(typeof(BlankToNullLongJsonConverter))]
+    long? Phone,
 
     [property: JsonIgnore]
     string Authority);
@@ -63,7 +73,7 @@ public sealed partial class SignUpCommand(
             tenantContext.DisplayName,
             new Dictionary<string, string>
             {
-                ["name"] = user.Email,
+                ["name"] = user.Name ?? user.Email,
                 ["resetlink"] = authority
                                 + _settings.ResetPath
                                 + expiringQueryString.Create(
@@ -76,8 +86,8 @@ public sealed partial class SignUpCommand(
         new(query.Email,
             null,
             UserRole.Customer,
-            null,
-            null);
+            query.Name.Trim(),
+            query.Phone);
 
     [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
