@@ -86,6 +86,9 @@ create role booqr_migrator login createrole password 'changeme_booqr_migrator';
 -- Cross-tenant batch/background work (reminder mail, token flush). Admin /
 -- background-worker container only.
 create role booqr_batch login bypassrls password 'changeme_booqr_batch';
+-- Repositories use unqualified names; mirrors the per-tenant search_path set by
+-- TenantProvisioner. The batch data source also sets SearchPath=app on connect.
+alter role booqr_batch set search_path = app;
 
 grant usage on schema public to booqr_registry;
 grant select on public.tenants to booqr_registry;

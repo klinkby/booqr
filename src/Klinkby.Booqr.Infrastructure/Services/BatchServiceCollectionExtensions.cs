@@ -66,6 +66,9 @@ public static partial class BatchServiceCollectionExtensions
                 builder.ConnectionStringBuilder.ConnectionString = settings.ConnectionString;
                 builder.ConnectionStringBuilder.Username = settings.BatchUsername;
                 builder.ConnectionStringBuilder.Password = settings.BatchPassword;
+                // Repositories use unqualified table names; tenant roles get search_path = app at
+                // provisioning (TenantProvisioner), but booqr_batch is created by initdb without it.
+                builder.ConnectionStringBuilder.SearchPath = "app";
                 Batch(
                     serviceProvider.GetRequiredService<ILogger<BatchSettings>>(),
                     builder.ConnectionStringBuilder.Host);
