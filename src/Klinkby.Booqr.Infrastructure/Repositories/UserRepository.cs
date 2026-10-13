@@ -107,6 +107,17 @@ internal sealed partial class UserRepository(IConnectionProvider connectionProvi
         return 1 == await connection.ExecuteAsync($"{PatchQuery}", WithModified(item));
     }
 
+    public async Task<bool> UpdateProfile(PartialUser item, CancellationToken cancellation)
+    {
+        DbConnection connection = await connectionProvider.GetConnection(cancellation);
+        return 1 == await connection.ExecuteAsync(
+            $"""
+             UPDATE {TableName}
+             SET name = COALESCE(@Name, name), phone = @Phone, modified = @Modified
+             WHERE deleted IS NULL AND id = @Id AND (@Version IS NULL OR modified = @Version)
+             """, WithModified(item));
+    }
+
     public async Task<bool> Delete(int id, CancellationToken cancellation)
     {
         DbConnection connection = await connectionProvider.GetConnection(cancellation);

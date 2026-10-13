@@ -125,6 +125,35 @@ public sealed class UserRepositoryTests(ServiceProviderFixture serviceProvider)
 
     [Theory]
     [IntegrationAutoData]
+    public async Task GIVEN_UserWithPhone_WHEN_UpdateProfileWithNullPhone_THEN_PhoneClearedAndOtherFieldsIntact(
+        User user, string name)
+    {
+        User? before;
+        User? after;
+        bool updated;
+        await _transaction.Begin();
+        try
+        {
+            var id = await _sut.Add(user with { Phone = 12345678 });
+            before = await _sut.GetById(id);
+            updated = await _sut.UpdateProfile(new PartialUser(id) { Name = name, Phone = null, Version = before!.Version });
+            after = await _sut.GetById(id);
+        }
+        finally
+        {
+            await _transaction.Rollback();
+        }
+
+        Assert.True(updated);
+        Assert.Null(after!.Phone);
+        Assert.Equal(name, after.Name);
+        Assert.Equal(before.Email, after.Email);
+        Assert.Equal(before.Role, after.Role);
+        Assert.Equal(before.PasswordHash, after.PasswordHash);
+    }
+
+    [Theory]
+    [IntegrationAutoData]
     public async Task GIVEN_InvalidRole_WHEN_AddOrPatch_THEN_CheckViolation(User user, User other, string invalidRole)
     {
         await _transaction.Begin();
