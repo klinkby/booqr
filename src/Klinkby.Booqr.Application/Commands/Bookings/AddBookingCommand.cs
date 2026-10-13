@@ -215,7 +215,7 @@ public partial class AddBookingCommand(
             new Dictionary<string, string>
             {
                 ["id"] = booking.Id.ToString(CultureInfo.InvariantCulture),
-                ["start"] = booking.StartTime.ToString("hh:mm d/M", CultureInfo.InvariantCulture),
+                ["start"] = MailTime.FormatStart(booking.StartTime),
                 ["duration"] = booking.Duration.ToString("hh':'mm", CultureInfo.InvariantCulture),
                 ["name"] = booking.CustomerName ?? booking.CustomerEmail,
                 ["employee"] = booking.Employee ?? "?",

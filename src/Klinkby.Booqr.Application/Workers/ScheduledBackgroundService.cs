@@ -18,12 +18,24 @@ internal abstract partial class ScheduledBackgroundService(
 
     protected DateTime Now => timeProvider.GetUtcNow().UtcDateTime;
     protected abstract TimeSpan TriggerTimeOfDay { get; }
+
+    /// <summary>The time zone <see cref="TriggerTimeOfDay"/> is expressed in. Defaults to UTC.</summary>
+    protected virtual TimeZoneInfo TriggerTimeZone => TimeZoneInfo.Utc;
     protected abstract string JobName { get; }
     protected IServiceProvider ServiceProvider => serviceProvider;
 
+    /// <summary>Next trigger instant (UTC) after <paramref name="now"/> (UTC).</summary>
     internal DateTime GetNext(DateTime now)
     {
-        return now.Date.AddDays(now.TimeOfDay >= TriggerTimeOfDay ? 1 : 0) + TriggerTimeOfDay;
+        TimeZoneInfo zone = TriggerTimeZone;
+        DateTime local = TimeZoneInfo.ConvertTimeFromUtc(now, zone);
+        DateTime nextLocal = local.Date.AddDays(local.TimeOfDay >= TriggerTimeOfDay ? 1 : 0) + TriggerTimeOfDay;
+        if (zone.IsInvalidTime(nextLocal))
+        {
+            nextLocal = nextLocal.AddHours(1); // skipped by spring-forward DST
+        }
+
+        return TimeZoneInfo.ConvertTimeToUtc(nextLocal, zone);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

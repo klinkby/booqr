@@ -16,8 +16,8 @@ public sealed partial class GetBookingDetailsCommand(
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        var fromTime = query.Date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        DateTime toTime = fromTime + TimeSpan.FromDays(1);
+        // Date is a Danish calendar date: the window runs from midnight to midnight Danish time.
+        (DateTime fromTime, DateTime toTime) = MailTime.DayRangeUtc(query.Date);
 
         _logger.GetBookingDetails(fromTime, toTime);
 
