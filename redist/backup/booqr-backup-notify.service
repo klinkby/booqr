@@ -1,0 +1,7 @@
+[Unit]
+Description=Notify (ntfy) that the booqr backup failed
+
+[Service]
+Type=oneshot
+# Adjust if the project dir is not ~/booqr
+ExecStart=%h/booqr/backup/notify-failure.sh booqr-backup.service

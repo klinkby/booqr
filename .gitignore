@@ -12,3 +12,5 @@ certs/
 dpkeys/
 w3clog/
 TestResults/
+redist/backup/restic.env
+redist/backup/.lock
