@@ -14,8 +14,12 @@ public class ImportTakeoutCommandTests
     private const int BookedSlotSourceId = 106;
     private const int VacancySlotSourceId = 107;
     private const int AdminSourceId = 108;
+    private const int CallerId = 42;
+    private const int OtherUserId = 99;
     private static readonly TimeSpan SlotLength = TimeSpan.FromHours(1);
     private static readonly string[] NonAdminRoles = [UserRole.Customer, UserRole.Employee];
+    private static readonly int[] CallerIds = [CallerId];
+    private static readonly int[] OtherUserIds = [OtherUserId];
 
     private readonly Mock<IUserRepository> _users = new();
     private readonly Mock<ILocationRepository> _locations = new();
@@ -37,6 +41,7 @@ public class ImportTakeoutCommandTests
             .Returns(() => TestHelpers.Yield<Service>());
         _calendar.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()))
             .Returns(() => TestHelpers.Yield<CalendarEvent>());
+        _users.Setup(x => x.LockAdmins(It.IsAny<CancellationToken>())).ReturnsAsync(CallerIds);
 
         _sut = new ImportTakeoutCommand(
             _users.Object,
@@ -440,7 +445,7 @@ public class ImportTakeoutCommandTests
         Assert.True(success.Value.ValidateOnly);
         _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
         _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Never);
-        _activityRecorder.Verify(x => x.Add(It.IsAny<ActivityQuery<TakeoutDocument>>(),
+        _activityRecorder.Verify(x => x.Import<TakeoutDocument>(It.IsAny<ActivityQuery<TakeoutDocument>>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -458,7 +463,7 @@ public class ImportTakeoutCommandTests
 
         Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
         _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
-        _activityRecorder.Verify(x => x.Add(It.IsAny<ActivityQuery<TakeoutDocument>>(),
+        _activityRecorder.Verify(x => x.Import<TakeoutDocument>(It.IsAny<ActivityQuery<TakeoutDocument>>(),
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -477,7 +482,7 @@ public class ImportTakeoutCommandTests
         Assert.Same(testException, thrown);
         _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
         _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Never);
-        _activityRecorder.Verify(x => x.Add(It.IsAny<ActivityQuery<TakeoutDocument>>(),
+        _activityRecorder.Verify(x => x.Import<TakeoutDocument>(It.IsAny<ActivityQuery<TakeoutDocument>>(),
             It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -525,11 +530,130 @@ public class ImportTakeoutCommandTests
         _bookings.Verify(x => x.Add(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_AdminClaimButCallerNotAdminInDatabase_WHEN_Execute_THEN_ReturnsForbiddenAndRollsBack(
+        DateTime t0)
+    {
+        // Arrange
+        _users.Setup(x => x.LockAdmins(It.IsAny<CancellationToken>())).ReturnsAsync(OtherUserIds);
+        var customer = new TakeoutUser(CustomerSourceId, UserRole.Customer, "customer@example.test");
+        var location = new TakeoutLocation(LocationSourceId, "Main Street");
+        TakeoutDocument document = CreateDocument(t0, users: [customer], locations: [location]);
+
+        // Act
+        var result = await _sut.Execute(CreateRequest(document));
+
+        // Assert
+        var fault = Assert.IsType<Result<ImportTakeoutResponse>.Fault>(result);
+        Assert.Equal(Problem.Forbidden.Type, fault.Problem.Type);
+        _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
+        _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Never);
+        _users.Verify(x => x.Add(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
+        _locations.Verify(x => x.Add(It.IsAny<Location>(), It.IsAny<CancellationToken>()), Times.Never);
+        _services.Verify(x => x.Add(It.IsAny<Service>(), It.IsAny<CancellationToken>()), Times.Never);
+        _bookings.Verify(x => x.Add(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Never);
+        _calendar.Verify(x => x.Add(It.IsAny<CalendarEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+        _activityRecorder.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_DocumentCreatesAdminEmployeeAndCustomer_WHEN_Execute_THEN_WarnsAndRecordsRoleChangeForPrivilegedOnly(
+        DateTime t0)
+    {
+        // Arrange
+        const int adminId = 201;
+        const int employeeId = 202;
+        const int customerId = 203;
+        SetupAdminEmployeeCustomerAdds(adminId, employeeId, customerId);
+        TakeoutDocument document = CreateAdminEmployeeCustomerDocument(t0);
+
+        // Act
+        var result = await _sut.Execute(CreateRequest(document));
+
+        // Assert
+        var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        Assert.Equal(2, success.Value.Warnings.Count(w => w.Code == TakeoutWarningCode.PrivilegedUserCreated));
+        _activityRecorder.Verify(x => x.ChangeRole<User>(
+            It.Is<ActivityQuery<User>>(q => q.UserId == CallerId && q.EntityId == adminId),
+            It.IsAny<CancellationToken>()), Times.Once);
+        _activityRecorder.Verify(x => x.ChangeRole<User>(
+            It.Is<ActivityQuery<User>>(q => q.UserId == CallerId && q.EntityId == employeeId),
+            It.IsAny<CancellationToken>()), Times.Once);
+        _activityRecorder.Verify(x => x.ChangeRole<User>(It.IsAny<ActivityQuery<User>>(),
+            It.IsAny<CancellationToken>()), Times.Exactly(2));
+        _activityRecorder.Verify(x => x.Import<TakeoutDocument>(It.IsAny<ActivityQuery<TakeoutDocument>>(),
+            It.IsAny<CancellationToken>()), Times.Once);
+        _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_ValidateOnlyDocumentCreatesPrivilegedUsers_WHEN_Execute_THEN_WarnsWithoutRecordingActivity(
+        DateTime t0)
+    {
+        // Arrange
+        SetupAdminEmployeeCustomerAdds(201, 202, 203);
+        TakeoutDocument document = CreateAdminEmployeeCustomerDocument(t0);
+
+        // Act
+        var result = await _sut.Execute(CreateRequest(document, validateOnly: true));
+
+        // Assert
+        var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        Assert.Equal(2, success.Value.Warnings.Count(w => w.Code == TakeoutWarningCode.PrivilegedUserCreated));
+        _activityRecorder.Verify(x => x.ChangeRole<User>(It.IsAny<ActivityQuery<User>>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+        _activityRecorder.Verify(x => x.Import<TakeoutDocument>(It.IsAny<ActivityQuery<TakeoutDocument>>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+        _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_CommitThrows_WHEN_Execute_THEN_ExceptionPropagatesWithoutRollback(
+        DateTime t0,
+        Exception testException)
+    {
+        // Arrange
+        _transaction.Setup(x => x.Commit(It.IsAny<CancellationToken>())).ThrowsAsync(testException);
+        var customer = new TakeoutUser(CustomerSourceId, UserRole.Customer, "customer@example.test");
+        TakeoutDocument document = CreateDocument(t0, users: [customer]);
+
+        // Act
+        Exception thrown = await Assert.ThrowsAsync<Exception>(() => _sut.Execute(CreateRequest(document)));
+
+        // Assert
+        Assert.Same(testException, thrown);
+        _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Never);
+        _activityRecorder.Verify(x => x.Import<TakeoutDocument>(It.IsAny<ActivityQuery<TakeoutDocument>>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    private void SetupAdminEmployeeCustomerAdds(int adminId, int employeeId, int customerId)
+    {
+        _users.Setup(x => x.Add(It.Is<User>(u => u.Email == MailOf("admin")), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(adminId);
+        _users.Setup(x => x.Add(It.Is<User>(u => u.Email == MailOf("employee")), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(employeeId);
+        _users.Setup(x => x.Add(It.Is<User>(u => u.Email == MailOf("customer")), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(customerId);
+    }
+
+    private static TakeoutDocument CreateAdminEmployeeCustomerDocument(DateTime t0)
+    {
+        var admin = new TakeoutUser(AdminSourceId, UserRole.Admin, MailOf("admin"), "Ann");
+        var employee = new TakeoutUser(EmployeeSourceId, UserRole.Employee, MailOf("employee"), "Erin");
+        var customer = new TakeoutUser(CustomerSourceId, UserRole.Customer, MailOf("customer"), "Carl");
+        return CreateDocument(t0, users: [admin, employee, customer]);
+    }
+
     private static ImportTakeoutRequest CreateRequest(TakeoutDocument document, bool validateOnly = false,
         ClaimsPrincipal? user = null) =>
         new(document, validateOnly)
         {
-            User = user ?? CreateUser(42, UserRole.Admin),
+            User = user ?? CreateUser(CallerId, UserRole.Admin),
             TenantId = TestHelpers.CreateTenantContext().TenantId
         };
 

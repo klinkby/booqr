@@ -81,22 +81,19 @@ public sealed partial class ImportTakeoutCommand(
         }
 
         await transaction.Begin(IsolationLevel.RepeatableRead, cancellation);
-        ImportTakeoutResponse response;
+        bool isAdmin;
         try
         {
-            await ImportUsers(source.Users, run, cancellation);
-            await ImportLocations(source.Locations, run, cancellation);
-            await ImportServices(source.Services, run, cancellation);
-            await ImportCalendar(source.Calendar, source.Bookings, run, cancellation);
-            response = run.ToResponse(query.ValidateOnly);
-
-            if (query.ValidateOnly)
+            // ASVS 8.3.2: the JWT role claim may be up to one access-token lifetime stale, so re-authorize
+            // against the database. Like ChangeUserRoleCommand, lock the admin rows so the caller cannot be
+            // demoted while this import (which may grant roles) runs.
+            isAdmin = (await users.LockAdmins(cancellation)).Contains(userId);
+            if (isAdmin)
             {
-                await transaction.Rollback(cancellation);
-            }
-            else
-            {
-                await transaction.Commit(cancellation);
+                await ImportUsers(source.Users, run, cancellation);
+                await ImportLocations(source.Locations, run, cancellation);
+                await ImportServices(source.Services, run, cancellation);
+                await ImportCalendar(source.Calendar, source.Bookings, run, cancellation);
             }
         }
         catch
@@ -105,13 +102,40 @@ public sealed partial class ImportTakeoutCommand(
             throw;
         }
 
-        if (!query.ValidateOnly)
+        if (!isAdmin)
         {
-            await activityRecorder.Add<TakeoutDocument>(new(userId, 0, query.TenantId), cancellation);
+            await transaction.Rollback(cancellation);
+            _log.NotAdminInDatabase(userId);
+            return Problem.Forbidden with { Detail = "Only administrators can import a takeout document." };
+        }
+
+        if (query.ValidateOnly)
+        {
+            await transaction.Rollback(cancellation);
+        }
+        else
+        {
+            await transaction.Commit(cancellation);
+            await RecordActivities(query, run, cancellation);
         }
 
         _log.Imported(userId, query.ValidateOnly, run.Warnings.Count);
-        return response;
+        return run.ToResponse(query.ValidateOnly);
+    }
+
+    /// <summary>
+    ///     Audit trail after commit (ASVS 16.3.3): the import itself, plus one <c>ChangeRole</c> entry per
+    ///     privileged account it created — the same audit record <see cref="Klinkby.Booqr.Application.Commands.Users.ChangeUserRoleCommand" /> writes,
+    ///     so role grants via import are not invisible.
+    /// </summary>
+    private async Task RecordActivities(ImportTakeoutRequest query, ImportRun run, CancellationToken cancellation)
+    {
+        var userId = query.AuthenticatedUserId;
+        await activityRecorder.Import<TakeoutDocument>(new(userId, 0, query.TenantId), cancellation);
+        foreach (var privilegedId in run.PrivilegedUsersCreated)
+        {
+            await activityRecorder.ChangeRole<User>(new(userId, privilegedId, query.TenantId), cancellation);
+        }
     }
 
     private async Task ImportUsers(IReadOnlyList<TakeoutUser> source, ImportRun run, CancellationToken cancellation)
@@ -166,6 +190,13 @@ public sealed partial class ImportTakeoutCommand(
             run.UserCounts.Created++;
             run.Warn(TakeoutWarningCode.UserCreatedWithoutPassword, entity, item.Id,
                 "User was created without a password and must use password reset to sign in.");
+            if (item.Role is UserRole.Admin or UserRole.Employee)
+            {
+                // ASVS 8.2.3: the document's role field grants privileges; surface every grant explicitly.
+                run.PrivilegedUsersCreated.Add(newId);
+                run.Warn(TakeoutWarningCode.PrivilegedUserCreated, entity, item.Id,
+                    $"User was created with the privileged role {item.Role}.");
+            }
         }
     }
 
@@ -537,6 +568,7 @@ public sealed partial class ImportTakeoutCommand(
         public Dictionary<int, (int Id, string Role)> UserMap { get; } = [];
 
         public Dictionary<int, int> LocationMap { get; } = [];
+        public List<int> PrivilegedUsersCreated { get; } = [];
         public Dictionary<int, int> ServiceMap { get; } = [];
         public Counts UserCounts { get; } = new();
         public Counts LocationCounts { get; } = new();
@@ -597,6 +629,10 @@ public sealed partial class ImportTakeoutCommand(
 
         [LoggerMessage(311, LogLevel.Warning, "User {UserId} tried to import a {Scope} takeout document")]
         public partial void WrongScope(int userId, TakeoutScope scope);
+
+        [LoggerMessage(313, LogLevel.Warning,
+            "User {UserId} has an Admin token but is not an active admin in the database; takeout import denied")]
+        public partial void NotAdminInDatabase(int userId);
 
         [LoggerMessage(312, LogLevel.Information,
             "User {UserId} imported takeout (validateOnly={ValidateOnly}) with {WarningCount} warnings")]

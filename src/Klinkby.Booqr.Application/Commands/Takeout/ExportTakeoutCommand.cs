@@ -9,6 +9,7 @@ public sealed partial class ExportTakeoutCommand(
     IBookingRepository bookings,
     ICalendarRepository calendar,
     ITenantContext tenantContext,
+    IActivityRecorder activityRecorder,
     TimeProvider timeProvider,
     ILogger<ExportTakeoutCommand> logger) : ICommand<ExportTakeoutRequest, Task<Result<TakeoutDocument>>>
 {
@@ -40,6 +41,15 @@ public sealed partial class ExportTakeoutCommand(
             return Problem.Forbidden with { Detail = "Only administrators can export the tenant workspace." };
         }
 
+        // ASVS 8.3.2: the JWT role claim may be up to one access-token lifetime stale (demoted or deleted
+        // admin), so re-authorize against the database before dumping every user's personal data.
+        User? caller = await users.GetById(query.AuthenticatedUserId, cancellation);
+        if (caller is not { Deleted: null, Role: UserRole.Admin })
+        {
+            _log.NotAdminInDatabase(query.AuthenticatedUserId);
+            return Problem.Forbidden with { Detail = "Only administrators can export the tenant workspace." };
+        }
+
         var all = new PageQuery(0, null);
         List<CalendarEvent> upcomingSlots = await calendar.GetAll(all, cancellation)
             .Where(c => c.Deleted is null && c.EndTime > now)
@@ -64,7 +74,7 @@ public sealed partial class ExportTakeoutCommand(
             allServices.Select(s => MapService(s, s.Employees)),
             upcomingBookings.Select(MapBooking),
             upcomingSlots.Select(MapSlot));
-        LogExport(query.AuthenticatedUserId, document);
+        await LogExport(query, document, cancellation);
         return document;
     }
 
@@ -111,7 +121,7 @@ public sealed partial class ExportTakeoutCommand(
             referencedServices.Select(s => MapService(s, s.Employees.Where(id => exportedUserIds.Contains(id)).ToList())),
             customerBookings.Select(MapBooking),
             slots.Select(MapSlot));
-        LogExport(subjectId, document);
+        await LogExport(query, document, cancellation);
         return document;
     }
 
@@ -128,9 +138,14 @@ public sealed partial class ExportTakeoutCommand(
             exportBookings.OrderBy(x => x.Id).ToList(),
             exportSlots.OrderBy(x => x.Id).ToList());
 
-    private void LogExport(int userId, TakeoutDocument document) =>
+    /// <summary>ASVS 16.3.2: bulk personal-data access is audited (who, when, which scope) — never the data itself.</summary>
+    private async Task LogExport(ExportTakeoutRequest query, TakeoutDocument document, CancellationToken cancellation)
+    {
+        var userId = query.AuthenticatedUserId;
         _log.Exported(userId, document.Scope, document.Users.Count, document.Locations.Count,
             document.Services.Count, document.Bookings.Count, document.Calendar.Count);
+        await activityRecorder.Export<TakeoutDocument>(new(userId, 0, query.TenantId), cancellation);
+    }
 
     private static TakeoutUser MapFullUser(User user) =>
         new(user.Id, user.Role, user.Email, user.Name, user.Phone);
@@ -165,6 +180,10 @@ public sealed partial class ExportTakeoutCommand(
 
         [LoggerMessage(302, LogLevel.Warning, "User {UserId} requested a GDPR export but was not found")]
         public partial void SubjectNotFound(int userId);
+
+        [LoggerMessage(304, LogLevel.Warning,
+            "User {UserId} has an Admin token but is not an active admin in the database; workspace export denied")]
+        public partial void NotAdminInDatabase(int userId);
 
         [LoggerMessage(303, LogLevel.Warning, "User {UserId} requested unsupported takeout scope {Scope}")]
         public partial void UnsupportedScope(int userId, TakeoutScope scope);

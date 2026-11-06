@@ -93,7 +93,8 @@ public enum TakeoutWarningCode
     InvalidTimeRangeSkipped,
     HistoricalEntrySkipped,
     DuplicateSourceIdSkipped,
-    UnmatchableUserSkipped
+    UnmatchableUserSkipped,
+    PrivilegedUserCreated
 }
 
 public sealed record TakeoutWarning(
