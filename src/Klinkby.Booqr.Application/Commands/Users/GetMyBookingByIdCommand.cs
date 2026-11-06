@@ -39,7 +39,7 @@ public sealed partial class GetMyBookingByIdCommand(
     [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
-        [LoggerMessage(200, LogLevel.Warning,
+        [LoggerMessage(203, LogLevel.Warning,
             "User {UserId} is not permitted to inspect {Id}'s booking")]
         public partial void CannotInspectBooking(int userId, int id);
     }
