@@ -1,0 +1,13 @@
+[Unit]
+Description=booqr off-site backup (restic over SFTP)
+# No network-online.target: invisible to a user manager. booqr-backup.sh waits for the SFTP host itself.
+OnFailure=booqr-backup-notify.service
+
+[Service]
+Type=oneshot
+# Adjust if the project dir is not ~/booqr
+ExecStart=%h/booqr/backup/booqr-backup.sh
+TimeoutStartSec=2h
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=6

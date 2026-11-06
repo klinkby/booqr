@@ -1,0 +1,12 @@
+[Unit]
+Description=Nightly booqr off-site backup
+
+[Timer]
+# Host local time; avoid the ACME renewal window
+OnCalendar=*-*-* 03:15:00
+RandomizedDelaySec=900
+Persistent=true
+Unit=booqr-backup.service
+
+[Install]
+WantedBy=timers.target
