@@ -430,8 +430,10 @@ public class ImportTakeoutCommandTests
     }
 
     [Theory]
-    [ApplicationAutoData]
-    public async Task GIVEN_ValidateOnly_WHEN_Execute_THEN_RollsBackWithoutRecordingActivity(
+    [InlineAutoData(true)]
+    [InlineAutoData(false)]
+    public async Task GIVEN_ValidateOnlyFlag_WHEN_Execute_THEN_RollsBackWithoutActivityOnlyWhenValidateOnly(
+        bool validateOnly,
         DateTime t0,
         int customerId)
     {
@@ -439,32 +441,16 @@ public class ImportTakeoutCommandTests
         var customer = new TakeoutUser(CustomerSourceId, UserRole.Customer, "customer@example.test");
         TakeoutDocument document = CreateDocument(t0, users: [customer]);
 
-        var result = await _sut.Execute(CreateRequest(document, validateOnly: true));
+        var result = await _sut.Execute(CreateRequest(document, validateOnly));
 
         var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
-        Assert.True(success.Value.ValidateOnly);
-        _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
-        _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Never);
+        Assert.Equal(validateOnly, success.Value.ValidateOnly);
+        _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()),
+            validateOnly ? Times.Once : Times.Never);
+        _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()),
+            validateOnly ? Times.Never : Times.Once);
         _activityRecorder.Verify(x => x.Import<TakeoutDocument>(It.IsAny<ActivityQuery<TakeoutDocument>>(),
-            It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Theory]
-    [ApplicationAutoData]
-    public async Task GIVEN_NotValidateOnly_WHEN_Execute_THEN_RecordsActivityAfterCommit(
-        DateTime t0,
-        int customerId)
-    {
-        _users.Setup(x => x.Add(It.IsAny<User>(), It.IsAny<CancellationToken>())).ReturnsAsync(customerId);
-        var customer = new TakeoutUser(CustomerSourceId, UserRole.Customer, "customer@example.test");
-        TakeoutDocument document = CreateDocument(t0, users: [customer]);
-
-        var result = await _sut.Execute(CreateRequest(document));
-
-        Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
-        _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
-        _activityRecorder.Verify(x => x.Import<TakeoutDocument>(It.IsAny<ActivityQuery<TakeoutDocument>>(),
-            It.IsAny<CancellationToken>()), Times.Once);
+            It.IsAny<CancellationToken>()), validateOnly ? Times.Never : Times.Once);
     }
 
     [Theory]

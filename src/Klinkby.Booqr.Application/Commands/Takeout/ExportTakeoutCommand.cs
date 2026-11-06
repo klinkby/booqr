@@ -13,6 +13,11 @@ public sealed partial class ExportTakeoutCommand(
     TimeProvider timeProvider,
     ILogger<ExportTakeoutCommand> logger) : ICommand<ExportTakeoutRequest, Task<Result<TakeoutDocument>>>
 {
+    private static readonly PageQuery All = TakeoutQueries.All;
+
+    private static readonly Problem NotAdmin =
+        Problem.Forbidden with { Detail = "Only administrators can export the tenant workspace." };
+
     private readonly LoggerMessages _log = new(logger);
 
     public async Task<Result<TakeoutDocument>> Execute(ExportTakeoutRequest query, CancellationToken cancellation = default)
@@ -38,35 +43,30 @@ public sealed partial class ExportTakeoutCommand(
         if (!query.User.IsInRole(UserRole.Admin))
         {
             _log.ForbiddenWorkspaceExport(query.AuthenticatedUserId);
-            return Problem.Forbidden with { Detail = "Only administrators can export the tenant workspace." };
+            return NotAdmin;
         }
 
         // ASVS 8.3.2: the JWT role claim may be up to one access-token lifetime stale (demoted or deleted
         // admin), so re-authorize against the database before dumping every user's personal data.
         User? caller = await users.GetById(query.AuthenticatedUserId, cancellation);
-        if (caller is not { Deleted: null, Role: UserRole.Admin })
+        // GetById excludes soft-deleted users, so a deleted admin resolves to null here.
+        if (caller is not { Role: UserRole.Admin })
         {
             _log.NotAdminInDatabase(query.AuthenticatedUserId);
-            return Problem.Forbidden with { Detail = "Only administrators can export the tenant workspace." };
+            return NotAdmin;
         }
 
-        var all = new PageQuery(0, null);
-        List<CalendarEvent> upcomingSlots = await calendar.GetAll(all, cancellation)
-            .Where(c => c.Deleted is null && c.EndTime > now)
+        // Repositories already exclude soft-deleted rows; only business filters are applied here.
+        List<CalendarEvent> upcomingSlots = await calendar.GetAll(All, cancellation)
+            .Where(c => c.EndTime > now)
             .ToListAsync(cancellation);
         HashSet<int> upcomingBookingIds = upcomingSlots.Select(c => c.BookingId).OfType<int>().ToHashSet();
-        List<Booking> upcomingBookings = await bookings.GetAll(all, cancellation)
-            .Where(b => b.Deleted is null && upcomingBookingIds.Contains(b.Id))
+        List<Booking> upcomingBookings = await bookings.GetAll(All, cancellation)
+            .Where(b => upcomingBookingIds.Contains(b.Id))
             .ToListAsync(cancellation);
-        List<User> allUsers = await users.GetAll(all, cancellation)
-            .Where(u => u.Deleted is null)
-            .ToListAsync(cancellation);
-        List<Location> allLocations = await locations.GetAll(all, cancellation)
-            .Where(l => l.Deleted is null)
-            .ToListAsync(cancellation);
-        List<Service> allServices = await services.GetAll(all, cancellation)
-            .Where(s => s.Deleted is null)
-            .ToListAsync(cancellation);
+        List<User> allUsers = await users.GetAll(All, cancellation).ToListAsync(cancellation);
+        List<Location> allLocations = await locations.GetAll(All, cancellation).ToListAsync(cancellation);
+        List<Service> allServices = await services.GetAll(All, cancellation).ToListAsync(cancellation);
 
         TakeoutDocument document = BuildDocument(now, TakeoutScope.TenantWorkspace,
             allUsers.Select(MapFullUser),
@@ -83,33 +83,32 @@ public sealed partial class ExportTakeoutCommand(
     {
         int subjectId = query.AuthenticatedUserId;
         User? subject = await users.GetById(subjectId, cancellation);
-        if (subject is null or { Deleted: not null })
+        if (subject is null)
         {
             _log.SubjectNotFound(subjectId);
             return Problem.NotFound with { Detail = "The requested user was not found." };
         }
 
-        var all = new PageQuery(0, null);
-        List<Booking> customerBookings = await bookings.GetAll(all, cancellation)
-            .Where(b => b.Deleted is null && b.CustomerId == subjectId)
+        List<Booking> customerBookings = await bookings.GetAll(All, cancellation)
+            .Where(b => b.CustomerId == subjectId)
             .ToListAsync(cancellation);
         HashSet<int> bookingIds = customerBookings.Select(b => b.Id).ToHashSet();
         HashSet<int> serviceIds = customerBookings.Select(b => b.ServiceId).ToHashSet();
 
-        List<CalendarEvent> slots = await calendar.GetAll(all, cancellation)
-            .Where(c => c.Deleted is null && c.BookingId is { } bookingId && bookingIds.Contains(bookingId))
+        List<CalendarEvent> slots = await calendar.GetAll(All, cancellation)
+            .Where(c => c.BookingId is { } bookingId && bookingIds.Contains(bookingId))
             .ToListAsync(cancellation);
         HashSet<int> locationIds = slots.Select(c => c.LocationId).ToHashSet();
         HashSet<int> employeeIds = slots.Select(c => c.EmployeeId).Where(id => id != subjectId).ToHashSet();
 
-        List<Location> referencedLocations = await locations.GetAll(all, cancellation)
-            .Where(l => l.Deleted is null && locationIds.Contains(l.Id))
+        List<Location> referencedLocations = await locations.GetAll(All, cancellation)
+            .Where(l => locationIds.Contains(l.Id))
             .ToListAsync(cancellation);
-        List<Service> referencedServices = await services.GetAll(all, cancellation)
-            .Where(s => s.Deleted is null && serviceIds.Contains(s.Id))
+        List<Service> referencedServices = await services.GetAll(All, cancellation)
+            .Where(s => serviceIds.Contains(s.Id))
             .ToListAsync(cancellation);
-        List<User> employees = await users.GetAll(all, cancellation)
-            .Where(u => u.Deleted is null && employeeIds.Contains(u.Id))
+        List<User> employees = await users.GetAll(All, cancellation)
+            .Where(u => employeeIds.Contains(u.Id))
             .ToListAsync(cancellation);
 
         List<TakeoutUser> exportedUsers = [MapFullUser(subject), .. employees.Select(MapRedactedUser)];

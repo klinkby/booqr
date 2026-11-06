@@ -1,4 +1,5 @@
 using System.Data;
+using System.Runtime.InteropServices;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Klinkby.Booqr.Application.Commands.Takeout;
@@ -34,7 +35,11 @@ public sealed partial class ImportTakeoutCommand(
     /// <summary>Upper bound on the number of entities in one document (DoS guard; one transaction).</summary>
     internal const int MaxEntities = 50_000;
 
-    private static readonly PageQuery All = new(0, null);
+    private static readonly PageQuery All = TakeoutQueries.All;
+
+    private static readonly Problem NotAdmin =
+        Problem.Forbidden with { Detail = "Only administrators can import a takeout document." };
+
     private readonly LoggerMessages _log = new(logger);
 
     public async Task<Result<ImportTakeoutResponse>> Execute(ImportTakeoutRequest query,
@@ -46,7 +51,7 @@ public sealed partial class ImportTakeoutCommand(
         if (!query.User.IsInRole(UserRole.Admin))
         {
             _log.Forbidden(userId);
-            return Problem.Forbidden with { Detail = "Only administrators can import a takeout document." };
+            return NotAdmin;
         }
 
         TakeoutDocument? document = query.Document;
@@ -106,7 +111,7 @@ public sealed partial class ImportTakeoutCommand(
         {
             await transaction.Rollback(cancellation);
             _log.NotAdminInDatabase(userId);
-            return Problem.Forbidden with { Detail = "Only administrators can import a takeout document." };
+            return NotAdmin;
         }
 
         if (query.ValidateOnly)
@@ -144,10 +149,7 @@ public sealed partial class ImportTakeoutCommand(
         Dictionary<string, User> byEmail = new(StringComparer.OrdinalIgnoreCase);
         await foreach (User user in users.GetAll(All, cancellation))
         {
-            if (user.Deleted is null)
-            {
-                byEmail.TryAdd(user.Email, user);
-            }
+            byEmail.TryAdd(user.Email, user);
         }
 
         foreach (TakeoutUser item in source)
@@ -170,8 +172,7 @@ public sealed partial class ImportTakeoutCommand(
             if (byEmail.TryGetValue(email, out User? existing))
             {
                 run.MapUser(item.Id, existing.Id, existing.Role);
-                run.UserCounts.Matched++;
-                run.Warn(TakeoutWarningCode.MatchedExistingByNaturalKey, entity, item.Id,
+                run.Matched(entity, item.Id, run.UserCounts,
                     "Matched an existing user by email; the existing user was left unchanged.");
                 continue;
             }
@@ -207,10 +208,7 @@ public sealed partial class ImportTakeoutCommand(
         Dictionary<string, int> byName = new(StringComparer.OrdinalIgnoreCase);
         await foreach (Location location in locations.GetAll(All, cancellation))
         {
-            if (location.Deleted is null)
-            {
-                byName.TryAdd(location.Name.Trim(), location.Id);
-            }
+            byName.TryAdd(location.Name.Trim(), location.Id);
         }
 
         foreach (TakeoutLocation item in source)
@@ -232,9 +230,7 @@ public sealed partial class ImportTakeoutCommand(
             if (byName.TryGetValue(name, out var existingId))
             {
                 run.LocationMap[item.Id] = existingId;
-                run.LocationCounts.Matched++;
-                run.Warn(TakeoutWarningCode.MatchedExistingByNaturalKey, entity, item.Id,
-                    "Matched an existing location by name.");
+                run.Matched(entity, item.Id, run.LocationCounts, "Matched an existing location by name.");
                 continue;
             }
 
@@ -254,10 +250,7 @@ public sealed partial class ImportTakeoutCommand(
         Dictionary<string, Service> byName = new(StringComparer.OrdinalIgnoreCase);
         await foreach (Service service in services.GetAll(All, cancellation))
         {
-            if (service.Deleted is null)
-            {
-                byName.TryAdd(service.Name.Trim(), service);
-            }
+            byName.TryAdd(service.Name.Trim(), service);
         }
 
         foreach (TakeoutService item in source)
@@ -281,8 +274,7 @@ public sealed partial class ImportTakeoutCommand(
             if (byName.TryGetValue(name, out Service? existing))
             {
                 run.ServiceMap[item.Id] = existing.Id;
-                run.ServiceCounts.Matched++;
-                run.Warn(TakeoutWarningCode.MatchedExistingByNaturalKey, entity, item.Id,
+                run.Matched(entity, item.Id, run.ServiceCounts,
                     "Matched an existing service by name; employee assignments were merged.");
                 int[] merged = existing.Employees.Union(employees).Order().ToArray();
                 if (merged.Length != existing.Employees.Length)
@@ -345,7 +337,7 @@ public sealed partial class ImportTakeoutCommand(
         Dictionary<int, List<CalendarEvent>> byEmployee = [];
         await foreach (CalendarEvent existing in calendar.GetAll(All, cancellation))
         {
-            if (existing.Deleted is null && existing.EndTime > earliestStart)
+            if (existing.EndTime > earliestStart)
             {
                 EventsOf(byEmployee, existing.EmployeeId).Add(existing);
             }
@@ -353,7 +345,10 @@ public sealed partial class ImportTakeoutCommand(
 
         HashSet<int> seenSlots = [];
         HashSet<int> usedBookings = [];
-        foreach (TakeoutCalendarSlot item in source.OrderBy(x => x.StartTime))
+        IEnumerable<(TakeoutCalendarSlot Item, TakeoutCalendarSlot Slot)> ordered = source
+            .Select(x => (x, x with { StartTime = ToUtc(x.StartTime), EndTime = ToUtc(x.EndTime) }))
+            .OrderBy(x => x.Item2.StartTime);
+        foreach ((TakeoutCalendarSlot item, TakeoutCalendarSlot slot) in ordered)
         {
             if (!seenSlots.Add(item.Id))
             {
@@ -361,7 +356,6 @@ public sealed partial class ImportTakeoutCommand(
                 continue;
             }
 
-            var slot = item with { StartTime = ToUtc(item.StartTime), EndTime = ToUtc(item.EndTime) };
             if (slot.EndTime <= slot.StartTime)
             {
                 run.SkipSlot(TakeoutWarningCode.InvalidTimeRangeSkipped, item, "Slot must end after it starts.");
@@ -396,17 +390,17 @@ public sealed partial class ImportTakeoutCommand(
                 if (booking is null)
                 {
                     run.SkipSlot(TakeoutWarningCode.MissingReferenceSkipped, item,
-                        $"Slot references booking {sourceBookingId} whose customer or service was not imported.");
-                    run.BookingCounts.Skipped++;
+                        $"Slot references booking {sourceBookingId} whose customer or service was not imported.",
+                        withBooking: true);
                     continue;
                 }
             }
 
             var target = new CalendarEvent(employeeId, locationId, null, slot.StartTime, slot.EndTime);
             List<CalendarEvent> employeeEvents = EventsOf(byEmployee, employeeId);
-            List<CalendarEvent> overlapping = employeeEvents.Where(e => e.Contains(target)).ToList();
+            (int overlaps, int sameIndex) = FindOverlaps(employeeEvents, target);
 
-            if (overlapping.Count == 0)
+            if (overlaps == 0)
             {
                 int? bookingId = booking is null ? null : await AddBooking(booking, run, cancellation);
                 CalendarEvent created = target with { BookingId = bookingId };
@@ -416,20 +410,14 @@ public sealed partial class ImportTakeoutCommand(
                 continue;
             }
 
-            if (overlapping is [var same] && same.LocationId == locationId
-                                          && same.StartTime.Equalsish(target.StartTime)
-                                          && same.EndTime.Equalsish(target.EndTime))
+            if (overlaps == 1 && IsIdentical(employeeEvents[sameIndex], target))
             {
-                await MergeIdenticalSlot(same, booking, item, employeeEvents, run, cancellation);
+                await MergeIdenticalSlot(sameIndex, booking, item, employeeEvents, run, cancellation);
                 continue;
             }
 
             run.SkipSlot(TakeoutWarningCode.CalendarOverlapSkipped, item,
-                "Slot overlaps an existing calendar event for the same employee.");
-            if (booking is not null)
-            {
-                run.BookingCounts.Skipped++;
-            }
+                "Slot overlaps an existing calendar event for the same employee.", withBooking: booking is not null);
         }
 
         foreach (TakeoutBooking orphan in bookingsById.Values.Where(b => !usedBookings.Contains(b.Id)))
@@ -440,9 +428,10 @@ public sealed partial class ImportTakeoutCommand(
         }
     }
 
-    private async Task MergeIdenticalSlot(CalendarEvent same, Booking? booking, TakeoutCalendarSlot item,
+    private async Task MergeIdenticalSlot(int sameIndex, Booking? booking, TakeoutCalendarSlot item,
         List<CalendarEvent> employeeEvents, ImportRun run, CancellationToken cancellation)
     {
+        CalendarEvent same = employeeEvents[sameIndex];
         if (booking is null)
         {
             // Vacancy in the document; the existing slot (booked or not) already covers it.
@@ -463,34 +452,46 @@ public sealed partial class ImportTakeoutCommand(
             }
 
             run.SkipSlot(TakeoutWarningCode.CalendarOverlapSkipped, item,
-                "An identical slot already exists with a different booking.");
-            run.BookingCounts.Skipped++;
+                "An identical slot already exists with a different booking.", withBooking: true);
             return;
         }
 
-        // Identical existing vacancy: book it.
-        CalendarEvent? current = await calendar.GetById(same.Id, cancellation);
-        if (current is null || current.BookingId is not null)
-        {
-            run.SkipSlot(TakeoutWarningCode.CalendarOverlapSkipped, item, "The matching vacancy changed during import.");
-            run.BookingCounts.Skipped++;
-            return;
-        }
-
+        // Identical existing vacancy: book it. `same` comes from this transaction's RepeatableRead snapshot, so a
+        // concurrent change surfaces as a failed Update (optimistic concurrency) or a serialization error.
         var bookingId = await AddBooking(booking, run, cancellation);
-        CalendarEvent booked = current with { BookingId = bookingId };
+        CalendarEvent booked = same with { BookingId = bookingId };
         if (!await calendar.Update(booked, cancellation))
         {
             await bookings.Delete(bookingId, cancellation);
             run.BookingCounts.Created--;
-            run.BookingCounts.Skipped++;
-            run.SkipSlot(TakeoutWarningCode.CalendarOverlapSkipped, item, "The matching vacancy changed during import.");
+            run.SkipSlot(TakeoutWarningCode.CalendarOverlapSkipped, item, "The matching vacancy changed during import.",
+                withBooking: true);
             return;
         }
 
-        employeeEvents[employeeEvents.IndexOf(same)] = booked;
+        employeeEvents[sameIndex] = booked;
         run.CalendarCounts.Matched++;
     }
+
+    /// <summary>Counts events overlapping <paramref name="target" /> and returns the index of the last one.</summary>
+    private static (int Count, int Index) FindOverlaps(List<CalendarEvent> events, CalendarEvent target)
+    {
+        (int count, int index) = (0, -1);
+        for (var i = 0; i < events.Count; i++)
+        {
+            if (events[i].Contains(target))
+            {
+                (count, index) = (count + 1, i);
+            }
+        }
+
+        return (count, index);
+    }
+
+    private static bool IsIdentical(CalendarEvent existing, CalendarEvent target) =>
+        existing.LocationId == target.LocationId
+        && existing.StartTime.Equalsish(target.StartTime)
+        && existing.EndTime.Equalsish(target.EndTime);
 
     private async Task<int> AddBooking(Booking booking, ImportRun run, CancellationToken cancellation)
     {
@@ -512,15 +513,8 @@ public sealed partial class ImportTakeoutCommand(
         return new Booking(customer.Id, serviceId, TrimToNull(source.Notes));
     }
 
-    private static List<CalendarEvent> EventsOf(Dictionary<int, List<CalendarEvent>> byEmployee, int employeeId)
-    {
-        if (!byEmployee.TryGetValue(employeeId, out List<CalendarEvent>? list))
-        {
-            byEmployee[employeeId] = list = [];
-        }
-
-        return list;
-    }
+    private static List<CalendarEvent> EventsOf(Dictionary<int, List<CalendarEvent>> byEmployee, int employeeId) =>
+        CollectionsMarshal.GetValueRefOrAddDefault(byEmployee, employeeId, out _) ??= [];
 
     private static bool IsKnownRole(string? role) =>
         role is UserRole.Customer or UserRole.Employee or UserRole.Admin;
@@ -595,6 +589,12 @@ public sealed partial class ImportTakeoutCommand(
         public void Warn(TakeoutWarningCode code, string entity, int? sourceId, string message) =>
             Warnings.Add(new TakeoutWarning(code, entity, sourceId, message));
 
+        public void Matched(string entity, int sourceId, Counts counts, string message)
+        {
+            Warn(TakeoutWarningCode.MatchedExistingByNaturalKey, entity, sourceId, message);
+            counts.Matched++;
+        }
+
         public void SkipDuplicate(string entity, int sourceId, Counts counts)
         {
             Warn(TakeoutWarningCode.DuplicateSourceIdSkipped, entity, sourceId,
@@ -602,10 +602,15 @@ public sealed partial class ImportTakeoutCommand(
             counts.Skipped++;
         }
 
-        public void SkipSlot(TakeoutWarningCode code, TakeoutCalendarSlot slot, string message)
+        public void SkipSlot(TakeoutWarningCode code, TakeoutCalendarSlot slot, string message,
+            bool withBooking = false)
         {
             Warn(code, nameof(CalendarEvent), slot.Id, message);
             CalendarCounts.Skipped++;
+            if (withBooking)
+            {
+                BookingCounts.Skipped++;
+            }
         }
 
         public ImportTakeoutResponse ToResponse(bool validateOnly) => new(

@@ -38,6 +38,15 @@ public class ExportTakeoutCommandTests
             NullLogger<ExportTakeoutCommand>.Instance);
     }
 
+    private void SetupEmptyRepositories()
+    {
+        _users.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<User>());
+        _locations.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<Location>());
+        _services.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<Service>());
+        _bookings.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<Booking>());
+        _calendar.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<CalendarEvent>());
+    }
+
     [Theory]
     [InlineData(UserRole.Customer)]
     [InlineData(UserRole.Employee)]
@@ -73,27 +82,27 @@ public class ExportTakeoutCommandTests
         CalendarEvent openSlot)
     {
         // Arrange
-        admin = admin with { Id = AdminCallerId, Role = UserRole.Admin, Deleted = null };
-        employee = employee with { Id = 10, Role = UserRole.Employee, Deleted = null };
-        customer = customer with { Id = 11, Role = UserRole.Customer, Deleted = null };
-        location = location with { Id = 1, Deleted = null };
-        service = service with { Id = 1, Employees = [10], Deleted = null };
-        upcomingBooking = upcomingBooking with { Id = 1, CustomerId = 11, ServiceId = 1, Deleted = null };
-        pastBooking = pastBooking with { Id = 2, CustomerId = 11, ServiceId = 1, Deleted = null };
+        admin = admin with { Id = AdminCallerId, Role = UserRole.Admin };
+        employee = employee with { Id = 10, Role = UserRole.Employee };
+        customer = customer with { Id = 11, Role = UserRole.Customer };
+        location = location with { Id = 1 };
+        service = service with { Id = 1, Employees = [10] };
+        upcomingBooking = upcomingBooking with { Id = 1, CustomerId = 11, ServiceId = 1 };
+        pastBooking = pastBooking with { Id = 2, CustomerId = 11, ServiceId = 1 };
         upcomingSlot = upcomingSlot with
         {
             Id = 1, EmployeeId = 10, LocationId = 1, BookingId = 1,
-            StartTime = t0.AddHours(1), EndTime = t0.AddHours(2), Deleted = null
+            StartTime = t0.AddHours(1), EndTime = t0.AddHours(2)
         };
         pastSlot = pastSlot with
         {
             Id = 2, EmployeeId = 10, LocationId = 1, BookingId = 2,
-            StartTime = t0.AddHours(-2), EndTime = t0, Deleted = null
+            StartTime = t0.AddHours(-2), EndTime = t0
         };
         openSlot = openSlot with
         {
             Id = 3, EmployeeId = 10, LocationId = 1, BookingId = null,
-            StartTime = t0.AddHours(3), EndTime = t0.AddHours(4), Deleted = null
+            StartTime = t0.AddHours(3), EndTime = t0.AddHours(4)
         };
 
         _users.Setup(x => x.GetById(AdminCallerId, It.IsAny<CancellationToken>())).ReturnsAsync(admin);
@@ -133,15 +142,12 @@ public class ExportTakeoutCommandTests
         User employee)
     {
         // Arrange
-        admin = admin with { Id = AdminCallerId, Role = UserRole.Admin, Deleted = null };
-        employee = employee with { Id = 10, Role = UserRole.Employee, Deleted = null };
+        admin = admin with { Id = AdminCallerId, Role = UserRole.Admin };
+        employee = employee with { Id = 10, Role = UserRole.Employee };
         Assert.NotNull(employee.PasswordHash);
         _users.Setup(x => x.GetById(AdminCallerId, It.IsAny<CancellationToken>())).ReturnsAsync(admin);
+        SetupEmptyRepositories();
         _users.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield(employee));
-        _locations.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<Location>());
-        _services.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<Service>());
-        _bookings.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<Booking>());
-        _calendar.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<CalendarEvent>());
         var request = new ExportTakeoutRequest(TakeoutScope.TenantWorkspace) { User = CreateUser(AdminCallerId, UserRole.Admin) };
         ExportTakeoutCommand sut = CreateSut();
 
@@ -156,13 +162,16 @@ public class ExportTakeoutCommandTests
     }
 
     [Theory]
-    [ApplicationAutoData]
-    public async Task GIVEN_AdminClaimButDatabaseRoleIsCustomer_WHEN_ExportTenantWorkspace_THEN_ReturnsForbidden_And_DoesNotQueryRepositories(
+    [InlineAutoData(UserRole.Customer)]
+    [InlineAutoData(UserRole.Employee)]
+    [InlineAutoData((string?)null)]
+    public async Task GIVEN_AdminClaimButDatabaseRoleNotAdminOrUserMissing_WHEN_ExportTenantWorkspace_THEN_ReturnsForbidden_And_DoesNotQueryRepositories(
+        string? databaseRole,
         User caller)
     {
-        // Arrange
-        caller = caller with { Id = AdminCallerId, Role = UserRole.Customer, Deleted = null };
-        _users.Setup(x => x.GetById(AdminCallerId, It.IsAny<CancellationToken>())).ReturnsAsync(caller);
+        // Arrange (null databaseRole = user not found in the database)
+        User? stored = databaseRole is null ? null : caller with { Id = AdminCallerId, Role = databaseRole };
+        _users.Setup(x => x.GetById(AdminCallerId, It.IsAny<CancellationToken>())).ReturnsAsync(stored);
         var request = new ExportTakeoutRequest(TakeoutScope.TenantWorkspace) { User = CreateUser(AdminCallerId, UserRole.Admin) };
         ExportTakeoutCommand sut = CreateSut();
 
@@ -183,60 +192,12 @@ public class ExportTakeoutCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_AdminClaimButDatabaseUserSoftDeleted_WHEN_ExportTenantWorkspace_THEN_ReturnsForbidden_And_DoesNotQueryRepositories(
-        DateTime t0,
-        User caller)
-    {
-        // Arrange
-        caller = caller with { Id = AdminCallerId, Role = UserRole.Admin, Deleted = t0 };
-        _users.Setup(x => x.GetById(AdminCallerId, It.IsAny<CancellationToken>())).ReturnsAsync(caller);
-        var request = new ExportTakeoutRequest(TakeoutScope.TenantWorkspace) { User = CreateUser(AdminCallerId, UserRole.Admin) };
-        ExportTakeoutCommand sut = CreateSut();
-
-        // Act
-        Result<TakeoutDocument> result = await sut.Execute(request);
-
-        // Assert
-        var fault = Assert.IsType<Result<TakeoutDocument>.Fault>(result);
-        Assert.Equal(Problem.Forbidden.Type, fault.Problem.Type);
-        _users.Verify(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()), Times.Never);
-        _calendar.Verify(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()), Times.Never);
-        _activityRecorder.Verify(x => x.Export<TakeoutDocument>(It.IsAny<ActivityQuery<TakeoutDocument>>(),
-            It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task GIVEN_AdminClaimButDatabaseUserNotFound_WHEN_ExportTenantWorkspace_THEN_ReturnsForbidden_And_DoesNotQueryRepositories()
-    {
-        // Arrange
-        _users.Setup(x => x.GetById(AdminCallerId, It.IsAny<CancellationToken>())).ReturnsAsync((User?)null);
-        var request = new ExportTakeoutRequest(TakeoutScope.TenantWorkspace) { User = CreateUser(AdminCallerId, UserRole.Admin) };
-        ExportTakeoutCommand sut = CreateSut();
-
-        // Act
-        Result<TakeoutDocument> result = await sut.Execute(request);
-
-        // Assert
-        var fault = Assert.IsType<Result<TakeoutDocument>.Fault>(result);
-        Assert.Equal(Problem.Forbidden.Type, fault.Problem.Type);
-        _users.Verify(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()), Times.Never);
-        _calendar.Verify(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()), Times.Never);
-        _activityRecorder.Verify(x => x.Export<TakeoutDocument>(It.IsAny<ActivityQuery<TakeoutDocument>>(),
-            It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Theory]
-    [ApplicationAutoData]
     public async Task GIVEN_AdminWorkspaceExport_WHEN_Execute_THEN_RecordsExportOnceForCaller(User admin)
     {
         // Arrange
-        admin = admin with { Id = AdminCallerId, Role = UserRole.Admin, Deleted = null };
+        admin = admin with { Id = AdminCallerId, Role = UserRole.Admin };
         _users.Setup(x => x.GetById(AdminCallerId, It.IsAny<CancellationToken>())).ReturnsAsync(admin);
-        _users.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<User>());
-        _locations.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<Location>());
-        _services.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<Service>());
-        _bookings.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<Booking>());
-        _calendar.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<CalendarEvent>());
+        SetupEmptyRepositories();
         var request = new ExportTakeoutRequest(TakeoutScope.TenantWorkspace) { User = CreateUser(AdminCallerId, UserRole.Admin) };
         ExportTakeoutCommand sut = CreateSut();
 
@@ -269,30 +230,30 @@ public class ExportTakeoutCommandTests
         CalendarEvent otherSlot)
     {
         // Arrange
-        subject = subject with { Id = 11, Role = UserRole.Customer, Deleted = null };
-        employee = employee with { Id = 10, Role = UserRole.Employee, Deleted = null };
-        otherCustomer = otherCustomer with { Id = 12, Role = UserRole.Customer, Deleted = null };
-        usedLocation = usedLocation with { Id = 1, Deleted = null };
-        unusedLocation = unusedLocation with { Id = 2, Deleted = null };
-        usedService = usedService with { Id = 1, Employees = [10, 99], Deleted = null };
-        unusedService = unusedService with { Id = 2, Employees = [10], Deleted = null };
-        subjectPastBooking = subjectPastBooking with { Id = 1, CustomerId = 11, ServiceId = 1, Deleted = null };
-        subjectUpcomingBooking = subjectUpcomingBooking with { Id = 2, CustomerId = 11, ServiceId = 1, Deleted = null };
-        otherBooking = otherBooking with { Id = 3, CustomerId = 12, ServiceId = 2, Deleted = null };
+        subject = subject with { Id = 11, Role = UserRole.Customer };
+        employee = employee with { Id = 10, Role = UserRole.Employee };
+        otherCustomer = otherCustomer with { Id = 12, Role = UserRole.Customer };
+        usedLocation = usedLocation with { Id = 1 };
+        unusedLocation = unusedLocation with { Id = 2 };
+        usedService = usedService with { Id = 1, Employees = [10, 99] };
+        unusedService = unusedService with { Id = 2, Employees = [10] };
+        subjectPastBooking = subjectPastBooking with { Id = 1, CustomerId = 11, ServiceId = 1 };
+        subjectUpcomingBooking = subjectUpcomingBooking with { Id = 2, CustomerId = 11, ServiceId = 1 };
+        otherBooking = otherBooking with { Id = 3, CustomerId = 12, ServiceId = 2 };
         subjectPastSlot = subjectPastSlot with
         {
             Id = 1, EmployeeId = 10, LocationId = 1, BookingId = 1,
-            StartTime = t0.AddDays(-2), EndTime = t0.AddDays(-2).AddHours(1), Deleted = null
+            StartTime = t0.AddDays(-2), EndTime = t0.AddDays(-2).AddHours(1)
         };
         subjectUpcomingSlot = subjectUpcomingSlot with
         {
             Id = 2, EmployeeId = 10, LocationId = 1, BookingId = 2,
-            StartTime = t0.AddHours(1), EndTime = t0.AddHours(2), Deleted = null
+            StartTime = t0.AddHours(1), EndTime = t0.AddHours(2)
         };
         otherSlot = otherSlot with
         {
             Id = 3, EmployeeId = 10, LocationId = 2, BookingId = 3,
-            StartTime = t0.AddHours(3), EndTime = t0.AddHours(4), Deleted = null
+            StartTime = t0.AddHours(3), EndTime = t0.AddHours(4)
         };
 
         _users.Setup(x => x.GetById(subject.Id, It.IsAny<CancellationToken>())).ReturnsAsync(subject);
@@ -357,14 +318,10 @@ public class ExportTakeoutCommandTests
         User subject)
     {
         // Arrange
-        subject = subject with { Id = 11, Role = UserRole.Customer, Deleted = null };
+        subject = subject with { Id = 11, Role = UserRole.Customer };
         Assert.NotNull(subject.PasswordHash);
         _users.Setup(x => x.GetById(subject.Id, It.IsAny<CancellationToken>())).ReturnsAsync(subject);
-        _users.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<User>());
-        _locations.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<Location>());
-        _services.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<Service>());
-        _bookings.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<Booking>());
-        _calendar.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<CalendarEvent>());
+        SetupEmptyRepositories();
         var request = new ExportTakeoutRequest(TakeoutScope.CustomerGdpr) { User = CreateUser(subject.Id, UserRole.Customer) };
         ExportTakeoutCommand sut = CreateSut();
 
@@ -383,13 +340,9 @@ public class ExportTakeoutCommandTests
     public async Task GIVEN_CustomerGdprExport_WHEN_Execute_THEN_RecordsExportOnceForCaller(User subject)
     {
         // Arrange
-        subject = subject with { Id = CustomerSubjectId, Role = UserRole.Customer, Deleted = null };
+        subject = subject with { Id = CustomerSubjectId, Role = UserRole.Customer };
         _users.Setup(x => x.GetById(CustomerSubjectId, It.IsAny<CancellationToken>())).ReturnsAsync(subject);
-        _users.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<User>());
-        _locations.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<Location>());
-        _services.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<Service>());
-        _bookings.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<Booking>());
-        _calendar.Setup(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>())).Returns(Yield<CalendarEvent>());
+        SetupEmptyRepositories();
         var request = new ExportTakeoutRequest(TakeoutScope.CustomerGdpr) { User = CreateUser(CustomerSubjectId, UserRole.Customer) };
         ExportTakeoutCommand sut = CreateSut();
 
