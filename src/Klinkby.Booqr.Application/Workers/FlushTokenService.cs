@@ -57,7 +57,7 @@ internal sealed partial class FlushTokenService(
         [LoggerMessage(293, LogLevel.Information, "Flushing tokens older than {Threshold}")]
         public partial void FlushingTokens(DateTime threshold);
 
-        [LoggerMessage(291, LogLevel.Information, "Flushed {Count} tokens")]
+        [LoggerMessage(294, LogLevel.Information, "Flushed {Count} tokens")]
         public partial void FlushComplete(int count);
 
         [LoggerMessage(292, LogLevel.Error, "Failed to flush tokens")]

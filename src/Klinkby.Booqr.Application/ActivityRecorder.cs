@@ -49,6 +49,22 @@ public interface IActivityRecorder
     /// <param name="query">The activity query containing user and entity information.</param>
     /// <param name="cancellation">A token to cancel the operation.</param>
     Task ChangeRole<TItem>(ActivityQuery<TItem> query, CancellationToken cancellation = default);
+
+    /// <summary>
+    /// Records a bulk data export (sensitive data access; ASVS 16.3.2).
+    /// </summary>
+    /// <typeparam name="TItem">The type of the exported document.</typeparam>
+    /// <param name="query">The activity query containing user and entity information.</param>
+    /// <param name="cancellation">A token to cancel the operation.</param>
+    Task Export<TItem>(ActivityQuery<TItem> query, CancellationToken cancellation = default);
+
+    /// <summary>
+    /// Records a committed bulk data import.
+    /// </summary>
+    /// <typeparam name="TItem">The type of the imported document.</typeparam>
+    /// <param name="query">The activity query containing user and entity information.</param>
+    /// <param name="cancellation">A token to cancel the operation.</param>
+    Task Import<TItem>(ActivityQuery<TItem> query, CancellationToken cancellation = default);
 }
 
 /// <remarks>
@@ -74,6 +90,12 @@ internal sealed class ActivityRecorder(
         activities.Record(CreateActivity(query), cancellation);
 
     public Task ChangeRole<TItem>(ActivityQuery<TItem> query, CancellationToken cancellation = default) =>
+        activities.Record(CreateActivity(query), cancellation);
+
+    public Task Export<TItem>(ActivityQuery<TItem> query, CancellationToken cancellation = default) =>
+        activities.Record(CreateActivity(query), cancellation);
+
+    public Task Import<TItem>(ActivityQuery<TItem> query, CancellationToken cancellation = default) =>
         activities.Record(CreateActivity(query), cancellation);
 
     private Activity CreateActivity<TItem>(ActivityQuery<TItem> query, [CallerMemberName] string action = "") =>

@@ -1,12 +1,7 @@
-using System.Globalization;
-using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Security.Claims;
-using System.Text;
 using System.Text.Json;
 using Klinkby.Booqr.Core;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Klinkby.Booqr.Api.Tests;
 
@@ -18,47 +13,11 @@ namespace Klinkby.Booqr.Api.Tests;
 /// </summary>
 public class TenantEndpointsTests
 {
-    private const string JwtKey = "fa15a2b3982173649182736498127364192387648ad08alskdjcnlaskjdncbbdba";
-    private const string JwtIssuer = "booqr";
-    private const string JwtAudience = "https://www.booqr.dk";
     private const string AliceHost = "alice.booqr.dk";
     private const int AliceTenantId = 42;
     private const string AliceDisplayName = "Alice's Salon";
 
     private static readonly Tenant AliceTenant = new(AliceTenantId, "alice", "t_42", AliceDisplayName);
-
-    private sealed class FakeTenantRepository(Tenant? tenant) : ITenantRepository
-    {
-        public Task<Tenant?> GetBySlug(string slug, CancellationToken cancellation = default) =>
-            Task.FromResult(string.Equals(slug, tenant?.Slug, StringComparison.Ordinal) ? tenant : null);
-    }
-
-    private static string CreateToken(int userId, string? role, int? tenantId)
-    {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtKey));
-        List<Claim> claims = [new(JwtRegisteredClaimNames.Sub, userId.ToString(CultureInfo.InvariantCulture))];
-        if (role is not null)
-        {
-            claims.Add(new Claim(ClaimTypes.Role, role));
-        }
-
-        if (tenantId is not null)
-        {
-            claims.Add(new Claim("tenant", tenantId.Value.ToString(CultureInfo.InvariantCulture)));
-        }
-
-        var descriptor = new SecurityTokenDescriptor
-        {
-            Issuer = JwtIssuer,
-            Audience = JwtAudience,
-            Expires = DateTime.UtcNow.AddHours(1),
-            NotBefore = DateTime.UtcNow.AddMinutes(-1),
-            SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature),
-            Subject = new ClaimsIdentity(claims)
-        };
-        var handler = new JwtSecurityTokenHandler { SetDefaultTimesOnTokenCreation = false };
-        return handler.WriteToken(handler.CreateToken(descriptor));
-    }
 
     [Fact]
     public async Task GIVEN_KnownTenantHost_WHEN_GetTenant_THEN_ReturnsBranding()
@@ -105,7 +64,7 @@ public class TenantEndpointsTests
         using HttpRequestMessage request = new(HttpMethod.Get, new Uri("/api/users/2", UriKind.Relative));
         request.Headers.Host = AliceHost;
         request.Headers.Authorization =
-            new AuthenticationHeaderValue("Bearer", CreateToken(2, "Customer", AliceTenantId));
+            new AuthenticationHeaderValue("Bearer", TestAuth.CreateToken(2, "Customer", AliceTenantId));
 
         HttpResponseMessage response = await client.SendAsync(request);
 
@@ -123,7 +82,7 @@ public class TenantEndpointsTests
         using HttpRequestMessage request = new(HttpMethod.Get, new Uri("/api/users/2", UriKind.Relative));
         request.Headers.Host = AliceHost;
         request.Headers.Authorization =
-            new AuthenticationHeaderValue("Bearer", CreateToken(2, "Customer", AliceTenantId + 1));
+            new AuthenticationHeaderValue("Bearer", TestAuth.CreateToken(2, "Customer", AliceTenantId + 1));
 
         HttpResponseMessage response = await client.SendAsync(request);
 
@@ -145,7 +104,7 @@ public class TenantEndpointsTests
         using HttpRequestMessage request = new(HttpMethod.Post, new Uri("/api/auth/logout", UriKind.Relative));
         request.Headers.Host = "www.booqr.dk";
         request.Headers.Authorization =
-            new AuthenticationHeaderValue("Bearer", CreateToken(2, "Customer", AliceTenantId));
+            new AuthenticationHeaderValue("Bearer", TestAuth.CreateToken(2, "Customer", AliceTenantId));
 
         HttpResponseMessage response = await client.SendAsync(request);
 

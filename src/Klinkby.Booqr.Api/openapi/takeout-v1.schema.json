@@ -1,0 +1,305 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "/api/takeout-v1.schema.json",
+  "title": "Klinkby.Booqr Takeout Document",
+  "description": "Self-contained export and import envelope for a tenant workspace or a single-customer GDPR data portability export. All objects use additionalProperties: true to allow additive model evolution. Property names are camelCase; enums are serialized as strings.",
+  "$comment": "Ids (id, customerId, serviceId, employeeId, employeeIds, locationId, bookingId) are export-local: they only resolve references within a single document and are never database ids. Only documents with scope 'TenantWorkspace' are importable; 'CustomerGdpr' documents are export-only and are never importable.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "exportedAt",
+    "tenantSlug",
+    "scope",
+    "users",
+    "locations",
+    "services",
+    "bookings",
+    "calendar"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri-reference",
+      "default": "/api/takeout-v1.schema.json",
+      "description": "Reference to this schema. Written by the exporter."
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Schema version of the document. Readers emit a SchemaVersionMismatch warning when it differs from the version they support."
+    },
+    "exportedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp when the Takeout snapshot was created."
+    },
+    "tenantSlug": {
+      "type": "string",
+      "maxLength": 63,
+      "description": "Source tenant subdomain slug."
+    },
+    "scope": {
+      "$ref": "#/$defs/TakeoutScope"
+    },
+    "users": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TakeoutUser"
+      }
+    },
+    "locations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TakeoutLocation"
+      }
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TakeoutService"
+      }
+    },
+    "bookings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TakeoutBooking"
+      }
+    },
+    "calendar": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TakeoutCalendarSlot"
+      }
+    }
+  },
+  "$defs": {
+    "TakeoutScope": {
+      "type": "string",
+      "enum": [
+        "TenantWorkspace",
+        "CustomerGdpr"
+      ]
+    },
+    "TakeoutUser": {
+      "type": "object",
+      "required": [
+        "id",
+        "role"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Export-local user identifier for foreign-key mapping within this document."
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "Customer",
+            "Employee",
+            "Admin"
+          ]
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 255,
+          "description": "Natural key used to match existing users on import. Omitted for employees in a CustomerGdpr export."
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 255
+        },
+        "phone": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      }
+    },
+    "TakeoutLocation": {
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Export-local location identifier for foreign-key mapping within this document."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "description": "Natural key used to match existing locations on import."
+        },
+        "address1": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 255
+        },
+        "address2": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 255
+        },
+        "zip": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 20
+        },
+        "city": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 255
+        }
+      }
+    },
+    "TakeoutService": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "duration",
+        "employeeIds"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Export-local service identifier for foreign-key mapping within this document."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "description": "Natural key used to match existing services on import."
+        },
+        "duration": {
+          "type": "string",
+          "pattern": "^-?(\\d+\\.)?\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,7})?$",
+          "description": "Service duration serialized in the .NET constant ('c') TimeSpan format ([-][d.]hh:mm:ss[.fffffff])."
+        },
+        "employeeIds": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "description": "Export-local user IDs of employees assigned to perform this service."
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000
+        }
+      }
+    },
+    "TakeoutBooking": {
+      "type": "object",
+      "required": [
+        "id",
+        "customerId",
+        "serviceId"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Export-local booking identifier referenced by TakeoutCalendarSlot.bookingId."
+        },
+        "customerId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Export-local user ID of the customer who owns the booking."
+        },
+        "serviceId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Export-local service ID booked."
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000
+        }
+      }
+    },
+    "TakeoutCalendarSlot": {
+      "type": "object",
+      "required": [
+        "id",
+        "employeeId",
+        "locationId",
+        "startTime",
+        "endTime"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Export-local calendar slot identifier."
+        },
+        "employeeId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Export-local user ID of the employee assigned to this slot."
+        },
+        "locationId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Export-local location ID where the slot takes place."
+        },
+        "bookingId": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Optional export-local booking ID occupying this slot (null for open vacancies)."
+        },
+        "startTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

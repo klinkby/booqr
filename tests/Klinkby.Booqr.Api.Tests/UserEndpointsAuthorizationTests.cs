@@ -1,11 +1,7 @@
-using System.Globalization;
-using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Security.Claims;
 using System.Text;
 using Klinkby.Booqr.Core;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Klinkby.Booqr.Api.Tests;
 
@@ -17,33 +13,6 @@ namespace Klinkby.Booqr.Api.Tests;
 /// </summary>
 public class UserEndpointsAuthorizationTests
 {
-    // Matches WebApiFixture's Application:Jwt configuration.
-    private const string JwtKey = "fa15a2b3982173649182736498127364192387648ad08alskdjcnlaskjdncbbdba";
-    private const string JwtIssuer = "booqr";
-    private const string JwtAudience = "https://www.booqr.dk";
-
-    private static string CreateToken(int userId, string? role)
-    {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtKey));
-        List<Claim> claims = [new(JwtRegisteredClaimNames.Sub, userId.ToString(CultureInfo.InvariantCulture))];
-        if (role is not null)
-        {
-            claims.Add(new Claim(ClaimTypes.Role, role));
-        }
-
-        var descriptor = new SecurityTokenDescriptor
-        {
-            Issuer = JwtIssuer,
-            Audience = JwtAudience,
-            Expires = DateTime.UtcNow.AddHours(1),
-            NotBefore = DateTime.UtcNow.AddMinutes(-1),
-            SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature),
-            Subject = new ClaimsIdentity(claims)
-        };
-        var handler = new JwtSecurityTokenHandler { SetDefaultTimesOnTokenCreation = false };
-        return handler.WriteToken(handler.CreateToken(descriptor));
-    }
-
     private static void SetBearer(HttpClient client, string? token)
     {
         if (token is not null)
@@ -75,7 +44,7 @@ public class UserEndpointsAuthorizationTests
         // Customer policy, so it is rejected before reaching the endpoint or database.
         await using WebApiFixture fixture = new();
         using HttpClient client = fixture.CreateClient();
-        SetBearer(client, CreateToken(2, role: null));
+        SetBearer(client, TestAuth.CreateToken(2, role: null));
 
         HttpResponseMessage response = await client.GetAsync(new Uri(path, UriKind.Relative));
 
@@ -111,7 +80,7 @@ public class UserEndpointsAuthorizationTests
         // the endpoint or database is reached.
         await using WebApiFixture fixture = new();
         using HttpClient client = fixture.CreateClient();
-        SetBearer(client, CreateToken(2, role));
+        SetBearer(client, TestAuth.CreateToken(2, role));
         using StringContent body = new("""{"role":"Admin"}""", Encoding.UTF8, "application/json");
 
         HttpResponseMessage response = await client.PutAsync(new Uri(path, UriKind.Relative), body);
@@ -127,7 +96,7 @@ public class UserEndpointsAuthorizationTests
         // the command (and its database access) runs.
         await using WebApiFixture fixture = new();
         using HttpClient client = fixture.CreateClient();
-        SetBearer(client, CreateToken(1, UserRole.Admin));
+        SetBearer(client, TestAuth.CreateToken(1, UserRole.Admin));
         using StringContent body = new("""{"role":"Root"}""", Encoding.UTF8, "application/json");
 
         HttpResponseMessage response = await client.PutAsync(new Uri(path, UriKind.Relative), body);
