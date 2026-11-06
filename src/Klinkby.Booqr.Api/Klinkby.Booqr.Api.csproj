@@ -30,8 +30,6 @@
     <ItemGroup Label="Nuget references">
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
-        <!-- Pin AOT compiler above the SDK-bundled version (GHSA-p3jp-9v83-76w9) -->
-        <PackageReference Include="Microsoft.DotNet.ILCompiler" VersionOverride="10.0.14" />
         <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" PrivateAssets="all" />
         <PackageReference Include="Microsoft.OpenApi" />
         <PackageReference Include="NLog" />
