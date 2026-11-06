@@ -1,4 +1,4 @@
-﻿FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine3.23-aot AS build
+﻿FROM mcr.microsoft.com/dotnet/sdk:10.0.401-alpine3.23-aot AS build
 WORKDIR /source
 
 # Build the app
