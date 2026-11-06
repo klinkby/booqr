@@ -6,7 +6,9 @@ bin/
 obj/
 .idea/
 wwwroot/openapi/
-src/Klinkby.Booqr.Api/openapi/
+src/Klinkby.Booqr.Api/openapi/*
+# hand-authored (not build-generated): served at /api/takeout-v1.schema.json
+!src/Klinkby.Booqr.Api/openapi/takeout-v1.schema.json
 NLog.xsd
 certs/
 dpkeys/

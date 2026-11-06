@@ -1,4 +1,5 @@
-﻿using System.Net.Mime;
+﻿using System.Globalization;
+using System.Net.Mime;
 using Klinkby.Booqr.Application.Commands.Employees;
 using Klinkby.Booqr.Application.Models;
 using Klinkby.Booqr.Api.Models;
@@ -27,23 +28,42 @@ internal static class Routing
         MapEmployees(baseRoute);
         MapLocations(baseRoute);
         MapServices(baseRoute);
+        MapTakeout(baseRoute);
         MapUsers(baseRoute);
         MapVacancies(baseRoute);
     }
+
+    private const string TakeoutSchemaContentType = "application/schema+json";
 
     private static void MapOpenApi(RouteGroupBuilder baseRoute)
     {
         const string filename = "v1.json";
         baseRoute.MapGet(filename,
                 static (HttpContext context, IWebHostEnvironment env, CancellationToken cancellation) =>
-                {
-                    HttpResponse response = context.Response;
-                    response.ContentType = MediaTypeNames.Application.Json;
-                    response.Headers.CacheControl = "public, max-age=86400";
-                    return response.SendFileAsync(Path.Combine(env.ContentRootPath, "openapi", filename), cancellation);
-                })
+                    SendStaticJson(context, env, filename, MediaTypeNames.Application.Json, cancellation))
             .ExcludeFromDescription()
             .WithMetadata(new TenantOptionalAttribute());
+
+        // Takeout document JSON Schema (the $schema target of exported takeout documents).
+        const string takeoutSchemaFilename = "takeout-v1.schema.json";
+        baseRoute.MapGet(takeoutSchemaFilename,
+                static (HttpContext context, IWebHostEnvironment env, CancellationToken cancellation) =>
+                    SendStaticJson(context, env, takeoutSchemaFilename, TakeoutSchemaContentType, cancellation))
+            .ExcludeFromDescription()
+            .WithMetadata(new TenantOptionalAttribute());
+    }
+
+    /// <summary>
+    ///     Serves a file from the <c>openapi</c> content folder. Callers pass only hardcoded filenames
+    ///     (never client input), so no user-controlled path reaches <see cref="Path.Combine(string, string)" />.
+    /// </summary>
+    private static Task SendStaticJson(HttpContext context, IWebHostEnvironment env, string filename,
+        string contentType, CancellationToken cancellation)
+    {
+        HttpResponse response = context.Response;
+        response.ContentType = contentType;
+        response.Headers.CacheControl = "public, max-age=86400";
+        return response.SendFileAsync(Path.Combine(env.ContentRootPath, "openapi", filename), cancellation);
     }
 
     /// <summary>
@@ -316,6 +336,53 @@ internal static class Routing
             .WithSummary("Delete a service");
     }
 
+    private static void MapTakeout(IEndpointRouteBuilder app)
+    {
+        RouteGroupBuilder group = app
+            .MapGroup("takeout")
+            .WithTags("Takeout")
+            .WithDescription("Takeout");
+
+        // Scope is fixed by the route, never chosen by the client.
+        group.MapGet("",
+                static (ExportTakeoutCommand command,
+                        [AsParameters] ExportTakeoutRequest request,
+                        HttpContext context,
+                        CancellationToken cancellation) => command
+                    .Execute(request with { Scope = TakeoutScope.TenantWorkspace }, cancellation)
+                    .ToOk(x => x.AddTakeoutHeaders(context)))
+            .RequireAuthorization(UserRole.Admin)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .WithName("exportTenantTakeout")
+            .WithSummary("Export the tenant workspace (admin only)");
+
+        group.MapGet("me",
+                static (ExportTakeoutCommand command,
+                        [AsParameters] ExportTakeoutRequest request,
+                        HttpContext context,
+                        CancellationToken cancellation) => command
+                    .Execute(request with { Scope = TakeoutScope.CustomerGdpr }, cancellation)
+                    .ToOk(x => x.AddTakeoutHeaders(context)))
+            .RequireAuthorization(UserRole.Customer)
+            .WithName("exportMyTakeout")
+            .WithSummary("Export my own data (GDPR portability)");
+
+        // Body is the raw TakeoutDocument (not wrapped). ImportTakeoutRequest is bound via [AsParameters]
+        // so AuthenticatedRequestEndPointFilter can inject the user into it; Document binds from the body
+        // and ValidateOnly from the query string.
+        group.MapPost("",
+                static (ImportTakeoutCommand command,
+                        [AsParameters] ImportTakeoutRequest request,
+                        CancellationToken cancellation) => command
+                    .Execute(request, cancellation)
+                    .ToOk())
+            .RequireAuthorization(UserRole.Admin)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .WithName("importTakeout")
+            .WithSummary("Import a tenant workspace takeout document (admin only)");
+    }
+
     private static void MapUsers(IEndpointRouteBuilder app)
     {
         const string resourceName = "users";
@@ -532,5 +599,21 @@ file static class ResultMapperExtensions
             CreateRefreshTokenCookieOptions(response.RefreshTokenExpiration));
         context.Response.Headers.CacheControl = "no-store";
         return response with { RefreshToken = string.Empty };
+    }
+
+    internal static TakeoutDocument AddTakeoutHeaders(this TakeoutDocument document, HttpContext context)
+    {
+        var date = document.ExportedAt.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+        context.Response.Headers.CacheControl = "no-store";
+        context.Response.Headers.ContentDisposition =
+            $"attachment; filename=\"booqr-takeout-{SanitizeSlug(document.TenantSlug)}-{date}.json\"";
+        return document;
+    }
+
+    /// <summary>Restricts a slug to [a-z0-9-] so it is safe inside a quoted Content-Disposition filename.</summary>
+    private static string SanitizeSlug(string slug)
+    {
+        var sanitized = string.Concat(slug.Where(static c => c is (>= 'a' and <= 'z') or (>= '0' and <= '9') or '-'));
+        return sanitized.Length == 0 ? "tenant" : sanitized;
     }
 }
