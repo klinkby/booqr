@@ -63,7 +63,14 @@ write_file() {
   if [ "$DRY_RUN" = 1 ]; then
     sed 's/^/    | /' "$tmp"; rm -f "$tmp"; return 0
   fi
-  install -D -m "$mode" -o "${owner%%:*}" -g "${owner##*:}" "$tmp" "$path"
+  if [ "$owner" = root:root ]; then
+    install -D -m "$mode" -o root -g root "$tmp" "$path"
+  else
+    # Write as the owner, never as root: the owner controls that tree and could plant a symlink
+    # (e.g. → /etc/shadow) that a root write or chown would follow. Content goes over stdin
+    # because the root-owned mktemp file isn't readable by the owner.
+    runuser -u "${owner%%:*}" -- install -D -m "$mode" /dev/stdin "$path" < "$tmp"
+  fi
   rm -f "$tmp"
 }
 
@@ -177,16 +184,16 @@ KillMode=mixed
 [Install]
 WantedBy=default.target
 EOF
-[ "$DRY_RUN" = 1 ] || chown -R "$SVC_USER:$SVC_USER" "$SVC_HOME/.config"
 
-# Shell env for `sudo -u $SVC_USER bash` sessions and scripts
+# Shell env for `sudo -u $SVC_USER bash` sessions and scripts. Appended as the user, not root
+# (a symlinked rc file must not redirect a root write; see write_file).
 for rc in .profile .bashrc; do
   if ! grep -qs 'DOCKER_HOST=unix:///run/user/' "$SVC_HOME/$rc"; then
     log "add XDG_RUNTIME_DIR/DOCKER_HOST to $SVC_HOME/$rc"
     if [ "$DRY_RUN" = 0 ]; then
+      # shellcheck disable=SC2016 # $1 expands in the user's sh
       printf '\nexport XDG_RUNTIME_DIR=/run/user/%s\nexport DOCKER_HOST=unix:///run/user/%s/docker.sock\n' \
-        "$SVC_UID" "$SVC_UID" >> "$SVC_HOME/$rc"
-      chown "$SVC_USER:$SVC_USER" "$SVC_HOME/$rc"
+        "$SVC_UID" "$SVC_UID" | runuser -u "$SVC_USER" -- sh -c 'cat >> "$1"' sh "$SVC_HOME/$rc"
     fi
   fi
 done

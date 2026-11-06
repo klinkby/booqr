@@ -13,7 +13,8 @@ set -euo pipefail
 T=booqr-restore-test
 W=$(mktemp -d)
 cleanup() { docker rm -f "$T" >/dev/null 2>&1 || true; }
-trap 'cleanup; echo "scratch files left in $W" >&2' EXIT
+# $W/cfg holds a restored copy of env/*.env (every secret): always remove it
+trap 'cleanup; rm -rf "$W"' EXIT
 cleanup
 
 "${R[@]}" snapshots --host "$HOST_TAG" --latest 1 --compact

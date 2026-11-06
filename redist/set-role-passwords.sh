@@ -31,6 +31,9 @@ load() {
   load
   # SQL string literal: double any single quote
   q() { printf %s "$1" | sed "s/'/''/g"; }
+  # Keep the plaintext out of the server log, even if a statement fails (log_min_error_statement
+  # logs the failing statement's text by default) or statement logging is turned on later.
+  printf "set log_statement = none;\nset log_min_error_statement = panic;\nset log_min_duration_statement = -1;\n"
   printf "alter role booqr_registry password '%s';\n" "$(q "$Infrastructure__Registry__RegistryPassword")"
   printf "alter role booqr_batch password '%s';\n" "$(q "$Infrastructure__Batch__BatchPassword")"
   printf "alter role booqr_migrator password '%s';\n" "$(q "$BOOQR_MIGRATOR_PASSWORD")"
