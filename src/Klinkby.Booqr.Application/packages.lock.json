@@ -73,12 +73,12 @@
       },
       "Microsoft.Extensions.Options.DataAnnotations": {
         "type": "Direct",
-        "requested": "[10.0.12, )",
-        "resolved": "10.0.12",
-        "contentHash": "rPqU/cnDMmL4Gx7sglNnYwh/upWxSLTwVe0ysT88WH9HEE3OfZgaT7TyM86C4GeXwDsDQaj95fUGL5jEB3vxng==",
+        "requested": "[10.0.14, )",
+        "resolved": "10.0.14",
+        "contentHash": "gz1aKpEPChf1L+5RdTu87zp4qJYyQJTq83jRxiHisMYznxpmDRBk5i9FrbJH7po1hwG0WDAM4tt7rSFekfzTmw==",
         "dependencies": {
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.12",
-          "Microsoft.Extensions.Options": "10.0.12"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.14",
+          "Microsoft.Extensions.Options": "10.0.14"
         }
       },
       "ServiceScan.SourceGenerator": {
