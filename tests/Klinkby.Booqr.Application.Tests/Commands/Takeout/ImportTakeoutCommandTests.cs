@@ -432,8 +432,8 @@ public class ImportTakeoutCommandTests
     [Theory]
     [InlineAutoData(true)]
     [InlineAutoData(false)]
-    public async Task GIVEN_ValidateOnlyFlag_WHEN_Execute_THEN_RollsBackWithoutActivityOnlyWhenValidateOnly(
-        bool validateOnly,
+    public async Task GIVEN_DryRunFlag_WHEN_Execute_THEN_RollsBackWithoutActivityOnlyWhenDryRun(
+        bool dryRun,
         DateTime t0,
         int customerId)
     {
@@ -441,16 +441,16 @@ public class ImportTakeoutCommandTests
         var customer = new TakeoutUser(CustomerSourceId, UserRole.Customer, "customer@example.test");
         TakeoutDocument document = CreateDocument(t0, users: [customer]);
 
-        var result = await _sut.Execute(CreateRequest(document, validateOnly));
+        var result = await _sut.Execute(CreateRequest(document, dryRun));
 
         var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
-        Assert.Equal(validateOnly, success.Value.ValidateOnly);
+        Assert.Equal(dryRun, success.Value.DryRun);
         _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()),
-            validateOnly ? Times.Once : Times.Never);
+            dryRun ? Times.Once : Times.Never);
         _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()),
-            validateOnly ? Times.Never : Times.Once);
+            dryRun ? Times.Never : Times.Once);
         _activityRecorder.Verify(x => x.Import<TakeoutDocument>(It.IsAny<ActivityQuery<TakeoutDocument>>(),
-            It.IsAny<CancellationToken>()), validateOnly ? Times.Never : Times.Once);
+            It.IsAny<CancellationToken>()), dryRun ? Times.Never : Times.Once);
     }
 
     [Theory]
@@ -576,7 +576,7 @@ public class ImportTakeoutCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_ValidateOnlyDocumentCreatesPrivilegedUsers_WHEN_Execute_THEN_WarnsWithoutRecordingActivity(
+    public async Task GIVEN_DryRunDocumentCreatesPrivilegedUsers_WHEN_Execute_THEN_WarnsWithoutRecordingActivity(
         DateTime t0)
     {
         // Arrange
@@ -584,7 +584,7 @@ public class ImportTakeoutCommandTests
         TakeoutDocument document = CreateAdminEmployeeCustomerDocument(t0);
 
         // Act
-        var result = await _sut.Execute(CreateRequest(document, validateOnly: true));
+        var result = await _sut.Execute(CreateRequest(document, dryRun: true));
 
         // Assert
         var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
@@ -635,9 +635,9 @@ public class ImportTakeoutCommandTests
         return CreateDocument(t0, users: [admin, employee, customer]);
     }
 
-    private static ImportTakeoutRequest CreateRequest(TakeoutDocument document, bool validateOnly = false,
+    private static ImportTakeoutRequest CreateRequest(TakeoutDocument document, bool dryRun = false,
         ClaimsPrincipal? user = null) =>
-        new(document, validateOnly)
+        new(document, dryRun)
         {
             User = user ?? CreateUser(CallerId, UserRole.Admin),
             TenantId = TestHelpers.CreateTenantContext().TenantId

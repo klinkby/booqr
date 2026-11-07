@@ -340,16 +340,22 @@ internal static class Routing
     {
         RouteGroupBuilder group = app
             .MapGroup("takeout")
-            .WithTags("Takeout")
+            .WithTags("DataTakeout")
             .WithDescription("Takeout");
 
-        // Scope is fixed by the route, never chosen by the client.
+        // Exports take no client input: Scope is fixed by the route. The request is therefore built here
+        // rather than bound, so nothing leaks into the OpenAPI contract. Because it is not a bound argument,
+        // AuthenticatedRequestEndPointFilter cannot inject User/TenantId into it, so they are set
+        // explicitly (the filter's claim-vs-host tenant guard still runs on the group).
         group.MapGet("",
                 static (ExportTakeoutCommand command,
-                        [AsParameters] ExportTakeoutRequest request,
+                        ClaimsPrincipal user,
+                        [FromServices] ITenantContext tenant,
                         HttpContext context,
                         CancellationToken cancellation) => command
-                    .Execute(request with { Scope = TakeoutScope.TenantWorkspace }, cancellation)
+                    .Execute(
+                        new ExportTakeoutRequest(TakeoutScope.TenantWorkspace) { User = user, TenantId = tenant.TenantId },
+                        cancellation)
                     .ToOk(x => x.AddTakeoutHeaders(context)))
             .RequireAuthorization(UserRole.Admin)
             .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -358,10 +364,13 @@ internal static class Routing
 
         group.MapGet("me",
                 static (ExportTakeoutCommand command,
-                        [AsParameters] ExportTakeoutRequest request,
+                        ClaimsPrincipal user,
+                        [FromServices] ITenantContext tenant,
                         HttpContext context,
                         CancellationToken cancellation) => command
-                    .Execute(request with { Scope = TakeoutScope.CustomerGdpr }, cancellation)
+                    .Execute(
+                        new ExportTakeoutRequest(TakeoutScope.CustomerGdpr) { User = user, TenantId = tenant.TenantId },
+                        cancellation)
                     .ToOk(x => x.AddTakeoutHeaders(context)))
             .RequireAuthorization(UserRole.Customer)
             .WithName("exportMyTakeout")
@@ -369,7 +378,7 @@ internal static class Routing
 
         // Body is the raw TakeoutDocument (not wrapped). ImportTakeoutRequest is bound via [AsParameters]
         // so AuthenticatedRequestEndPointFilter can inject the user into it; Document binds from the body
-        // and ValidateOnly from the query string.
+        // and DryRun from the query string.
         group.MapPost("",
                 static (ImportTakeoutCommand command,
                         [AsParameters] ImportTakeoutRequest request,

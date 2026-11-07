@@ -106,7 +106,7 @@ public sealed record TakeoutWarning(
 public sealed record EntityImportCounts(int Created, int Matched, int Skipped);
 
 public sealed record ImportTakeoutResponse(
-    bool ValidateOnly,
+    bool DryRun,
     EntityImportCounts Users,
     EntityImportCounts Locations,
     EntityImportCounts Services,
