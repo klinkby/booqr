@@ -16,4 +16,7 @@ internal sealed partial class ProgramLoggerMessages(ILogger logger)
 
     [LoggerMessage(3, LogLevel.Error, "App crash after {TimeSpan}")]
     internal partial void AppCrash(Exception exception, TimeSpan timeSpan);
+
+    [LoggerMessage(6, LogLevel.Warning, "Removed stale unix socket {SocketPath} left by an unclean shutdown")]
+    internal partial void StaleSocketRemoved(string socketPath);
 }
