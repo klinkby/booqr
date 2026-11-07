@@ -114,7 +114,7 @@ public sealed partial class ImportTakeoutCommand(
             return NotAdmin;
         }
 
-        if (query.ValidateOnly)
+        if (query.DryRun)
         {
             await transaction.Rollback(cancellation);
         }
@@ -124,8 +124,8 @@ public sealed partial class ImportTakeoutCommand(
             await RecordActivities(query, run, cancellation);
         }
 
-        _log.Imported(userId, query.ValidateOnly, run.Warnings.Count);
-        return run.ToResponse(query.ValidateOnly);
+        _log.Imported(userId, query.DryRun, run.Warnings.Count);
+        return run.ToResponse(query.DryRun);
     }
 
     /// <summary>
@@ -613,8 +613,8 @@ public sealed partial class ImportTakeoutCommand(
             }
         }
 
-        public ImportTakeoutResponse ToResponse(bool validateOnly) => new(
-            validateOnly,
+        public ImportTakeoutResponse ToResponse(bool dryRun) => new(
+            dryRun,
             UserCounts.ToRecord(),
             LocationCounts.ToRecord(),
             ServiceCounts.ToRecord(),
@@ -640,7 +640,7 @@ public sealed partial class ImportTakeoutCommand(
         public partial void NotAdminInDatabase(int userId);
 
         [LoggerMessage(312, LogLevel.Information,
-            "User {UserId} imported takeout (validateOnly={ValidateOnly}) with {WarningCount} warnings")]
-        public partial void Imported(int userId, bool validateOnly, int warningCount);
+            "User {UserId} imported takeout (dryRun={DryRun}) with {WarningCount} warnings")]
+        public partial void Imported(int userId, bool dryRun, int warningCount);
     }
 }

@@ -131,10 +131,10 @@ public sealed class TakeoutIntegrationTests(ServiceProviderFixture serviceProvid
             ImportTakeoutCommand import = new(_users, _locations, _services, _employeeServices, _bookings, _calendar,
                 _transaction, new Mock<IActivityRecorder>().Object, _time, NullLogger<ImportTakeoutCommand>.Instance);
             Result<ImportTakeoutResponse> imported = await import.Execute(
-                new ImportTakeoutRequest(parsedDocument, ValidateOnly: true) { User = AdminPrincipal(adminId) });
+                new ImportTakeoutRequest(parsedDocument, DryRun: true) { User = AdminPrincipal(adminId) });
 
             ImportTakeoutResponse response = Assert.IsType<Result<ImportTakeoutResponse>.Success>(imported).Value;
-            Assert.True(response.ValidateOnly);
+            Assert.True(response.DryRun);
             Assert.True(response.Users.Created >= 2); // employee + customer; the committed admin is matched
             Assert.True(response.Users.Matched >= 1);
             Assert.True(response.Locations.Created >= 1);
