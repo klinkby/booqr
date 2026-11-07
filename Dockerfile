@@ -1,4 +1,4 @@
-﻿FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine3.23-aot AS build
+﻿FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine3.24-aot AS build
 WORKDIR /source
 
 # Build the app
@@ -11,7 +11,7 @@ RUN --mount=type=cache,target=/root/.nuget \
         -p:DebugType=None
 
 # Final stage/image
-FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-alpine3.23
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-alpine3.24
 WORKDIR /app
 COPY --from=build /app .
 # tzdata: Europe/Copenhagen for mail times (runtime-deps image ships no zoneinfo)

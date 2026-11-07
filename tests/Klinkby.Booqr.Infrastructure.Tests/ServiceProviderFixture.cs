@@ -72,7 +72,7 @@ public sealed class ServiceProviderFixture : IAsyncLifetime
     internal string BaseConnectionString => SqlContainer.GetConnectionString();
 
     private PostgreSqlContainer SqlContainer { get; } =
-        new PostgreSqlBuilder("postgres:18-alpine3.23")
+        new PostgreSqlBuilder("postgres:18-alpine3.24")
         .Build();
 
     internal static string TenantRole(int tenantId) => $"t_{tenantId}";

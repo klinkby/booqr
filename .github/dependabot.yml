@@ -12,3 +12,15 @@ updates:
       default-days: 7
     schedule:
       interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/"
+    cooldown:
+      default-days: 7
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker-compose"
+    directory: "/redist"
+    cooldown:
+      default-days: 7
+    schedule:
+      interval: "weekly"

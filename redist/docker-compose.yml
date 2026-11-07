@@ -162,7 +162,7 @@ services:
           cpus: '0.1'
 
   postgres:
-    image: postgres:18-alpine3.23
+    image: postgres:18-alpine3.24
     env_file:
       - ./env/postgres.env
     environment:
@@ -204,7 +204,7 @@ services:
       - '80:8080/tcp'
       - '443:8443/tcp'
       - '443:8443/udp'
-    image: haproxytech/haproxy-alpine:3.4.1
+    image: haproxytech/haproxy-alpine:3.4.7
     volumes:
       - ./web-gateway/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
       - /root/certs.pem:/etc/ssl/certs/certs.pem:ro
