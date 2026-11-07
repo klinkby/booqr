@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net.Sockets;
 using System.Reflection;
 using Klinkby.Booqr.Api;
 using Klinkby.Booqr.Api.Admin;
@@ -78,6 +79,10 @@ static void ConfigureServices(WebApplicationBuilder builder, bool isMockServer)
             .AddTenancy(configuration.GetRequiredSection("Infrastructure:Tenancy"))
             .AddApiInfrastructure(configuration.GetRequiredSection("Infrastructure"));
 
+        // Finish draining (incl. HAProxy's long-lived H2 connections) inside docker-compose's
+        // 5s stop_grace_period, so Kestrel unlinks its unix socket before Docker SIGKILLs us.
+        builder.Services.Configure<HostOptions>(static options => options.ShutdownTimeout = TimeSpan.FromSeconds(4.5));
+
         // CreateSlimBuilder omits the default host-filtering startup filter, so wire it
         // explicitly. The app emits its own authority (e.g. password-reset links) from the
         // Host header, so constrain it here as defense-in-depth instead of trusting the proxy
@@ -148,11 +153,17 @@ static void ConfigureEndpoints(WebApplication app)
     app.MapApiRoutes();
 }
 
-// Let a reverse proxy running as another user connect to the unix socket.
-static void SetUnixSocketPermissions(IConfiguration configuration)
+// The configured Kestrel unix socket path, or null when unset or on Windows.
+static string? GetUnixSocketPath(IConfiguration configuration)
 {
     var unixSocketPath = configuration["Kestrel:UnixSocketPath"];
-    if (string.IsNullOrWhiteSpace(unixSocketPath) || OperatingSystem.IsWindows())
+    return string.IsNullOrWhiteSpace(unixSocketPath) || OperatingSystem.IsWindows() ? null : unixSocketPath;
+}
+
+// Let a reverse proxy running as another user connect to the unix socket.
+static void SetUnixSocketPermissions(string? unixSocketPath)
+{
+    if (unixSocketPath is null)
     {
         return;
     }
@@ -163,14 +174,39 @@ static void SetUnixSocketPermissions(IConfiguration configuration)
         UnixFileMode.OtherRead | UnixFileMode.OtherWrite);
 }
 
+// The socket lives on a host bind mount, so it outlives the container. Kestrel unlinks it only on
+// graceful shutdown; after a SIGKILL/OOM/host crash the stale inode makes bind() fail with
+// EADDRINUSE and the container crash-loops. Remove it only if nothing is accepting on it, so a
+// live listener is never hijacked (its bind then fails loudly, as it should).
+static void RemoveStaleUnixSocket(string? unixSocketPath, ProgramLoggerMessages log)
+{
+    if (unixSocketPath is null || !File.Exists(unixSocketPath))
+    {
+        return;
+    }
+
+    using Socket probe = new(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+    try
+    {
+        probe.Connect(new UnixDomainSocketEndPoint(unixSocketPath));
+    }
+    catch (SocketException ex) when (ex.SocketErrorCode == SocketError.ConnectionRefused)
+    {
+        File.Delete(unixSocketPath);
+        log.StaleSocketRemoved(unixSocketPath);
+    }
+}
+
 static async Task RunApplicationAsync(WebApplication app, Stopwatch timer)
 {
     ProgramLoggerMessages log = new(app.Services.GetRequiredService<ILogger<Program>>());
+    var unixSocketPath = GetUnixSocketPath(app.Configuration);
 
     try
     {
+        RemoveStaleUnixSocket(unixSocketPath, log);
         await app.StartAsync();
-        SetUnixSocketPermissions(app.Configuration);
+        SetUnixSocketPermissions(unixSocketPath);
         log.AppLaunch(timer.Elapsed);
         await app.WaitForShutdownAsync();
         log.AppShutdown(timer.Elapsed);
