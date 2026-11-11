@@ -2,7 +2,7 @@
     <Sdk Name="DotNet.ReproducibleBuilds.Isolated" Version="2.0.5"/>
 
     <PropertyGroup Label="Project settings">
-        <TargetFramework>net10.0</TargetFramework>
+        <TargetFramework>net11.0</TargetFramework>
         <Nullable>enable</Nullable>
         <WarningsAsErrors>Nullable</WarningsAsErrors>
         <ImplicitUsings>enable</ImplicitUsings>

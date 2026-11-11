@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/github/license/klinkby/booqr.svg)](LICENSE)
 [![Up?](https://badge.uptimerobot.com/psp/466b3388996be3edcb693165bebba153.svg?style=logo&theme=dark)](https://stats.uptimerobot.com/icVHn7BsVj?utm_source=status_badge&utm_medium=referral)
 
-An AOT (Ahead-of-Time) enabled ASP.NET 10 Web API, designed to serve as a robust backend
+An AOT (Ahead-of-Time) enabled ASP.NET 11 Web API, designed to serve as a robust backend
 for an application requiring efficient and secure booking management with a PostgreSQL database. The service is designed
 on a minimalist clean architecture emphasizing performance and maintainability without ceremony.
 
@@ -16,7 +16,7 @@ data, with isolation enforced by the database itself.
 
 ## Features
 
-*   **[AOT Compilation](https://learn.microsoft.com/dotnet/core/deploying/native-aot/)**: Leverages .NET 10's Native AOT with aggressive trimming.
+*   **[AOT Compilation](https://learn.microsoft.com/dotnet/core/deploying/native-aot/)**: Leverages .NET's Native AOT with aggressive trimming.
 *   **[Build-time OpenAPI](https://learn.microsoft.com/aspnet/core/fundamentals/openapi/aspnetcore-openapi)**: Compile-time generated OpenAPI spec with zero runtime overhead.
 *   **[Source Generators](https://learn.microsoft.com/dotnet/csharp/roslyn-sdk/source-generators-overview)**: Extensive use of compile-time code generation:
     *   [ServiceScan](https://github.com/Dreamescaper/ServiceScan.SourceGenerator) for automatic DI registration
@@ -66,7 +66,7 @@ test containers to spin up a live PostgreSQL instance.
 
 ## Minimal Runtime Dependencies
 
-- [dotnet 10](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+- [dotnet 11](https://dotnet.microsoft.com/en-us/download/dotnet/11.0)
 - [Npgsql](https://www.npgsql.org/) for PostgreSQL access
 - [Dapper + AOT](https://aot.dapperlib.dev/) for high-performance data access
 - [BCrypt.Net](https://github.com/BcryptNet/bcrypt.net) for secure password hashing
