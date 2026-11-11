@@ -12,6 +12,10 @@
         <Copyright>(c) 2026, Mads Klinkby. Licensed under AGPL-3.0.</Copyright>
     </PropertyGroup>
 
+    <PropertyGroup Label="Compiler optimization flags">
+        <Features>$(Features);runtime-async=on</Features>
+    </PropertyGroup>
+
     <PropertyGroup Label="Analyzer settings">
         <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
         <AnalysisMode>AllEnabledByDefault</AnalysisMode>
