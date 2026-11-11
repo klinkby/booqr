@@ -29,7 +29,7 @@ public class DeleteVacancyCommandTests
         Result<bool> result = await sut.Execute(request);
 
         // Assert
-        var fault = Assert.IsType<Result<bool>.Fault>(result);
+        var fault = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Conflict.Type, fault.Problem.Type);
         _calendar.Verify(x => x.Delete(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
         _activityRecorder.Verify(x => x.Delete(It.IsAny<ActivityQuery<CalendarEvent>>(), It.IsAny<CancellationToken>()), Times.Never);

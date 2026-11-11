@@ -27,7 +27,7 @@ public sealed class AddServiceCommand(
         try
         {
             Result<int> result = await base.Execute(query, cancellation);
-            if (result is not Result<int>.Success success)
+            if (result is not Success<int> success)
             {
                 await transaction.Rollback(cancellation);
                 return result;

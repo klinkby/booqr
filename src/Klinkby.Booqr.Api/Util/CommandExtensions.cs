@@ -23,9 +23,8 @@ internal static class CommandExtensions
             Func<T, U> mapSuccess) where U : IResult =>
             await commandResult switch
             {
-                Result<T>.Success s => mapSuccess(s.Value),
-                Result<T>.Fault e => MapFault(e.Problem),
-                _ => throw new UnreachableException("Result<T> has only Success and Fault subtypes")
+                Success<T> s => mapSuccess(s.Value),
+                Fault e => MapFault(e.Problem)
             };
     }
 

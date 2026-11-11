@@ -60,7 +60,7 @@ public class ExportTakeoutCommandTests
         Result<TakeoutDocument> result = await sut.Execute(request);
 
         // Assert
-        var fault = Assert.IsType<Result<TakeoutDocument>.Fault>(result);
+        var fault = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Forbidden.Type, fault.Problem.Type);
         _users.Verify(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()), Times.Never);
         _calendar.Verify(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -124,7 +124,7 @@ public class ExportTakeoutCommandTests
         Result<TakeoutDocument> result = await sut.Execute(request);
 
         // Assert
-        TakeoutDocument doc = Assert.IsType<Result<TakeoutDocument>.Success>(result).Value;
+        TakeoutDocument doc = Assert.IsType<Success<TakeoutDocument>>(result.Value).Value;
         Assert.Equal(TakeoutScope.TenantWorkspace, doc.Scope);
         Assert.Equal(TakeoutDocument.CurrentSchemaVersion, doc.SchemaVersion);
         Assert.Equal(TenantSlug, doc.TenantSlug);
@@ -155,7 +155,7 @@ public class ExportTakeoutCommandTests
         Result<TakeoutDocument> result = await sut.Execute(request);
 
         // Assert
-        TakeoutDocument doc = Assert.IsType<Result<TakeoutDocument>.Success>(result).Value;
+        TakeoutDocument doc = Assert.IsType<Success<TakeoutDocument>>(result.Value).Value;
         string json = JsonSerializer.Serialize(doc, WebOptions);
         Assert.DoesNotContain(employee.PasswordHash, json, StringComparison.Ordinal);
         Assert.DoesNotContain("passwordHash", json, StringComparison.OrdinalIgnoreCase);
@@ -179,7 +179,7 @@ public class ExportTakeoutCommandTests
         Result<TakeoutDocument> result = await sut.Execute(request);
 
         // Assert
-        var fault = Assert.IsType<Result<TakeoutDocument>.Fault>(result);
+        var fault = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Forbidden.Type, fault.Problem.Type);
         _users.Verify(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()), Times.Never);
         _locations.Verify(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -205,7 +205,7 @@ public class ExportTakeoutCommandTests
         Result<TakeoutDocument> result = await sut.Execute(request);
 
         // Assert
-        Assert.IsType<Result<TakeoutDocument>.Success>(result);
+        Assert.IsType<Success<TakeoutDocument>>(result.Value);
         _activityRecorder.Verify(x => x.Export<TakeoutDocument>(
             It.Is<ActivityQuery<TakeoutDocument>>(q => q.UserId == AdminCallerId),
             It.IsAny<CancellationToken>()), Times.Once);
@@ -275,7 +275,7 @@ public class ExportTakeoutCommandTests
         Result<TakeoutDocument> result = await sut.Execute(request);
 
         // Assert
-        TakeoutDocument doc = Assert.IsType<Result<TakeoutDocument>.Success>(result).Value;
+        TakeoutDocument doc = Assert.IsType<Success<TakeoutDocument>>(result.Value).Value;
         Assert.Equal(TakeoutScope.CustomerGdpr, doc.Scope);
         Assert.Equal(GdprBookingIds, doc.Bookings.Select(b => b.Id).ToArray());
         Assert.Equal(GdprCalendarIds, doc.Calendar.Select(c => c.Id).ToArray());
@@ -307,7 +307,7 @@ public class ExportTakeoutCommandTests
         Result<TakeoutDocument> result = await sut.Execute(request);
 
         // Assert
-        var fault = Assert.IsType<Result<TakeoutDocument>.Fault>(result);
+        var fault = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.NotFound.Type, fault.Problem.Type);
         _bookings.Verify(x => x.GetAll(It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -329,7 +329,7 @@ public class ExportTakeoutCommandTests
         Result<TakeoutDocument> result = await sut.Execute(request);
 
         // Assert
-        TakeoutDocument doc = Assert.IsType<Result<TakeoutDocument>.Success>(result).Value;
+        TakeoutDocument doc = Assert.IsType<Success<TakeoutDocument>>(result.Value).Value;
         string json = JsonSerializer.Serialize(doc, WebOptions);
         Assert.DoesNotContain(subject.PasswordHash, json, StringComparison.Ordinal);
         Assert.DoesNotContain("passwordHash", json, StringComparison.OrdinalIgnoreCase);
@@ -350,7 +350,7 @@ public class ExportTakeoutCommandTests
         Result<TakeoutDocument> result = await sut.Execute(request);
 
         // Assert
-        Assert.IsType<Result<TakeoutDocument>.Success>(result);
+        Assert.IsType<Success<TakeoutDocument>>(result.Value);
         _activityRecorder.Verify(x => x.Export<TakeoutDocument>(
             It.Is<ActivityQuery<TakeoutDocument>>(q => q.UserId == CustomerSubjectId),
             It.IsAny<CancellationToken>()), Times.Once);

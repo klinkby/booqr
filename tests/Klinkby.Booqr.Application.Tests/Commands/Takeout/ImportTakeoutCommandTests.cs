@@ -68,7 +68,7 @@ public class ImportTakeoutCommandTests
 
             var result = await _sut.Execute(request);
 
-            var fault = Assert.IsType<Result<ImportTakeoutResponse>.Fault>(result);
+            var fault = Assert.IsType<Fault>(result.Value);
             Assert.Equal(Problem.Forbidden.Type, fault.Problem.Type);
         }
 
@@ -90,7 +90,7 @@ public class ImportTakeoutCommandTests
 
         var result = await _sut.Execute(CreateRequest(gdpr));
 
-        var fault = Assert.IsType<Result<ImportTakeoutResponse>.Fault>(result);
+        var fault = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.ValidationFailed.Type, fault.Problem.Type);
         _transaction.Verify(x => x.Begin(It.IsAny<IsolationLevel>(), It.IsAny<CancellationToken>()), Times.Never);
         _users.Verify(x => x.Add(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -128,7 +128,7 @@ public class ImportTakeoutCommandTests
 
         var result = await _sut.Execute(CreateRequest(document));
 
-        var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        var success = Assert.IsType<Success<ImportTakeoutResponse>>(result.Value);
         Assert.Equal(2, success.Value.Warnings.Count(w => w.Code == TakeoutWarningCode.UserCreatedWithoutPassword));
         _users.Verify(x => x.Add(
             It.Is<User>(u => u.Email == employeeMail && u.Role == UserRole.Employee && u.PasswordHash == null),
@@ -176,7 +176,7 @@ public class ImportTakeoutCommandTests
 
         var result = await _sut.Execute(CreateRequest(document));
 
-        var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        var success = Assert.IsType<Success<ImportTakeoutResponse>>(result.Value);
         Assert.Contains(success.Value.Warnings, w => w.Code == TakeoutWarningCode.MatchedExistingByNaturalKey);
         _users.Verify(x => x.Add(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
         _users.Verify(x => x.Update(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -201,7 +201,7 @@ public class ImportTakeoutCommandTests
 
         var result = await _sut.Execute(CreateRequest(document));
 
-        var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        var success = Assert.IsType<Success<ImportTakeoutResponse>>(result.Value);
         Assert.Contains(success.Value.Warnings, w =>
             w.Code == TakeoutWarningCode.MissingReferenceSkipped && w.Entity == nameof(CalendarEvent));
         _calendar.Verify(x => x.Add(It.IsAny<CalendarEvent>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -229,7 +229,7 @@ public class ImportTakeoutCommandTests
 
         var result = await _sut.Execute(CreateRequest(document));
 
-        var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        var success = Assert.IsType<Success<ImportTakeoutResponse>>(result.Value);
         Assert.Equal(2, success.Value.Warnings.Count(w =>
             w.Code == TakeoutWarningCode.MissingReferenceSkipped && w.Entity == nameof(CalendarEvent)));
         _calendar.Verify(x => x.Add(It.IsAny<CalendarEvent>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -269,7 +269,7 @@ public class ImportTakeoutCommandTests
 
         var result = await _sut.Execute(CreateRequest(document));
 
-        var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        var success = Assert.IsType<Success<ImportTakeoutResponse>>(result.Value);
         Assert.Contains(success.Value.Warnings, w => w.Code == TakeoutWarningCode.CalendarOverlapSkipped);
         _calendar.Verify(x => x.Add(It.IsAny<CalendarEvent>(), It.IsAny<CancellationToken>()), Times.Never);
         _bookings.Verify(x => x.Add(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -305,7 +305,7 @@ public class ImportTakeoutCommandTests
 
         var result = await _sut.Execute(CreateRequest(document));
 
-        var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        var success = Assert.IsType<Success<ImportTakeoutResponse>>(result.Value);
         Assert.Equal(1, success.Value.Calendar.Matched);
         _calendar.Verify(x => x.Add(It.IsAny<CalendarEvent>(), It.IsAny<CancellationToken>()), Times.Never);
         _bookings.Verify(x => x.Add(It.IsAny<Booking>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -349,7 +349,7 @@ public class ImportTakeoutCommandTests
 
         var result = await _sut.Execute(CreateRequest(document));
 
-        Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        Assert.IsType<Success<ImportTakeoutResponse>>(result.Value);
         _bookings.Verify(x => x.Add(
             It.Is<Booking>(b => b.CustomerId == customerId && b.ServiceId == serviceId),
             It.IsAny<CancellationToken>()), Times.Once);
@@ -377,7 +377,7 @@ public class ImportTakeoutCommandTests
 
         var result = await _sut.Execute(CreateRequest(document));
 
-        Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        Assert.IsType<Success<ImportTakeoutResponse>>(result.Value);
         _employeeServices.Verify(x => x.Assign(
             existing.Id,
             It.Is<int[]>(ids => ids.Length == 2 && ids.Contains(existingEmployeeId) && ids.Contains(employeeId)),
@@ -405,7 +405,7 @@ public class ImportTakeoutCommandTests
 
         var result = await _sut.Execute(CreateRequest(document));
 
-        var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        var success = Assert.IsType<Success<ImportTakeoutResponse>>(result.Value);
         Assert.Contains(success.Value.Warnings, w => w.Code == TakeoutWarningCode.HistoricalEntrySkipped);
         Assert.Contains(success.Value.Warnings, w => w.Code == TakeoutWarningCode.InvalidTimeRangeSkipped);
         _calendar.Verify(x => x.Add(It.IsAny<CalendarEvent>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -423,7 +423,7 @@ public class ImportTakeoutCommandTests
 
         var result = await _sut.Execute(CreateRequest(document));
 
-        var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        var success = Assert.IsType<Success<ImportTakeoutResponse>>(result.Value);
         Assert.Contains(success.Value.Warnings, w => w.Code == TakeoutWarningCode.SchemaVersionMismatch);
         _users.Verify(x => x.Add(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Once);
         _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
@@ -443,7 +443,7 @@ public class ImportTakeoutCommandTests
 
         var result = await _sut.Execute(CreateRequest(document, dryRun));
 
-        var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        var success = Assert.IsType<Success<ImportTakeoutResponse>>(result.Value);
         Assert.Equal(dryRun, success.Value.DryRun);
         _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()),
             dryRun ? Times.Once : Times.Never);
@@ -487,7 +487,7 @@ public class ImportTakeoutCommandTests
 
         var result = await _sut.Execute(CreateRequest(document));
 
-        var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        var success = Assert.IsType<Success<ImportTakeoutResponse>>(result.Value);
         Assert.Contains(success.Value.Warnings, w => w.Code == TakeoutWarningCode.DuplicateSourceIdSkipped);
         Assert.Equal(1, success.Value.Users.Created);
         _users.Verify(x => x.Add(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -509,7 +509,7 @@ public class ImportTakeoutCommandTests
 
         var result = await _sut.Execute(CreateRequest(document));
 
-        var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        var success = Assert.IsType<Success<ImportTakeoutResponse>>(result.Value);
         Assert.Contains(success.Value.Warnings, w =>
             w.Code == TakeoutWarningCode.MissingReferenceSkipped && w.Entity == nameof(Booking));
         Assert.Equal(1, success.Value.Bookings.Skipped);
@@ -531,7 +531,7 @@ public class ImportTakeoutCommandTests
         var result = await _sut.Execute(CreateRequest(document));
 
         // Assert
-        var fault = Assert.IsType<Result<ImportTakeoutResponse>.Fault>(result);
+        var fault = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Forbidden.Type, fault.Problem.Type);
         _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
         _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Never);
@@ -559,7 +559,7 @@ public class ImportTakeoutCommandTests
         var result = await _sut.Execute(CreateRequest(document));
 
         // Assert
-        var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        var success = Assert.IsType<Success<ImportTakeoutResponse>>(result.Value);
         Assert.Equal(2, success.Value.Warnings.Count(w => w.Code == TakeoutWarningCode.PrivilegedUserCreated));
         _activityRecorder.Verify(x => x.ChangeRole<User>(
             It.Is<ActivityQuery<User>>(q => q.UserId == CallerId && q.EntityId == adminId),
@@ -587,7 +587,7 @@ public class ImportTakeoutCommandTests
         var result = await _sut.Execute(CreateRequest(document, dryRun: true));
 
         // Assert
-        var success = Assert.IsType<Result<ImportTakeoutResponse>.Success>(result);
+        var success = Assert.IsType<Success<ImportTakeoutResponse>>(result.Value);
         Assert.Equal(2, success.Value.Warnings.Count(w => w.Code == TakeoutWarningCode.PrivilegedUserCreated));
         _activityRecorder.Verify(x => x.ChangeRole<User>(It.IsAny<ActivityQuery<User>>(),
             It.IsAny<CancellationToken>()), Times.Never);

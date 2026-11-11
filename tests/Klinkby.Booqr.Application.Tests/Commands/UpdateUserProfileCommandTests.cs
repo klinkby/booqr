@@ -40,7 +40,7 @@ public class UpdateUserProfileCommandTests
         Result<bool> result = await sut.Execute(request);
 
         // Assert
-        Assert.IsType<Result<bool>.Success>(result);
+        Assert.IsType<Success<bool>>(result.Value);
         _repo.Verify(
             x => x.UpdateProfile(
                 It.Is<PartialUser>(p =>
@@ -69,7 +69,7 @@ public class UpdateUserProfileCommandTests
         Result<bool> result = await sut.Execute(request);
 
         // Assert
-        Result<bool>.Fault err =  Assert.IsType<Result<bool>.Fault>(result);
+        Fault err =  Assert.IsType<Fault>(result.Value);
         Assert.Contains($"User {request.Id}", err.Problem.Detail, StringComparison.Ordinal);
     }
 
@@ -90,7 +90,7 @@ public class UpdateUserProfileCommandTests
         Result<bool> result = await sut.Execute(request);
 
         // Assert
-        Assert.IsType<Result<bool>.Success>(result);
+        Assert.IsType<Success<bool>>(result.Value);
         _activityRecorder.Verify(
             x => x.Update(It.IsAny<ActivityQuery<User>>(), It.IsAny<CancellationToken>()),
             Times.Once);
@@ -113,7 +113,7 @@ public class UpdateUserProfileCommandTests
         Result<bool> result = await sut.Execute(request);
 
         // Assert
-        Assert.IsType<Result<bool>.Fault>(result);
+        Assert.IsType<Fault>(result.Value);
         _activityRecorder.Verify(
             x => x.Update(It.IsAny<ActivityQuery<User>>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -142,7 +142,7 @@ public class UpdateUserProfileCommandTests
         Result<bool> result = await sut.Execute(bound);
 
         // Assert: the COALESCE patch leaves role untouched only when Role is null.
-        Assert.IsType<Result<bool>.Success>(result);
+        Assert.IsType<Success<bool>>(result.Value);
         _repo.Verify(
             x => x.UpdateProfile(It.Is<PartialUser>(p => p.Id == request.Id && p.Role == null), CancellationToken.None),
             Times.Once);
@@ -162,7 +162,7 @@ public class UpdateUserProfileCommandTests
         Result<bool> result = await sut.Execute(request);
 
         // Assert
-        Assert.IsType<Result<bool>.Success>(result);
+        Assert.IsType<Success<bool>>(result.Value);
         _repo.Verify(
             x => x.UpdateProfile(It.Is<PartialUser>(p => p.Id == request.Id && p.Phone == null), CancellationToken.None),
             Times.Once);

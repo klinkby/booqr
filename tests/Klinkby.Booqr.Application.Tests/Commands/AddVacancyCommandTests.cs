@@ -29,7 +29,7 @@ public class AddVacancyCommandTests
             NullLogger<AddVacancyCommand>.Instance);
 
         Result<int> result = await sut.AddCalendarEvent(_query, events, 0, CancellationToken.None);
-        Assert.IsType<Result<int>.Fault>(result);
+        Assert.IsType<Fault>(result.Value);
     }
 
     [Theory]
@@ -47,7 +47,7 @@ public class AddVacancyCommandTests
             NullLogger<AddVacancyCommand>.Instance);
 
         Result<int> result = await sut.AddCalendarEvent(_query, events, 0, CancellationToken.None);
-        Assert.IsType<Result<int>.Fault>(result);
+        Assert.IsType<Fault>(result.Value);
     }
 
     [Theory]

@@ -129,7 +129,7 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
             throw;
         }
 
-        if (result is Result<int>.Success success)
+        if (result.Value is Success<int> success) // `.Value`: CA1508 misreads union patterns as always-true
         {
             await transaction.Commit(cancellation);
             await activityRecorder.Add<CalendarEvent>(new(query.AuthenticatedUserId, success.Value, query.TenantId), cancellation);

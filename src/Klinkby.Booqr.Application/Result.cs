@@ -2,30 +2,35 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Klinkby.Booqr.Application;
 
+public sealed record Success<T>(T Value) where T : notnull;
+
+public sealed record Fault(Problem Problem);
+
 /// <summary>
-///     C# 15 migration: delete the abstract record + ctor, hoist the two case
-///     records to top level, declare `public union Result&lt;T&gt;(Success&lt;T&gt;,
-///     Error);` — switch arms stay, the `_` arms get deleted.
+///     Closed outcome of a command: either a <see cref="Success{T}" /> or a <see cref="Fault" />.
+///     Being a C# union, <c>switch</c>es over it are exhaustive without a discard arm.
 /// </summary>
 [SuppressMessage("Usage", "CA2225:Operator overloads have named alternates")]
-[SuppressMessage("Design", "CA1034:Nested types should not be visible")]
-public abstract record Result<T> where T : notnull
+public union Result<T>(Success<T>, Fault) : IEquatable<Result<T>> where T : notnull
 {
-    // hierarchy is effectively closed today
-    private protected Result()
-    {
-    }
+    // `Value is …` rather than `this is …`: CA1508 misreads union patterns as always-true.
+    public bool IsSuccess => Value is Success<T>;
 
-    public bool IsSuccess => this is Success;
+    public T? ValueOrDefault(T? fallback = default) => Value is Success<T> s ? s.Value : fallback;
 
-    public T? ValueOrDefault(T? fallback = default) => this is Success s ? s.Value : fallback;
-
-    // Ergonomics: return values/errors without `new Result<User>.Success(u)` noise.
-    public static implicit operator Result<T>(T value) => new Success(value);
+    // Ergonomics: return values/errors without `new Success<User>(u)` noise.
+    public static implicit operator Result<T>(T value) => new Success<T>(value);
 
     public static implicit operator Result<T>(Problem problem) => new Fault(problem);
 
-    public sealed record Success(T Value) : Result<T>;
+    // Keep the value equality the former record hierarchy had (and avoid reflective ValueType.Equals under AOT).
+    public bool Equals(Result<T> other) => Equals(Value, other.Value);
 
-    public sealed record Fault(Problem Problem) : Result<T>;
+    public override bool Equals(object? obj) => obj is Result<T> other && Equals(other);
+
+    public override int GetHashCode() => Value?.GetHashCode() ?? 0;
+
+    public static bool operator ==(Result<T> left, Result<T> right) => left.Equals(right);
+
+    public static bool operator !=(Result<T> left, Result<T> right) => !left.Equals(right);
 }

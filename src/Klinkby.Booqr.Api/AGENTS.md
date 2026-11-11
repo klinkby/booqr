@@ -103,7 +103,7 @@ Command dispatch is a chain: the endpoint lambda binds the request (`[FromBody]`
 `[AsParameters]`), resolves the `ICommand` from DI, and calls `command.Execute(request, ct)`,
 which returns `Task<Result<T>>`. That task is piped directly into a `CommandExtensions`
 (`Util/CommandExtensions.cs`) mapping extension — `.ToOk()`, `.ToCreated(resourceName)`, or
-`.ToNoContent()` — which pattern-matches `Result<T>.Success`/`Result<T>.Fault` and produces the
+`.ToNoContent()` — which pattern-matches `Success<T>`/`Fault` and produces the
 typed HTTP result (`TypedResults.Ok`/`Created`/`NoContent` on success, `TypedResults.Problem`
 via `MapFault` on fault). Handlers never construct `IResult`s directly or branch on success/failure
 themselves; that mapping lives entirely in `CommandExtensions`.

@@ -37,7 +37,7 @@ public class RefreshCommandTests
 
         var result = await _command.Execute(request);
 
-        var error = Assert.IsType<Result<OAuthTokenResponse>.Fault>(result);
+        var error = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Unauthorized.Type, error.Problem.Type);
     }
 
@@ -52,7 +52,7 @@ public class RefreshCommandTests
 
         var result = await _command.Execute(request);
 
-        var error = Assert.IsType<Result<OAuthTokenResponse>.Fault>(result);
+        var error = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Unauthorized.Type, error.Problem.Type);
     }
 
@@ -71,7 +71,7 @@ public class RefreshCommandTests
 
         var result = await _command.Execute(request);
 
-        var error = Assert.IsType<Result<OAuthTokenResponse>.Fault>(result);
+        var error = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Unauthorized.Type, error.Problem.Type);
     }
 
@@ -97,7 +97,7 @@ public class RefreshCommandTests
 
         var result = await _command.Execute(request);
 
-        var success = Assert.IsType<Result<OAuthTokenResponse>.Success>(result);
+        var success = Assert.IsType<Success<OAuthTokenResponse>>(result.Value);
         Assert.Same(expectedResponse, success.Value);
         _transactionMock.Verify(x => x.Begin(It.IsAny<CancellationToken>()), Times.Once);
         // Rotation must preserve the ancestor family so reuse detection works.
@@ -130,7 +130,7 @@ public class RefreshCommandTests
 
         var result = await _command.Execute(request);
 
-        var error = Assert.IsType<Result<OAuthTokenResponse>.Fault>(result);
+        var error = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Unauthorized.Type, error.Problem.Type);
         _oauthMock.Verify(x => x.RevokeTokenFamily(request.RefreshToken!, It.IsAny<CancellationToken>()), Times.Once);
         _transactionMock.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);

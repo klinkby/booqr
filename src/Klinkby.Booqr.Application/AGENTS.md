@@ -87,9 +87,9 @@ public sealed class DeleteBookingCommand(
 
 Commands report expected failures (not found, forbidden, unauthorized, validation, conflict) as data, not exceptions. `Execute` returns `Task<Result<T>>` (or `Task<Result<bool>>` for delete/update) instead of throwing.
 
-- **`Result<T>`** (`Result.cs`) is a closed discriminated union: `Result<T>.Success(T Value)` or `Result<T>.Fault(Problem Problem)`. `Result` (non-generic) is the `bool`-less equivalent used where there's no payload.
+- **`Result<T>`** (`Result.cs`) is a C# 15 `union` over the top-level case records `Success<T>(T Value)` and `Fault(Problem Problem)`. Switches over it are exhaustive without a `_` arm. It is a struct, so it cannot be cast to a case type: pattern-match (`result is Success<int> s`) instead, and in tests assert on the contents (`Assert.IsType<Fault>(result.Value)`).
 - **`Problem`** (`Problem.cs`) is an RFC 7807-shaped record (`Type`, `Title`, `HttpStatusCode`, `Detail`). Reuse the static instances (`Problem.NotFound`, `.ValidationFailed`, `.Unauthorized`, `.Forbidden`, `.Conflict`, `.MidAirCollision`) and customize with `with { Detail = "..." }`.
-- **Implicit conversions** remove boilerplate: `return someValue;` becomes `Success`, and `return Problem.NotFound with { ... };` becomes `Fault` — no need to construct `new Result<T>.Success(...)` explicitly.
+- **Implicit conversions** remove boilerplate: `return someValue;` becomes `Success`, and `return Problem.NotFound with { ... };` becomes `Fault` — no need to construct `new Success<T>(...)` explicitly.
 - **API layer mapping**: `CommandExtensions` (`Klinkby.Booqr.Api/Util/CommandExtensions.cs`) pattern-matches `Result<T>` and calls `Problem.ToProblemHttpResult()` on `Fault`, turning it into a `ProblemHttpResult` via `TypedResults.Problem`. Endpoints never see raw exceptions for these cases.
 - Prefer returning a `Problem` over throwing whenever the failure is an expected outcome of the use case (not found, access denied, validation failed, optimistic-concurrency conflict, business-rule violation the caller can act on).
 
@@ -125,7 +125,7 @@ See `tests/Klinkby.Booqr.Application.Tests/Commands/AGENTS.md` for detailed test
 - Accept `DateTime t0` from `[ApplicationAutoData]` for deterministic time
 - Verify transaction lifecycle: `Begin` → `Commit` on success, `Rollback` on exception
 - Assert repository calls are skipped (`Times.Never`) when unauthorized
-- Assert on the `Result<T>` shape (`.IsSuccess`, `Result<T>.Fault { Problem: ... }`) rather than expecting exceptions for expected-failure paths
+- Assert on the `Result<T>` shape (`.IsSuccess`, `Fault { Problem: ... }`) rather than expecting exceptions for expected-failure paths
 
 ## Key Dependencies
 
