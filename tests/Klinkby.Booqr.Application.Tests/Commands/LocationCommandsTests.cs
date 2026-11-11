@@ -70,7 +70,7 @@ public class LocationCommandsTests
 
         var result = await command.Execute(request);
 
-        var success = Assert.IsType<Result<Location>.Success>(result);
+        var success = Assert.IsType<Success<Location>>(result.Value);
         Assert.Equal(location, success.Value);
         _mockRepo.Verify(x => x.GetById(ExpectedId, CancellationToken.None), Times.Once);
     }

@@ -2,7 +2,7 @@
     <Sdk Name="DotNet.ReproducibleBuilds.Isolated" Version="2.0.5"/>
 
     <PropertyGroup Label="Project settings">
-        <TargetFramework>net10.0</TargetFramework>
+        <TargetFramework>net11.0</TargetFramework>
         <Nullable>enable</Nullable>
         <WarningsAsErrors>Nullable</WarningsAsErrors>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -10,6 +10,10 @@
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <Deterministic>true</Deterministic>
         <Copyright>(c) 2026, Mads Klinkby. Licensed under AGPL-3.0.</Copyright>
+    </PropertyGroup>
+
+    <PropertyGroup Label="Compiler optimization flags">
+        <Features>$(Features);runtime-async=on</Features>
     </PropertyGroup>
 
     <PropertyGroup Label="Analyzer settings">

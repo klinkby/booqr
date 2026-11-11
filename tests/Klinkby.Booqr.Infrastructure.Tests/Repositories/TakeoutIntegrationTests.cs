@@ -86,7 +86,7 @@ public sealed class TakeoutIntegrationTests(ServiceProviderFixture serviceProvid
                 Result<TakeoutDocument> exported = await export.Execute(
                     new ExportTakeoutRequest(TakeoutScope.TenantWorkspace) { User = AdminPrincipal(adminId) });
 
-                TakeoutDocument document = Assert.IsType<Result<TakeoutDocument>.Success>(exported).Value;
+                TakeoutDocument document = Assert.IsType<Success<TakeoutDocument>>(exported.Value).Value;
                 json = JsonSerializer.Serialize(document, WebOptions);
             }
             finally
@@ -133,7 +133,7 @@ public sealed class TakeoutIntegrationTests(ServiceProviderFixture serviceProvid
             Result<ImportTakeoutResponse> imported = await import.Execute(
                 new ImportTakeoutRequest(parsedDocument, DryRun: true) { User = AdminPrincipal(adminId) });
 
-            ImportTakeoutResponse response = Assert.IsType<Result<ImportTakeoutResponse>.Success>(imported).Value;
+            ImportTakeoutResponse response = Assert.IsType<Success<ImportTakeoutResponse>>(imported.Value).Value;
             Assert.True(response.DryRun);
             Assert.True(response.Users.Created >= 2); // employee + customer; the committed admin is matched
             Assert.True(response.Users.Matched >= 1);

@@ -22,7 +22,7 @@ public class GetUserByIdCommandTests
         var result = await CreateSut().Execute(request);
 
         // Assert
-        var success = Assert.IsType<Result<User>.Success>(result);
+        var success = Assert.IsType<Success<User>>(result.Value);
         Assert.Equal(target, success.Value);
     }
 
@@ -39,7 +39,7 @@ public class GetUserByIdCommandTests
         var result = await CreateSut().Execute(request);
 
         // Assert
-        var success = Assert.IsType<Result<User>.Success>(result);
+        var success = Assert.IsType<Success<User>>(result.Value);
         Assert.Equal(target, success.Value);
     }
 
@@ -56,7 +56,7 @@ public class GetUserByIdCommandTests
         var result = await CreateSut().Execute(request);
 
         // Assert: forbidden, and the loaded record is NOT carried out in the result.
-        var fault = Assert.IsType<Result<User>.Fault>(result);
+        var fault = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Forbidden.HttpStatusCode, fault.Problem.HttpStatusCode);
         Assert.DoesNotContain(target.Email, fault.Problem.Detail ?? "", StringComparison.Ordinal);
     }
@@ -90,7 +90,7 @@ public class GetUserByIdCommandTests
         var result = await CreateSut().Execute(request);
 
         // Assert
-        var success = Assert.IsType<Result<User>.Success>(result);
+        var success = Assert.IsType<Success<User>>(result.Value);
         Assert.Equal(target, success.Value);
     }
 
@@ -106,7 +106,7 @@ public class GetUserByIdCommandTests
         var result = await CreateSut().Execute(request);
 
         // Assert
-        Assert.IsType<Result<User>.Fault>(result);
+        Assert.IsType<Fault>(result.Value);
         _users.Verify(x => x.GetById(id, It.IsAny<CancellationToken>()), Times.Once);
     }
 }

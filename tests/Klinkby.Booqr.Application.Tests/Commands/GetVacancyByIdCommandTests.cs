@@ -18,7 +18,7 @@ public class GetVacancyByIdCommandTests
         var result = await sut.Execute(new ByIdRequest(vacancy.Id));
 
         // Assert
-        var success = Assert.IsType<Result<CalendarEvent>.Success>(result);
+        var success = Assert.IsType<Success<CalendarEvent>>(result.Value);
         Assert.Equal(vacancy, success.Value);
         _calendar.Verify(x => x.GetById(vacancy.Id, It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -37,7 +37,7 @@ public class GetVacancyByIdCommandTests
         var result = await sut.Execute(new ByIdRequest(id));
 
         // Assert
-        var error = Assert.IsType<Result<CalendarEvent>.Fault>(result);
+        var error = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.NotFound.Type, error.Problem.Type);
         _calendar.Verify(x => x.GetById(id, It.IsAny<CancellationToken>()), Times.Once);
     }

@@ -32,7 +32,7 @@ public class GetUserCollectionCommandTests
         var result = await CreateSut().Execute(request);
 
         // Assert
-        var success = Assert.IsType<Result<List<User>>.Success>(result);
+        var success = Assert.IsType<Success<List<User>>>(result.Value);
         Assert.Equal(expected, success.Value);
         _users.VerifyAll();
     }
@@ -57,7 +57,7 @@ public class GetUserCollectionCommandTests
         var result = await CreateSut().Execute(request);
 
         // Assert
-        var success = Assert.IsType<Result<List<User>>.Success>(result);
+        var success = Assert.IsType<Success<List<User>>>(result.Value);
         Assert.Equal(expected, success.Value);
         _users.VerifyAll();
     }
@@ -79,7 +79,7 @@ public class GetUserCollectionCommandTests
         var result = await CreateSut().Execute(request);
 
         // Assert
-        var fault = Assert.IsType<Result<List<User>>.Fault>(result);
+        var fault = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Forbidden.HttpStatusCode, fault.Problem.HttpStatusCode);
         _users.Verify(
             x => x.Find(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()),

@@ -48,7 +48,7 @@ public class ChangeUserRoleCommandTests
 
         Result<bool> result = await sut.Execute(request);
 
-        Result<bool>.Fault fault = Assert.IsType<Result<bool>.Fault>(result);
+        Fault fault = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Forbidden.HttpStatusCode, fault.Problem.HttpStatusCode);
         _transaction.Verify(x => x.Begin(It.IsAny<CancellationToken>()), Times.Never);
         _users.VerifyNoOtherCalls();
@@ -68,7 +68,7 @@ public class ChangeUserRoleCommandTests
 
         Result<bool> result = await sut.Execute(request);
 
-        Result<bool>.Fault fault = Assert.IsType<Result<bool>.Fault>(result);
+        Fault fault = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Forbidden.HttpStatusCode, fault.Problem.HttpStatusCode);
         _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
         _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Never);
@@ -91,7 +91,7 @@ public class ChangeUserRoleCommandTests
 
         Result<bool> result = await sut.Execute(request);
 
-        Result<bool>.Fault fault = Assert.IsType<Result<bool>.Fault>(result);
+        Fault fault = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.NotFound.HttpStatusCode, fault.Problem.HttpStatusCode);
         _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
         _users.Verify(x => x.Patch(It.IsAny<PartialUser>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -109,7 +109,7 @@ public class ChangeUserRoleCommandTests
 
         Result<bool> result = await sut.Execute(request);
 
-        Assert.IsType<Result<bool>.Success>(result);
+        Assert.IsType<Success<bool>>(result.Value);
         _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
         _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Never);
         _users.Verify(x => x.Patch(It.IsAny<PartialUser>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -133,7 +133,7 @@ public class ChangeUserRoleCommandTests
 
         Result<bool> result = await sut.Execute(request);
 
-        Result<bool>.Fault fault = Assert.IsType<Result<bool>.Fault>(result);
+        Fault fault = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Conflict.HttpStatusCode, fault.Problem.HttpStatusCode);
         _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
         _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Never);
@@ -155,7 +155,7 @@ public class ChangeUserRoleCommandTests
 
         Result<bool> result = await sut.Execute(request);
 
-        Assert.IsType<Result<bool>.Success>(result);
+        Assert.IsType<Success<bool>>(result.Value);
         _calendar.Verify(x => x.HasFutureEvents(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
@@ -173,7 +173,7 @@ public class ChangeUserRoleCommandTests
 
         Result<bool> result = await sut.Execute(request);
 
-        Result<bool>.Fault fault = Assert.IsType<Result<bool>.Fault>(result);
+        Fault fault = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.MidAirCollision.HttpStatusCode, fault.Problem.HttpStatusCode);
         _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
         _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Never);
@@ -202,7 +202,7 @@ public class ChangeUserRoleCommandTests
 
         Result<bool> result = await sut.Execute(request);
 
-        Assert.IsType<Result<bool>.Success>(result);
+        Assert.IsType<Success<bool>>(result.Value);
         Assert.Equal(["patch", "revoke", "commit", "activity"], calls);
         _users.Verify(x => x.Patch(
                 It.Is<PartialUser>(p =>

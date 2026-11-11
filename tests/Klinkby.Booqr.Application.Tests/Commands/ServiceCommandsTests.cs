@@ -63,7 +63,7 @@ public class ServiceCommandsTests
 
         var result = await command.Execute(request);
 
-        var success = Assert.IsType<Result<Service>.Success>(result);
+        var success = Assert.IsType<Success<Service>>(result.Value);
         Assert.Equal(service, success.Value);
         _mockServiceRepo.Verify(x => x.GetById(ExpectedId, CancellationToken.None), Times.Once);
     }

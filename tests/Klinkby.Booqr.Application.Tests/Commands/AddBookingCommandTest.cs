@@ -103,7 +103,7 @@ public class AddBookingCommandTest
         AddBookingRequest unauthorized = request with { CustomerId = 99, User = customer };
 
         var result = await _command.Execute(unauthorized);
-        var error = Assert.IsType<Result<int>.Fault>(result);
+        _ = Assert.IsType<Fault>(result.Value);
 
         _mockTransaction.Verify(x => x.Begin(It.IsAny<CancellationToken>()), Times.Never);
         _mockBookingRepository.Verify(
@@ -178,7 +178,7 @@ public class AddBookingCommandTest
 
         var result = await _command.Execute(request);
 
-        var error = Assert.IsType<Result<int>.Fault>(result);
+        var error = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.NotFound.Type, error.Problem.Type);
         Assert.Contains("service", error.Problem.Detail, StringComparison.OrdinalIgnoreCase);
 
@@ -198,7 +198,7 @@ public class AddBookingCommandTest
 
         var result = await _command.Execute(request);
 
-        var error = Assert.IsType<Result<int>.Fault>(result);
+        var error = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.NotFound.Type, error.Problem.Type);
         Assert.Contains("vacancy", error.Problem.Detail, StringComparison.OrdinalIgnoreCase);
 
@@ -260,7 +260,7 @@ public class AddBookingCommandTest
 
         var result = await _command.Execute(request);
 
-        var error = Assert.IsType<Result<int>.Fault>(result);
+        var error = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Conflict.Type, error.Problem.Type);
         Assert.Equal("The requested vacancy was already booked.", error.Problem.Detail);
         _mockTransaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);

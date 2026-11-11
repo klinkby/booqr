@@ -4,7 +4,7 @@
 
 ## Summary
 
-Klinkby.Booqr is an AOT-compiled ASP.NET 10 booking management API built on minimalist clean architecture with vertical feature slices.
+Klinkby.Booqr is an AOT-compiled ASP.NET 11 booking management API built on minimalist clean architecture with vertical feature slices.
 The system emphasizes performance, security, and maintainability through extensive compile-time code generation (source generators for DI, logging, JSON, ORM, OpenAPI), Native AOT with aggressive trimming, and strict architectural boundaries enforced by automated tests.
 
 **Multi-tenant:** many businesses share one PostgreSQL database, isolated by **`FORCE ROW LEVEL SECURITY`** in a shared `app` schema plus **one login role per tenant** (`t_<id>`). The RLS policy is keyed on the connected role (`current_user` → `app.tenant_of()`), so isolation is DB-enforced and unforgeable — no per-request session variable. The API resolves the tenant from the request host (`<slug>.booqr.dk`) and connects as that tenant's role; the `admin` run-mode of the API image (`Api/Admin/`, selected by a leading `admin` arg) provisions tenants/roles. See `docs/1-design.md` for the full design.
@@ -62,7 +62,7 @@ Architectural policies are validated automatically via `TngTech.ArchUnitNET` tes
 
 ### Runtime Stack
 
-- **.NET 10**: Native AOT with aggressive trimming (~17MB Alpine Linux images)
+- **.NET 11**: Native AOT with aggressive trimming (~17MB Alpine Linux images)
 - **Npgsql 10**: PostgreSQL driver with async/streaming support
 - **BCrypt.Net-Next**: Secure password hashing with timing attack mitigation
 - **NLog**: CLEF (Compact Log Event Format) structured logging
@@ -78,7 +78,7 @@ Architectural policies are validated automatically via `TngTech.ArchUnitNET` tes
 
 ### Testing
 
-- **Microsoft.Testing.Platform (MTP)**: Native .NET 10 test runner (configured via `global.json`)
+- **Microsoft.Testing.Platform (MTP)**: Native test runner (configured via `global.json`)
 - **xUnit v3**: Test framework (with MTP v2 integration via `xunit.v3.mtp-v2`)
 - **Microsoft.Testing.Extensions.CodeCoverage**: MTP-native code coverage collection
 - **Moq**: Behavior verification for Application layer unit tests

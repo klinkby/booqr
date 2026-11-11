@@ -34,7 +34,7 @@ public class DeleteBookingCommandTests
         var result = await sut.Execute(request);
 
         // Assert
-        Assert.IsType<Result<bool>.Success>(result);
+        Assert.IsType<Success<bool>>(result.Value);
         Assert.False(result.ValueOrDefault());
         _transaction.Verify(x => x.Begin(It.IsAny<IsolationLevel>(), It.IsAny<CancellationToken>()), Times.Once);
         _bookings.Verify(x => x.Delete(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -65,7 +65,7 @@ public class DeleteBookingCommandTests
 
         // Act + Assert
         Result<bool> result = await sut.Execute(request);
-        Assert.IsType<Result<bool>.Fault>(result);
+        Assert.IsType<Fault>(result.Value);
         _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
     }
 

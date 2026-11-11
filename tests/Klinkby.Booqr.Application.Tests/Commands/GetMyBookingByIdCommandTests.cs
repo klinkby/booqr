@@ -28,7 +28,7 @@ public class GetMyBookingByIdCommandTests
         var result = await sut.Execute(request);
 
         // Assert
-        var success = Assert.IsType<Result<MyBooking>.Success>(result);
+        var success = Assert.IsType<Success<MyBooking>>(result.Value);
         Assert.Equal(booking, success.Value);
     }
 
@@ -43,7 +43,7 @@ public class GetMyBookingByIdCommandTests
 
         // Act + Assert
         var result = await sut.Execute(request);
-        Assert.IsType<Result<MyBooking>.Fault>(result);
+        Assert.IsType<Fault>(result.Value);
         _repo.Verify(x => x.GetById(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -63,7 +63,7 @@ public class GetMyBookingByIdCommandTests
         var result = await sut.Execute(request);
 
         // Assert
-        var success = Assert.IsType<Result<MyBooking>.Success>(result);
+        var success = Assert.IsType<Success<MyBooking>>(result.Value);
         Assert.Equal(booking, success.Value);
     }
 
@@ -83,7 +83,7 @@ public class GetMyBookingByIdCommandTests
         var result = await sut.Execute(request);
 
         // Assert
-        var success = Assert.IsType<Result<MyBooking>.Success>(result);
+        var success = Assert.IsType<Success<MyBooking>>(result.Value);
         Assert.Equal(booking, success.Value);
     }
 
@@ -102,7 +102,7 @@ public class GetMyBookingByIdCommandTests
         var result = await sut.Execute(request);
 
         // Assert
-        var error = Assert.IsType<Result<MyBooking>.Fault>(result);
+        var error = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.NotFound.Type, error.Problem.Type);
     }
 }

@@ -62,9 +62,8 @@ public partial class AddBookingCommand(
         }
 
 
-        if (commit)
+        if (commit && result is Success<int> { Value: var newId })
         {
-            int newId = ((Result<int>.Success)result).Value;
             BookingDetails details = await bookingsDetails.GetById(newId, cancellation)
                                      ?? throw new InvalidOperationException("Booking was created but not found");
             await transaction.Commit(cancellation);
@@ -74,7 +73,7 @@ public partial class AddBookingCommand(
             Message message = ComposeMessage(details);
             await channelWriter.WriteAsync(message, cancellation);
 
-            _log.CreateBooking(userId, nameof(Booking), ((Result<int>.Success)result).Value);
+            _log.CreateBooking(userId, nameof(Booking), newId);
         }
         else
         {
@@ -227,6 +226,7 @@ public partial class AddBookingCommand(
     [ExcludeFromCodeCoverage]
     private sealed partial class LoggerMessages(ILogger logger)
     {
+        [SuppressMessage("Performance", "CA1823:Avoid unused private fields", Justification = "Referenced by source generator")]
         private readonly ILogger _logger = logger;
 
         [LoggerMessage(100, LogLevel.Information, "User {UserId} created {Type}:{Id}")]

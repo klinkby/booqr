@@ -32,7 +32,7 @@ public class GetMyBookingsCommandTests
         var result = await sut.Execute(request);
 
         // Assert
-        Assert.IsType<Result<List<MyBooking>>.Success>(result);
+        Assert.IsType<Success<List<MyBooking>>>(result.Value);
         _repo.Verify(
             x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request,
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -50,7 +50,7 @@ public class GetMyBookingsCommandTests
         var result = await sut.Execute(request);
 
         // Assert
-        var error = Assert.IsType<Result<List<MyBooking>>.Fault>(result);
+        var error = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Forbidden.Type, error.Problem.Type);
         _repo.Verify(
             x => x.GetRangeByUserId(It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<IPageQuery>(),
@@ -74,7 +74,7 @@ public class GetMyBookingsCommandTests
         var result = await sut.Execute(request);
 
         // Assert
-        Assert.IsType<Result<List<MyBooking>>.Success>(result);
+        Assert.IsType<Success<List<MyBooking>>>(result.Value);
         _repo.Verify(
             x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request,
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -97,7 +97,7 @@ public class GetMyBookingsCommandTests
         var result = await sut.Execute(request);
 
         // Assert
-        Assert.IsType<Result<List<MyBooking>>.Success>(result);
+        Assert.IsType<Success<List<MyBooking>>>(result.Value);
         _repo.Verify(
             x => x.GetRangeByUserId(request.Id, It.IsAny<DateTime>(), It.IsAny<DateTime>(), request,
                 It.IsAny<CancellationToken>()), Times.Once);
@@ -121,7 +121,7 @@ public class GetMyBookingsCommandTests
         var result = await sut.Execute(request);
 
         // Assert
-        Assert.IsType<Result<List<MyBooking>>.Success>(result);
+        Assert.IsType<Success<List<MyBooking>>>(result.Value);
         _repo.Verify(x => x.GetRangeByUserId(
             request.Id,
             t0.AddDays(-1),

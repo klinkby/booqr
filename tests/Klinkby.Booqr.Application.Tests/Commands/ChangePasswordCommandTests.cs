@@ -47,7 +47,7 @@ public class ChangePasswordCommandTests
         Result<bool> result = await sut.Execute(request);
 
         // Assert
-        var error = Assert.IsType<Result<bool>.Fault>(result);
+        var error = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.ValidationFailed.Type, error.Problem.Type);
         users.Verify(x => x.GetById(It.IsAny<int>(), CancellationToken.None), Times.Never);
         users.Verify(x => x.Update(It.IsAny<User>(), CancellationToken.None), Times.Never);
@@ -85,7 +85,7 @@ public class ChangePasswordCommandTests
         Result<bool> result = await sut.Execute(request);
 
         // Assert
-        Assert.IsType<Result<bool>.Success>(result);
+        Assert.IsType<Success<bool>>(result.Value);
         users.Verify();
         Assert.NotNull(patchedUser);
         // Email must remain unchanged
@@ -123,7 +123,7 @@ public class ChangePasswordCommandTests
         Result<bool> result = await sut.Execute(request);
 
         // Assert
-        var error = Assert.IsType<Result<bool>.Fault>(result);
+        var error = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.MidAirCollision.Type, error.Problem.Type);
         Assert.Contains(user.Id.ToString(CultureInfo.InvariantCulture), error.Problem.Detail, StringComparison.Ordinal);
     }
@@ -153,7 +153,7 @@ public class ChangePasswordCommandTests
         Result<bool> result = await sut.Execute(request);
 
         // Assert
-        Assert.IsType<Result<bool>.Fault>(result);
+        Assert.IsType<Fault>(result.Value);
         activityRecorder.Verify(
             x => x.Update(It.IsAny<ActivityQuery<User>>(), It.IsAny<CancellationToken>()),
             Times.Never);

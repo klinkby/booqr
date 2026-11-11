@@ -20,7 +20,7 @@ public class LoginCommandTests
 
         var result = await command.Execute(request);
 
-        var error = Assert.IsType<Result<OAuthTokenResponse>.Fault>(result);
+        var error = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Unauthorized.Type, error.Problem.Type);
         userRepo.Verify(x => x.GetByEmail(email, CancellationToken.None), Times.Once);
     }
@@ -42,7 +42,7 @@ public class LoginCommandTests
 
         var result = await command.Execute(request);
 
-        var error = Assert.IsType<Result<OAuthTokenResponse>.Fault>(result);
+        var error = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Unauthorized.Type, error.Problem.Type);
         userRepo.Verify(x => x.GetByEmail(user.Email, CancellationToken.None), Times.Once);
     }
@@ -64,7 +64,7 @@ public class LoginCommandTests
 
         var result = await command.Execute(request);
 
-        var error = Assert.IsType<Result<OAuthTokenResponse>.Fault>(result);
+        var error = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Unauthorized.Type, error.Problem.Type);
         userRepo.Verify(x => x.GetByEmail(user.Email, CancellationToken.None), Times.Once);
     }
@@ -86,7 +86,7 @@ public class LoginCommandTests
         var result = await command.Execute(request);
 
         // Assert basic response
-        var success = Assert.IsType<Result<OAuthTokenResponse>.Success>(result);
+        var success = Assert.IsType<Success<OAuthTokenResponse>>(result.Value);
         OAuthTokenResponse response = success.Value;
         Assert.False(string.IsNullOrWhiteSpace(response.AccessToken));
         Assert.Equal(expectedResponse.TokenType, response.TokenType);
@@ -136,7 +136,7 @@ public class LoginCommandTests
 
         var result = await command.Execute(request);
 
-        var error = Assert.IsType<Result<OAuthTokenResponse>.Fault>(result);
+        var error = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Unauthorized.Type, error.Problem.Type);
         userRepo.Verify(x => x.GetByEmail(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
