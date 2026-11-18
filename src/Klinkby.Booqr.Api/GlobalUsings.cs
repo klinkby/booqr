@@ -10,6 +10,7 @@ global using Klinkby.Booqr.Application.Commands.Services;
 global using Klinkby.Booqr.Application.Commands.Takeout;
 global using Klinkby.Booqr.Application.Commands.Users;
 global using Klinkby.Booqr.Application.Commands.Vacancies;
+global using Klinkby.Booqr.Application.Commands.Activities;
 global using Klinkby.Booqr.Core;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.AspNetCore.Mvc;
