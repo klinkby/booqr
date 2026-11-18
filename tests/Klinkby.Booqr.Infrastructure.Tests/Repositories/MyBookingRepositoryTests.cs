@@ -52,6 +52,53 @@ public class MyBookingRepositoryTests(ServiceProviderFixture serviceProvider)
 
     [Theory]
     [IntegrationAutoData]
+    public async Task GIVEN_BookingsWithAndWithoutNotes_WHEN_Read_THEN_HasNoteReflectsNotes(
+        CalendarEvent vacancy1, CalendarEvent vacancy2, Location location, Service service, User customer,
+        User employee, Booking booking, string notes)
+    {
+        await _transaction.Begin();
+        MyBooking? withNotesById, withoutNotesById;
+        List<MyBooking> range;
+        int withNotesId, withoutNotesId;
+        try
+        {
+            booking = booking with
+            {
+                CustomerId = await _users.Add(customer with { Role = UserRole.Customer }),
+                ServiceId = await _services.Add(service)
+            };
+            withNotesId = await _bookings.Add(booking with { Notes = notes });
+            withoutNotesId = await _bookings.Add(booking with { Notes = null });
+            var employeeId = await _users.Add(employee with { Role = UserRole.Employee });
+            var locationId = await _location.Add(location);
+            await _calendar.Add(vacancy1 with
+            {
+                EmployeeId = employeeId, LocationId = locationId, BookingId = withNotesId
+            });
+            await _calendar.Add(vacancy2 with
+            {
+                EmployeeId = employeeId, LocationId = locationId, BookingId = withoutNotesId
+            });
+
+            withNotesById = await _sut.GetById(withNotesId);
+            withoutNotesById = await _sut.GetById(withoutNotesId);
+            range = await _sut
+                .GetRangeByUserId(booking.CustomerId, DateTime.MinValue, DateTime.MaxValue, new PageQuery())
+                .ToListAsync();
+        }
+        finally
+        {
+            await _transaction.Rollback();
+        }
+
+        Assert.True(withNotesById!.HasNote);
+        Assert.False(withoutNotesById!.HasNote);
+        Assert.True(Assert.Single(range, x => x.Id == withNotesId).HasNote);
+        Assert.False(Assert.Single(range, x => x.Id == withoutNotesId).HasNote);
+    }
+
+    [Theory]
+    [IntegrationAutoData]
     public async Task GIVEN_EmployeeServingCustomer_WHEN_GetRangeByUserId_THEN_ReturnsAppointment(
         CalendarEvent vacancy, Location location, Service service, User customer, User employee, Booking booking)
     {

@@ -1,4 +1,6 @@
-﻿namespace Klinkby.Booqr.Core;
+﻿using System.Text.Json.Serialization;
+
+namespace Klinkby.Booqr.Core;
 
 /// <summary>
 ///     Represents a user's booking view, containing booking details and associated entities.
@@ -13,7 +15,10 @@
 /// <param name="LocationId">The identifier of the location where the service is provided.</param>
 /// <param name="EmployeeId">The identifier of the employee assigned to the booking.</param>
 /// <param name="CustomerId">The identifier of the customer who made the booking.</param>
-/// <param name="HasNotes">Indicates whether the booking has associated notes.</param>
+/// <param name="HasNote">
+///     Indicates whether the booking has associated notes. Named to match the <c>hasnote</c> column of the
+///     <c>mybookings</c> view (Dapper maps by name), but serialized as <c>hasNotes</c> to keep the API contract.
+/// </param>
 public sealed record MyBooking(
     DateTime StartTime,
     DateTime EndTime,
@@ -21,7 +26,8 @@ public sealed record MyBooking(
     int LocationId,
     int EmployeeId,
     int CustomerId,
-    bool HasNotes) : Audit, IEvent;
+    [property: JsonPropertyName("hasNotes")]
+    bool HasNote) : Audit, IEvent;
 
 /// <summary>
 ///     Provides data access operations for user-specific booking views.
