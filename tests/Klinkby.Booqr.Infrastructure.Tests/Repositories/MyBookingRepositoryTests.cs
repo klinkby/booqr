@@ -77,7 +77,9 @@ public class MyBookingRepositoryTests(ServiceProviderFixture serviceProvider)
             });
             await _calendar.Add(vacancy2 with
             {
-                EmployeeId = employeeId, LocationId = locationId, BookingId = withoutNotesId
+                EmployeeId = employeeId, LocationId = locationId, BookingId = withoutNotesId,
+                StartTime = vacancy1.EndTime,
+                EndTime = vacancy1.EndTime + (vacancy1.EndTime - vacancy1.StartTime)
             });
 
             withNotesById = await _sut.GetById(withNotesId);
@@ -112,7 +114,6 @@ public class MyBookingRepositoryTests(ServiceProviderFixture serviceProvider)
                 ServiceId = await _services.Add(service)
             };
             var bookingId2 = await _bookings.Add(booking);
-            booking = booking with { Id = bookingId2 };
             var employeeId = await _users.Add(employee with { Role = UserRole.Employee });
             vacancy = vacancy with
             {
