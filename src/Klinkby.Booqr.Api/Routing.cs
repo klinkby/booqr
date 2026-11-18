@@ -149,10 +149,15 @@ internal static class Routing
             .WithTags(nameof(Booking))
             .WithDescription(nameof(Booking));
 
-        group.MapGet(IdRoutePattern, static ([AsParameters] AuthenticatedByIdRequest request) =>
-            TypedResults.LocalRedirect($"/api/users/{request.AuthenticatedUserId}/my-bookings/{request.Id}"))
+        group.MapGet(IdRoutePattern,
+                static (GetBookingByIdCommand command,
+                    [AsParameters] AuthenticatedByIdRequest request,
+                    CancellationToken cancellation) => command
+                    .Execute(request, cancellation)
+                    .ToOk())
             .RequireAuthorization(UserRole.Customer)
-            .Produces(StatusCodes.Status302Found)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesValidationProblem()
             .WithName("getBookingById")
             .WithSummary("Get a single booking");
