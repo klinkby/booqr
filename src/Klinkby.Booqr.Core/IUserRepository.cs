@@ -107,6 +107,9 @@ public interface IUserRepository : IRepository<User>
     /// <param name="role">
     /// The role used to filter users. Can be <c>null</c> or empty to include all roles.
     /// </param>
+    /// <param name="ids">
+    /// Restricts the result to users with these ids. Can be <c>null</c> or empty to include all ids.
+    /// </param>
     /// <param name="pageQuery">
     /// Defines the pagination criteria for the query.
     /// </param>
@@ -119,6 +122,7 @@ public interface IUserRepository : IRepository<User>
     IAsyncEnumerable<User> Find(
         string? query,
         string? role,
+        IReadOnlyCollection<int>? ids,
         IPageQuery pageQuery,
         CancellationToken cancellation = default);
 

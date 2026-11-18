@@ -1,4 +1,6 @@
-﻿namespace Klinkby.Booqr.Infrastructure.Repositories;
+using System.Globalization;
+
+namespace Klinkby.Booqr.Infrastructure.Repositories;
 
 [QueryFields("email", "passwordhash", "role", "name", "phone")]
 internal sealed partial class UserRepository(IConnectionProvider connectionProvider, TimeProvider timeProvider)
@@ -6,9 +8,16 @@ internal sealed partial class UserRepository(IConnectionProvider connectionProvi
 {
     private const string TableName = "users";
 
-    public async IAsyncEnumerable<User> Find(string? query, string? role, IPageQuery pageQuery,
+    public async IAsyncEnumerable<User> Find(string? query, string? role, IReadOnlyCollection<int>? ids,
+        IPageQuery pageQuery,
         [EnumeratorCancellation] CancellationToken cancellation = default)
     {
+        // Ids travel as one comma-separated text parameter: Dapper.AOT binds an int[] member via
+        // SqlMapper.PackListParameters, which roots reflection-based Dapper and breaks the AOT
+        // publish (see ServiceParameters). The values are typed ints, so the text is digits/commas only.
+        string? idList = ids is { Count: > 0 }
+            ? string.Join(',', ids.Select(id => id.ToString(CultureInfo.InvariantCulture)))
+            : null;
         DbConnection connection = await connectionProvider.GetConnection(cancellation);
         IAsyncEnumerable<User> result = connection.QueryUnbufferedAsync<User>(
             $"""
@@ -17,9 +26,10 @@ internal sealed partial class UserRepository(IConnectionProvider connectionProvi
              WHERE deleted IS NULL
                AND (@query IS NULL OR email ILIKE '%' || @query || '%' OR name ILIKE '%' || @query || '%')
                AND (@role IS NULL OR role = @role OR (@role = 'Employee' AND role = 'Admin'))
+               AND (@idList::text IS NULL OR id = ANY(string_to_array(@idList::text, ',')::integer[]))
              ORDER BY created DESC, id DESC
              LIMIT @Num OFFSET @Start
-             """, new { query, role, pageQuery.Start, pageQuery.Num });
+             """, new { query, role, idList, pageQuery.Start, pageQuery.Num });
 
         await foreach (User user in result.WithCancellation(cancellation))
         {

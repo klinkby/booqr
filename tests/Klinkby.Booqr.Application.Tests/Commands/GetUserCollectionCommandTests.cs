@@ -9,12 +9,12 @@ public class GetUserCollectionCommandTests
 
     [Theory]
     [ApplicationAutoData]
-    public async Task GIVEN_Employee_WHEN_Execute_THEN_CallsRepositoryAndReturnsItems(User u1, User u2, User u3)
+    public async Task GIVEN_Employee_WHEN_Execute_THEN_CallsRepositoryAndReturnsItems(User u1, User u2, User u3, int[] ids)
     {
         // Arrange
         var request = new GetUserCollectionRequest
         {
-            Start = 5, Num = 10, K = "k", Role = UserRole.Customer,
+            Start = 5, Num = 10, K = "k", Role = UserRole.Customer, Id = ids,
             User = CreateUser(1, UserRole.Employee)
         };
         User[] expected =
@@ -24,7 +24,7 @@ public class GetUserCollectionCommandTests
             u3 with { Role = UserRole.Admin, Id = 3 }
         ];
 
-        _users.Setup(x => x.Find(request.K, request.Role, request, It.IsAny<CancellationToken>()))
+        _users.Setup(x => x.Find(request.K, request.Role, request.Id, request, It.IsAny<CancellationToken>()))
             .Returns(Yield<User>(expected))
             .Verifiable();
 
@@ -49,7 +49,7 @@ public class GetUserCollectionCommandTests
         };
         User[] expected = [u1 with { Role = UserRole.Employee, Id = 3 }];
 
-        _users.Setup(x => x.Find(null, UserRole.Employee, request, It.IsAny<CancellationToken>()))
+        _users.Setup(x => x.Find(null, UserRole.Employee, null, request, It.IsAny<CancellationToken>()))
             .Returns(Yield<User>(expected))
             .Verifiable();
 
@@ -82,7 +82,7 @@ public class GetUserCollectionCommandTests
         var fault = Assert.IsType<Fault>(result.Value);
         Assert.Equal(Problem.Forbidden.HttpStatusCode, fault.Problem.HttpStatusCode);
         _users.Verify(
-            x => x.Find(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()),
+            x => x.Find(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<IReadOnlyCollection<int>?>(), It.IsAny<IPageQuery>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 

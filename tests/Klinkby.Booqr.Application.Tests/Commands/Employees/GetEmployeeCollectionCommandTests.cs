@@ -11,7 +11,7 @@ public class GetEmployeeCollectionCommandTests
     {
         // Arrange
         Mock<IUserRepository> userRepository = new();
-        userRepository.Setup(x => x.Find(null, UserRole.Employee, It.IsAny<PageQuery>(), It.IsAny<CancellationToken>()))
+        userRepository.Setup(x => x.Find(null, UserRole.Employee, null, It.IsAny<PageQuery>(), It.IsAny<CancellationToken>()))
             .Returns(Yield(expected))
             .Verifiable();
 

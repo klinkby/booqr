@@ -264,4 +264,20 @@ static void ConfigureBearerAuthentication(OpenApiOptions options)
 
         return Task.CompletedTask;
     });
+
+    // The generator marks [AsParameters] query arrays (e.g. GET /users ?Id=1&Id=2) as required even
+    // when nullable, but minimal API binds an absent repeated query value to an empty/null array.
+    options.AddOperationTransformer(static (operation, _, _) =>
+    {
+        foreach (OpenApiParameter parameter in (operation.Parameters ?? []).OfType<OpenApiParameter>())
+        {
+            if (parameter is { In: ParameterLocation.Query, Required: true }
+                && parameter.Schema?.Type?.HasFlag(JsonSchemaType.Array) == true)
+            {
+                parameter.Required = false;
+            }
+        }
+
+        return Task.CompletedTask;
+    });
 }

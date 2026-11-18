@@ -97,6 +97,32 @@ public sealed class UserRepositoryTests(ServiceProviderFixture serviceProvider)
 
     [Theory]
     [IntegrationAutoData]
+    public async Task GIVEN_Users_WHEN_FindByIds_THEN_ReturnsOnlyMatchingUsers(User a, User b, User c)
+    {
+        int idA;
+        int idB;
+        List<User> filtered;
+        List<User> unfiltered;
+        await _transaction.Begin();
+        try
+        {
+            idA = await _sut.Add(a);
+            idB = await _sut.Add(b);
+            await _sut.Add(c);
+            filtered = await _sut.Find(null, null, [idA, idB], new PageQuery()).ToListAsync();
+            unfiltered = await _sut.Find(null, null, [], new PageQuery()).ToListAsync();
+        }
+        finally
+        {
+            await _transaction.Rollback();
+        }
+
+        Assert.Equal([idA, idB], filtered.Select(x => x.Id).Order());
+        Assert.True(unfiltered.Count >= 3);
+    }
+
+    [Theory]
+    [IntegrationAutoData]
     public async Task GIVEN_User_WHEN_PatchOnlyRole_THEN_RoleChangedAndOtherFieldsIntact(User user)
     {
         User? before;
