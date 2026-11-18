@@ -9,7 +9,7 @@ public sealed class GetEmployeeCollectionCommand(
         CancellationToken cancellation = default)
     {
         return users
-            .Find(null, UserRole.Employee, query, cancellation)
+            .Find(null, UserRole.Employee, null, query, cancellation)
             .Select(Map)
             .ToListAsync(cancellation)
             .AsTask();

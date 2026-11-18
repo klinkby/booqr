@@ -10,6 +10,14 @@ public sealed record GetUserCollectionRequest : AuthenticatedRequest, IPageQuery
     [RegularExpression($"{UserRole.Admin}|{UserRole.Employee}|{UserRole.Customer}")]
     public string? Role { get; init; }
 
+    // Repeated query parameter: ?Id=1&Id=2. Capped to keep the URL within proxy limits.
+    [MaxLength(100)]
+    [SuppressMessage("Performance", "CA1819:Properties should not return arrays",
+        Justification = "Minimal API binds repeated query values to an array")]
+    [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode",
+        Justification = "int[] implements ICollection, so MaxLength reads ICollection.Count and never takes the reflection fallback")]
+    public int[]? Id { get; init; }
+
     [Range(0, int.MaxValue)]
     public int? Start { get; init; } = 0;
 
@@ -45,6 +53,7 @@ public sealed partial class GetUserCollectionCommand(
         List<User> list = await users.Find(
                 query.K is { Length: 0 } ? null : query.K,
                 role,
+                query.Id,
                 query,
                 cancellation)
             .ToListAsync(cancellation);
