@@ -5,6 +5,7 @@ global using Klinkby.Booqr.Application.Commands.Locations;
 global using Klinkby.Booqr.Application.Commands.Services;
 global using Klinkby.Booqr.Application.Commands.Users;
 global using Klinkby.Booqr.Application.Commands.Vacancies;
+global using Klinkby.Booqr.Application.Commands.Activities;
 global using Klinkby.Booqr.Application.Models;
 global using Klinkby.Booqr.Application.Workers;
 global using Microsoft.Extensions.Logging.Abstractions;

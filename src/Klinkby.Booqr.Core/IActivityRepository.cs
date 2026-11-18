@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Klinkby.Booqr.Core;
 
@@ -21,16 +22,17 @@ namespace Klinkby.Booqr.Core;
 public sealed record Activity(
     long Id,
     DateTime Timestamp,
-    [property: StringLength(23)]
-    string? RequestId,
+    [property: StringLength(23)] string? RequestId,
     int UserId,
-    [property: StringLength(20)]
-    string Entity,
+    [property: StringLength(20)] string Entity,
     int EntityId,
-    [property: StringLength(30)]
-    string Action,
+    [property: StringLength(30)] string Action,
     int TenantId
-);
+) : Timestamped
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
+    public override DateTime Modified => Timestamp;
+}
 
 /// <summary>
 ///     Provides data access operations for <see cref="Activity"/> log entries.

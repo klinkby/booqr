@@ -23,6 +23,7 @@ internal static class Routing
             .AddEndpointFilter<TenantRequiredEndPointFilter>();
         MapOpenApi(baseRoute);
         MapTenant(baseRoute);
+        MapActivities(baseRoute);
         MapAuth(baseRoute);
         MapBookings(baseRoute);
         MapEmployees(baseRoute);
@@ -100,6 +101,27 @@ internal static class Routing
             .ProducesProblem(StatusCodes.Status404NotFound)
             .WithName("getTenant")
             .WithSummary("Resolve the current tenant's public branding");
+    }
+
+    private static void MapActivities(IEndpointRouteBuilder app)
+    {
+        const string resourceName = "activities";
+
+        RouteGroupBuilder group = app
+            .MapGroup(resourceName)
+            .WithTags(nameof(Activity))
+            .WithDescription(nameof(Activity));
+
+        // The audit log exposes every user's actions in the tenant, so it is admin-only.
+        group.MapGet("",
+                static (GetActivityCollectionCommand command,
+                        [AsParameters] GetActivitiesRequest request,
+                        CancellationToken cancellation) =>
+                    command.Execute(request, cancellation).ToOk())
+            .RequireAuthorization(UserRole.Admin)
+            .ProducesValidationProblem()
+            .WithName("getActivities")
+            .WithSummary("List activities (admin only)");
     }
 
     private static void MapAuth(IEndpointRouteBuilder app)
