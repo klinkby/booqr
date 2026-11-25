@@ -28,6 +28,11 @@ public sealed record PasswordSettings
     [Required, Range(1, Int32.MaxValue)]
     public int SignUpTimeoutHours { get; set; } = 24;
 
+    /// <summary>
+    /// Gets or sets the lifetime in days of a signed iCal calendar feed link. Defaults to 365 days.
+    /// </summary>
+    [Required, Range(1, 3650)]
+    public int CalendarFeedTimeoutDays { get; set; } = 365;
 }
 
 

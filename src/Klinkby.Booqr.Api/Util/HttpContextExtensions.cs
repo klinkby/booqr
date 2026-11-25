@@ -18,6 +18,10 @@ internal static class HttpContextExtensions
     ///     defensive rather than throwing here. When a tenant is resolved the slug comes straight from
     ///     <see cref="ITenantContext.Slug" /> (set by the middleware) rather than being re-parsed.
     /// </remarks>
+    /// <summary>Marks the response as not storable by any cache (signed links and credentials).</summary>
+    internal static void SetNoStore(this HttpContext context) =>
+        context.Response.Headers.CacheControl = "no-store";
+
     internal static string GetContextAuthority(this HttpContext context)
     {
         ITenantContext tenantContext = context.RequestServices.GetRequiredService<ITenantContext>();

@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Net.Mime;
+using Klinkby.Booqr.Application.Commands.CalendarFeeds;
 using Klinkby.Booqr.Application.Commands.Employees;
 using Klinkby.Booqr.Application.Models;
 using Klinkby.Booqr.Api.Models;
@@ -26,6 +27,7 @@ internal static class Routing
         MapActivities(baseRoute);
         MapAuth(baseRoute);
         MapBookings(baseRoute);
+        MapCalendarFeeds(baseRoute);
         MapEmployees(baseRoute);
         MapLocations(baseRoute);
         MapServices(baseRoute);
@@ -219,6 +221,28 @@ internal static class Routing
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .WithName("deleteBooking")
             .WithSummary("Delete a booking");
+    }
+
+    /// <summary>
+    ///     Anonymous signed-link feed for calendar apps, which cannot send a JWT. Authorization is the
+    ///     signed query string itself; every link failure is a uniform 404 (see <see cref="GetCalendarFeedCommand" />).
+    /// </summary>
+    private static void MapCalendarFeeds(RouteGroupBuilder baseRoute)
+    {
+        baseRoute.MapGet("calendar-feed.ics",
+                static (GetCalendarFeedCommand command,
+                        HttpContext context,
+                        CancellationToken cancellation) => command
+                    .Execute(new GetCalendarFeedRequest(context.Request.QueryString.Value ?? "",
+                            context.Request.Host.Host),
+                        cancellation)
+                    .ToCalendar(context))
+            .WithTags("CalendarFeed")
+            .WithDescription("CalendarFeed")
+            .Produces(StatusCodes.Status200OK, contentType: "text/calendar")
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .WithName("getCalendarFeed")
+            .WithSummary("Get a calendar feed (iCalendar) via a signed link");
     }
 
     private static void MapEmployees(IEndpointRouteBuilder app)
@@ -451,6 +475,26 @@ internal static class Routing
             .ProducesProblem(StatusCodes.Status429TooManyRequests)
             .WithName("changePassword")
             .WithSummary("Change password");
+
+        // [AsParameters] would also bind a query-string "authority" into the init-only Authority property,
+        // so it is always overwritten here with the host-derived value.
+        group.MapGet($"{IdRoutePattern}/calendar-feed-link",
+                static (GetCalendarFeedLinkCommand command,
+                    [AsParameters] GetCalendarFeedLinkRequest request,
+                    HttpContext context,
+                    CancellationToken cancellation) => command
+                    .Execute(request with { Authority = context.GetContextAuthority() }, cancellation)
+                    .ToOk(x =>
+                    {
+                        context.SetNoStore();
+                        return x;
+                    }))
+            .RequireAuthorization(UserRole.Customer)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .WithName("getCalendarFeedLink")
+            .WithSummary("Get my signed calendar feed (iCalendar) link");
 
         group.MapGet($"{IdRoutePattern}/my-bookings",
                 static (GetMyBookingsCommand command,

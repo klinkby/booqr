@@ -10,6 +10,9 @@ internal static class Query
     public const string ETag = "etag";
     public const string Action = "action";
     public const string ChangePasswordAction = "change-password";
+    public const string Tenant = "tenant";
+    public const string PasswordVersion = "pv";
+    public const string CalendarFeedAction = "calendar-feed";
 }
 
 internal static class UserExtensions
@@ -24,6 +27,21 @@ internal static class UserExtensions
             [Query.ETag] = user.ETag,
             [Query.Action] = Query.ChangePasswordAction,
         };
+
+    /// <summary>
+    ///     Signed parameters of a calendar feed link. The user must have a password hash (callers check first).
+    /// </summary>
+    internal static NameValueCollection GetCalendarFeedParameters(this User user, int tenantId, string hmacKey)
+    {
+        ArgumentNullException.ThrowIfNull(user.PasswordHash);
+        return new()
+        {
+            [Query.Id] = user.Id.ToString(CultureInfo.InvariantCulture),
+            [Query.Tenant] = tenantId.ToString(CultureInfo.InvariantCulture),
+            [Query.Action] = Query.CalendarFeedAction,
+            [Query.PasswordVersion] = PasswordFingerprint.Compute(user.PasswordHash, hmacKey),
+        };
+    }
 
     internal static bool ValidateETagParameter(this Audit user, NameValueCollection parameters) =>
         parameters[Query.ETag] == user.ETag;

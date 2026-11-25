@@ -44,6 +44,17 @@ data, with isolation enforced by the database itself.
 sockets for inter-container communication.
 
 
+## Calendar feed (iCalendar)
+
+Each user can subscribe their own bookings in a calendar app (Google Calendar, Outlook, Apple Calendar).
+
+*   Get your link: `GET /api/users/{id}/calendar-feed-link` with your own user id and a signed-in token. Only your own id is allowed (403 otherwise, also for employees and admins). The response contains `url` and `expires`.
+*   Subscribe: add the `url` as a new calendar subscription by URL in your calendar app. The app polls it; no sign-in is needed.
+*   Contents: your bookings as customer or assigned employee, from Monday 00:00 (Europe/Copenhagen) of the current week until three months from now. Each event shows the service name and the location.
+*   Lifetime: the link expires after `PasswordSettings:CalendarFeedTimeoutDays` (default 365). Fetch a new link to refresh it.
+*   The link is a secret: anyone holding it can read your booking schedule. Do not share it.
+*   Revoke: changing your password invalidates every calendar link issued before the change. Fetch a new link and subscribe again in your calendar app.
+
 ## Known Limitations
 
 *   **`bigint` id truncation on bookings/calendar**: The `bookings.id` and `calendar.id` columns are `bigint` in the database (see `Migrations/0001_baseline.sql` — "bigint promotion"), but the C# domain represents entity ids as `int` via the shared `Audit.Id` / `IId` (and `int`-keyed shared request/route types `ByIdRequest`, `{id:int}`). `BookingRepository.Add` narrows the returned identity with `Convert.ToInt32`, which throws `OverflowException` once an identity value exceeds `int.MaxValue` (~2.1 billion). A full fix requires threading `long` through the shared id types and the booking/calendar endpoints; it is deferred because those types are shared by every entity and widening them changes the wire contract for `int`-keyed entities too.
