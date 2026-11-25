@@ -105,6 +105,11 @@ static void ConfigureServices(WebApplicationBuilder builder, bool isMockServer)
                 var unixSocketPath = configuration["Kestrel:UnixSocketPath"];
                 if (!string.IsNullOrWhiteSpace(unixSocketPath))
                 {
+                    // HAProxy terminates TLS and forwards every client over h2c with the original
+                    // :scheme=https (no URI rewrite in haproxy.cfg); Kestrel otherwise resets those streams
+                    // for not matching the cleartext transport (502 "SH", e.g. Google-Calendar-Importer).
+                    // Safe: only the trusted proxy reaches this socket.
+                    options.AllowAlternateSchemes = true;
                     options.ListenUnixSocket(unixSocketPath, listenOptions =>
                     {
                         listenOptions.Protocols = HttpProtocols.Http2;
