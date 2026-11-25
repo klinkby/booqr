@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using Klinkby.Booqr.Application.Util;
 using Klinkby.Booqr.Core;
+using Microsoft.Extensions.Options;
 
 namespace Klinkby.Booqr.Application.Tests.Commands;
 
@@ -157,5 +158,31 @@ public class ChangePasswordCommandTests
         activityRecorder.Verify(
             x => x.Update(It.IsAny<ActivityQuery<User>>(), It.IsAny<CancellationToken>()),
             Times.Never);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_CalendarFeedLink_WHEN_Execute_THEN_ValidationFailed_AndPasswordNotPatched(
+        User generated,
+        string newPassword)
+    {
+        // Arrange
+        User user = generated with { PasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword("Passw0rd!", 4) };
+        var users = new Mock<IUserRepository>();
+        users.Setup(x => x.GetById(It.IsAny<int>(), CancellationToken.None)).ReturnsAsync(user);
+        var hmacKey = NewHmacKey();
+        var signer = new ExpiringQueryString(
+            Options.Create(new PasswordSettings { HmacKey = hmacKey }), TimeProvider);
+        var feedLink = signer.Create(TimeSpan.FromHours(1), user.GetCalendarFeedParameters(TenantId, hmacKey));
+        var sut = new ChangePasswordCommand(users.Object, signer, ActivityRecorder.Object, CreateTenantContext(),
+            NullLogger<ChangePasswordCommand>.Instance);
+
+        // Act
+        Result<bool> result = await sut.Execute(new ChangePasswordRequest(newPassword, feedLink));
+
+        // Assert
+        var error = Assert.IsType<Fault>(result.Value);
+        Assert.Equal(Problem.ValidationFailed.Type, error.Problem.Type);
+        users.Verify(x => x.Patch(It.IsAny<PartialUser>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

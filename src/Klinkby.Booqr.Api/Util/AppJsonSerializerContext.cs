@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Klinkby.Booqr.Application.Commands.CalendarFeeds;
 using Klinkby.Booqr.Application.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -11,6 +12,7 @@ namespace Klinkby.Booqr.Api.Util;
 [JsonSerializable(typeof(AuthenticatedByIdRequest))]
 [JsonSerializable(typeof(Booking))]
 [JsonSerializable(typeof(ByIdRequest))]
+[JsonSerializable(typeof(CalendarFeedLink))]
 [JsonSerializable(typeof(ChangePasswordRequest))]
 [JsonSerializable(typeof(ChangeUserRoleRequest))]
 [JsonSerializable(typeof(CollectionResponse<Activity>))]

@@ -61,16 +61,14 @@ internal static class TestHelpers
         return Yield<MyBooking>(items);
     }
 
+    public static string NewHmacKey() =>
+        Convert.ToBase64String(RandomNumberGenerator.GetBytes(HMACSHA256.HashSizeInBytes));
+
     public static ExpiringQueryString CreateExpiringQueryString(TimeProvider timeProvider)
     {
         return new ExpiringQueryString(
         Options
-            .Create(new PasswordSettings
-            {
-                HmacKey = Convert.ToBase64String(
-                    RandomNumberGenerator.GetBytes(
-                        HMACSHA256.HashSizeInBytes))
-            }),
+            .Create(new PasswordSettings { HmacKey = NewHmacKey() }),
             timeProvider);
     }
 }
