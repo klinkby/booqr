@@ -11,10 +11,13 @@ public sealed partial class DeleteBookingCommand(
     ICalendarRepository calendar,
     ITransaction transaction,
     IActivityRecorder activityRecorder,
+    TimeProvider timeProvider,
     ILogger<DeleteBookingCommand> logger,
     ILogger<AddVacancyCommand> addVacancyLogger)
     : DeleteCommand<Booking>(bookings, activityRecorder, logger)
 {
+    internal static readonly TimeSpan CustomerCancellationDeadline = TimeSpan.FromHours(24);
+
     private readonly LoggerMessages _log = new(logger);
     private readonly IActivityRecorder _activityRecorder = activityRecorder;
 
@@ -45,6 +48,19 @@ public sealed partial class DeleteBookingCommand(
 
             CalendarEvent? calendarEvent = await calendar.GetByBookingId(query.Id, cancellation);
             Debug.Assert(calendarEvent is not null);
+
+            // Customers may only cancel ahead of the deadline; staff are exempt.
+            if (!query.IsStaff &&
+                calendarEvent.StartTime - timeProvider.GetUtcNow().UtcDateTime < CustomerCancellationDeadline)
+            {
+                _log.CancellationDeadlinePassed(query.AuthenticatedUserId, booking.Id);
+                await transaction.Rollback(cancellation);
+
+                return Problem.CancellationDeadlinePassed with
+                {
+                    Detail = "Bookings can only be cancelled up to 24 hours before they start"
+                };
+            }
 
             await calendar.Delete(calendarEvent.Id, cancellation);
             deleted = (await base.Delete(query, cancellation)).ValueOrDefault();
@@ -82,5 +98,8 @@ public sealed partial class DeleteBookingCommand(
     {
         [LoggerMessage(110, LogLevel.Warning, "User {UserId} is not permitted to delete booking {Id}")]
         public partial void CannotDeleteBooking(int userId, int id);
+
+        [LoggerMessage(112, LogLevel.Warning, "User {UserId} is past the cancellation deadline of booking {Id}")]
+        public partial void CancellationDeadlinePassed(int userId, int id);
     }
 }
