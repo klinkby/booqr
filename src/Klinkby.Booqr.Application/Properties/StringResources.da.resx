@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:element name="root" msdata:IsDataSet="true">
+
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="ItemNotFound" xml:space="preserve">
+        <value>{0} {1} blev ikke fundet</value>
+    </data>
+    <data name="ItemNotFoundOrAlreadyUpdated" xml:space="preserve">
+        <value>{0} {1} blev ikke fundet eller er allerede opdateret.</value>
+    </data>
+    <data name="InvalidOrExpiredLink" xml:space="preserve">
+        <value>Ugyldigt eller udløbet link: {0}</value>
+    </data>
+    <data name="UserIdNotInteger" xml:space="preserve">
+        <value>Bruger-id er ikke et heltal</value>
+    </data>
+    <data name="InvalidAction" xml:space="preserve">
+        <value>Ugyldig handling</value>
+    </data>
+    <data name="UserNotFound" xml:space="preserve">
+        <value>Bruger {0} blev ikke fundet.</value>
+    </data>
+    <data name="UserUpdatedSinceLinkGenerated" xml:space="preserve">
+        <value>Bruger {0} er blevet opdateret, efter linket blev oprettet.</value>
+    </data>
+    <data name="UserAlreadyUpdated" xml:space="preserve">
+        <value>Bruger {0} er allerede opdateret.</value>
+    </data>
+    <data name="UserHasNoPassword" xml:space="preserve">
+        <value>Bruger {0} har endnu ingen adgangskode.</value>
+    </data>
+    <data name="UpdateUserProfileForbidden" xml:space="preserve">
+        <value>Du har ikke adgang til at opdatere profilen for bruger {0}.</value>
+    </data>
+    <data name="ChangeOwnRoleForbidden" xml:space="preserve">
+        <value>Du kan ikke ændre din egen rolle.</value>
+    </data>
+    <data name="ChangeRoleForbidden" xml:space="preserve">
+        <value>Du har ikke tilladelse til at ændre brugerroller.</value>
+    </data>
+    <data name="UserHasFutureCalendarEntries" xml:space="preserve">
+        <value>Bruger {0} har fremtidige kalenderaftaler, som skal fjernes, før rollen kan ændres til {1}.</value>
+    </data>
+    <data name="BookingNotFound" xml:space="preserve">
+        <value>Tidsbestilling {0} blev ikke fundet.</value>
+    </data>
+    <data name="InspectOtherCustomersBookingForbidden" xml:space="preserve">
+        <value>Du kan ikke se en anden kundes tidsbestilling.</value>
+    </data>
+    <data name="CreateBookingForOtherCustomerForbidden" xml:space="preserve">
+        <value>Du kan ikke oprette en tidsbestilling for en anden kunde.</value>
+    </data>
+    <data name="DeleteBookingForbidden" xml:space="preserve">
+        <value>Du har ikke adgang til at slette denne tidsbestilling.</value>
+    </data>
+    <data name="ServiceNotFound" xml:space="preserve">
+        <value>Den valgte ydelse blev ikke fundet.</value>
+    </data>
+    <data name="VacancyNotFound" xml:space="preserve">
+        <value>Den ønskede ledige tid blev ikke fundet.</value>
+    </data>
+    <data name="VacancyAlreadyBooked" xml:space="preserve">
+        <value>Den ønskede ledige tid er desværre allerede optaget.</value>
+    </data>
+    <data name="BookingWithinRequestedTime" xml:space="preserve">
+        <value>Der er allerede en tidsbestilling i det valgte tidsrum.</value>
+    </data>
+    <data name="VacancyWithinRequestedTime" xml:space="preserve">
+        <value>Der er allerede en ledig tid i det valgte tidsrum.</value>
+    </data>
+    <data name="TakeoutExportForbidden" xml:space="preserve">
+        <value>Kun administratorer kan eksportere virksomhedens data.</value>
+    </data>
+    <data name="TakeoutUnsupportedScope" xml:space="preserve">
+        <value>Takeout-scope understøttes ikke.</value>
+    </data>
+    <data name="RequestedUserNotFound" xml:space="preserve">
+        <value>Brugeren blev ikke fundet.</value>
+    </data>
+    <data name="TakeoutImportForbidden" xml:space="preserve">
+        <value>Kun administratorer kan importere et takeout-dokument.</value>
+    </data>
+    <data name="TakeoutDocumentRequired" xml:space="preserve">
+        <value>Et takeout-dokument er påkrævet.</value>
+    </data>
+    <data name="TakeoutImportScopeUnsupported" xml:space="preserve">
+        <value>Kun {0}-dokumenter kan importeres.</value>
+    </data>
+    <data name="TakeoutTooManyEntities" xml:space="preserve">
+        <value>Dokumentet indeholder mere end {0} elementer.</value>
+    </data>
+    <data name="CancellationDeadlinePassed" xml:space="preserve">
+        <value>Tidsbestillinger kan kun aflyses op til {0} timer før de starter.</value>
+    </data>
+    <data name="NotFoundTitle" xml:space="preserve">
+        <value>Ressourcen blev ikke fundet</value>
+    </data>
+    <data name="ValidationFailedTitle" xml:space="preserve">
+        <value>Forespørgslen kunne ikke valideres</value>
+    </data>
+    <data name="UnauthorizedTitle" xml:space="preserve">
+        <value>Godkendelse mislykkedes</value>
+    </data>
+    <data name="ForbiddenTitle" xml:space="preserve">
+        <value>Adgang til denne ressource er ikke tilladt</value>
+    </data>
+    <data name="CancellationDeadlinePassedTitle" xml:space="preserve">
+        <value>Fristen for aflysning er overskredet</value>
+    </data>
+    <data name="ConflictTitle" xml:space="preserve">
+        <value>Ressourcekonflikt</value>
+    </data>
+    <data name="TooManyRequestsTitle" xml:space="preserve">
+        <value>For mange forespørgsler</value>
+    </data>
+    <data name="MidAirCollisionTitle" xml:space="preserve">
+        <value>Tilstanden blev ændret undervejs</value>
+    </data>
+</root>

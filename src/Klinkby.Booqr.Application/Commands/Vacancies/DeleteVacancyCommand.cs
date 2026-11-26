@@ -16,7 +16,7 @@ public sealed partial class DeleteVacancyCommand(
         if (bookingConflict.HasValue)
         {
             _log.CannotDeleteVacancyWithBookingInIt(query.AuthenticatedUserId, bookingConflict.Value);
-            return Problem.Conflict with { Detail = "There is already a booking within requested time" };
+            return Problem.Conflict with { Detail = StringResources.BookingWithinRequestedTime };
         }
 
         return await base.Delete(query, cancellation);

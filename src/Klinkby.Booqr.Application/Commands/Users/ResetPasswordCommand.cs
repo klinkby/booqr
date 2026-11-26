@@ -56,7 +56,7 @@ public sealed partial class ResetPasswordCommand(
     private Message ComposeMessage(User user, string authority) =>
         EmbeddedResource.Properties_PasswordReset_handlebars.ComposeMessage(
             user.Email,
-            StringResources.ResetPasswordSubject,
+            MailResources.ResetPasswordSubject,
             tenantContext.DisplayName,
             new()
             {

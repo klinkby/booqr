@@ -157,14 +157,14 @@ public sealed partial class AddVacancyCommand(ICalendarRepository calendar, ITra
         if (TryGetEventWithBooking(events, out CalendarEvent? bookingConflict))
         {
             _log.CannotAddVacancyWithBookingInIt(creatorUserId, query.EmployeeId, query.StartTime, query.EndTime, bookingConflict.Id);
-            return Problem.Conflict with { Detail = "There is already a booking within requested time" };
+            return Problem.Conflict with { Detail = StringResources.BookingWithinRequestedTime };
         }
 
         if (query.TryGetEventWithConflictingLocation(events, out CalendarEvent? locationConflict))
         {
             _log.CannotAddVacancyWithConflictingLocation(creatorUserId, query.EmployeeId, query.StartTime, query.EndTime,
                 locationConflict.Id);
-            return Problem.Conflict with { Detail = "There is already a vacancy within requested time" };
+            return Problem.Conflict with { Detail = StringResources.VacancyWithinRequestedTime };
         }
 
         // now consider only events from this location

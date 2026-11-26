@@ -43,7 +43,7 @@ public sealed partial class DeleteBookingCommand(
                 _log.CannotDeleteBooking(query.AuthenticatedUserId, booking.Id);
                 await transaction.Rollback(cancellation);
 
-                return Problem.Forbidden with { Detail = "You do not have access to delete this booking" };
+                return Problem.Forbidden with { Detail = StringResources.DeleteBookingForbidden };
             }
 
             CalendarEvent? calendarEvent = await calendar.GetByBookingId(query.Id, cancellation);
@@ -58,7 +58,7 @@ public sealed partial class DeleteBookingCommand(
 
                 return Problem.CancellationDeadlinePassed with
                 {
-                    Detail = "Bookings can only be cancelled up to 24 hours before they start"
+                    Detail = Localized.Format(StringResources.CancellationDeadlinePassed, CustomerCancellationDeadline.TotalHours)
                 };
             }
 

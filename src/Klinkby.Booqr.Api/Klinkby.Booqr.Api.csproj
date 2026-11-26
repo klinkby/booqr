@@ -15,6 +15,9 @@
         <EventSourceSupport>false</EventSourceSupport>
         <Http3Support>false</Http3Support>
         <InvariantGlobalization>true</InvariantGlobalization>
+        <!-- Invariant mode would otherwise reject CultureInfo("da"); keep the (invariant-data) culture
+             creatable so ResourceManager can probe the Danish satellite resources. -->
+        <PredefinedCulturesOnly>false</PredefinedCulturesOnly>
         <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
         <MetricsSupport>false</MetricsSupport>
         <OptimizationPreference>Speed</OptimizationPreference>
@@ -40,6 +43,34 @@
     <ItemGroup Label="Friend test proj">
         <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
     </ItemGroup>
+
+    <PropertyGroup Label="Localization">
+        <NeutralLanguage>en</NeutralLanguage>
+    </PropertyGroup>
+
+    <ItemGroup Label="Resources">
+        <EmbeddedResource Update="Properties\StringResources.resx">
+            <Generator>ResXFileCodeGenerator</Generator>
+            <LastGenOutput>StringResources.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
+        <Compile Update="Properties\StringResources.Designer.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>StringResources.resx</DependentUpon>
+        </Compile>
+    </ItemGroup>
+
+    <!-- ILCompiler embeds only this project's own satellites and NuGet 'resources' assets; satellites of
+         project references (Klinkby.Booqr.Application's da/*.resources.dll) would silently be dropped from
+         the native binary, so Danish would fall back to English in the AOT image. -->
+    <Target Name="IncludeProjectReferenceSatellitesInNativeAot" BeforeTargets="ComputeIlcCompileInputs"
+            Condition=" '$(PublishAot)' == 'true' ">
+        <ItemGroup>
+            <!-- Own project references only: NuGet satellites already arrive via AssetType=resources. -->
+            <IlcSatelliteAssembly Include="@(ReferenceSatellitePaths)"
+                                  Condition="$([System.String]::Copy('%(Filename)').StartsWith('Klinkby.Booqr.'))" />
+        </ItemGroup>
+    </Target>
 
     <ItemGroup Label="Dev AppSettings">
         <Content Update="appsettings.*.json" Condition=" '$(Configuration)' != 'Release' ">

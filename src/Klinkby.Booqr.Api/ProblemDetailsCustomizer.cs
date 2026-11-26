@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Klinkby.Booqr.Application;
 
 namespace Klinkby.Booqr.Api;
 
@@ -15,6 +16,12 @@ internal static partial class ProblemDetailsCustomizer
         HttpContext httpContext = context.HttpContext;
         ProblemDetails problem = context.ProblemDetails;
         problem.Extensions["traceId"] = httpContext.TraceIdentifier;
+        // Only booqr problems carry resource-localized text; framework ones (validation 400s, status-code
+        // pages) stay English, so don't label those as Danish. GlobalExceptionHandler labels its own.
+        if (problem.Type is { } type && type.StartsWith(Problem.Prefix, StringComparison.Ordinal))
+        {
+            httpContext.SetContentLanguage();
+        }
 
         if ((problem.Status ?? httpContext.Response.StatusCode) != StatusCodes.Status400BadRequest)
         {

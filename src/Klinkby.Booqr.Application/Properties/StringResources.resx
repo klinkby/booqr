@@ -18,16 +18,131 @@
     <resheader name="writer">
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
-    <data name="ResetPasswordSubject" xml:space="preserve">
-        <value>Du kan skifte din adgangskode</value>
+    <data name="ItemNotFound" xml:space="preserve">
+        <value>{0} {1} was not found</value>
+        <comment>{0}: entity type name, {1}: id</comment>
     </data>
-    <data name="SignUpSubject" xml:space="preserve">
-        <value>Tak for din tilmelding</value>
+    <data name="ItemNotFoundOrAlreadyUpdated" xml:space="preserve">
+        <value>{0} {1} was not found or already updated.</value>
+        <comment>{0}: entity type name, {1}: id</comment>
     </data>
-    <data name="ReminderSubject" xml:space="preserve">
-        <value>Husk din tid i morgen</value>
+    <data name="InvalidOrExpiredLink" xml:space="preserve">
+        <value>Invalid or expired link: {0}</value>
+        <comment>{0}: validation result</comment>
     </data>
-    <data name="NewBooking" xml:space="preserve">
-        <value>Ny tidsbestilling</value>
+    <data name="UserIdNotInteger" xml:space="preserve">
+        <value>User id is not an integer</value>
+    </data>
+    <data name="InvalidAction" xml:space="preserve">
+        <value>Invalid action</value>
+    </data>
+    <data name="UserNotFound" xml:space="preserve">
+        <value>User {0} was not found.</value>
+        <comment>{0}: user id</comment>
+    </data>
+    <data name="UserUpdatedSinceLinkGenerated" xml:space="preserve">
+        <value>User {0} was updated since the link was generated.</value>
+        <comment>{0}: user id</comment>
+    </data>
+    <data name="UserAlreadyUpdated" xml:space="preserve">
+        <value>User {0} was already updated.</value>
+        <comment>{0}: user id</comment>
+    </data>
+    <data name="UserHasNoPassword" xml:space="preserve">
+        <value>User {0} has no password yet.</value>
+        <comment>{0}: user id</comment>
+    </data>
+    <data name="UpdateUserProfileForbidden" xml:space="preserve">
+        <value>You do not have access to update user {0} profile.</value>
+        <comment>{0}: user id</comment>
+    </data>
+    <data name="ChangeOwnRoleForbidden" xml:space="preserve">
+        <value>You cannot change your own role.</value>
+    </data>
+    <data name="ChangeRoleForbidden" xml:space="preserve">
+        <value>You are not permitted to change user roles.</value>
+    </data>
+    <data name="UserHasFutureCalendarEntries" xml:space="preserve">
+        <value>User {0} has future calendar entries that must be removed before changing the role to {1}.</value>
+        <comment>{0}: user id, {1}: role name</comment>
+    </data>
+    <data name="BookingNotFound" xml:space="preserve">
+        <value>Booking {0} was not found.</value>
+        <comment>{0}: booking id</comment>
+    </data>
+    <data name="InspectOtherCustomersBookingForbidden" xml:space="preserve">
+        <value>You cannot inspect another customer's booking.</value>
+    </data>
+    <data name="CreateBookingForOtherCustomerForbidden" xml:space="preserve">
+        <value>You cannot create a booking for another customer.</value>
+    </data>
+    <data name="DeleteBookingForbidden" xml:space="preserve">
+        <value>You do not have access to delete this booking.</value>
+    </data>
+    <data name="ServiceNotFound" xml:space="preserve">
+        <value>The requested service was not found.</value>
+    </data>
+    <data name="VacancyNotFound" xml:space="preserve">
+        <value>The requested vacancy was not found.</value>
+    </data>
+    <data name="VacancyAlreadyBooked" xml:space="preserve">
+        <value>The requested vacancy was already booked.</value>
+    </data>
+    <data name="BookingWithinRequestedTime" xml:space="preserve">
+        <value>There is already a booking within the requested time.</value>
+    </data>
+    <data name="VacancyWithinRequestedTime" xml:space="preserve">
+        <value>There is already a vacancy within the requested time.</value>
+    </data>
+    <data name="TakeoutExportForbidden" xml:space="preserve">
+        <value>Only administrators can export the tenant workspace.</value>
+    </data>
+    <data name="TakeoutUnsupportedScope" xml:space="preserve">
+        <value>Unsupported takeout scope.</value>
+    </data>
+    <data name="RequestedUserNotFound" xml:space="preserve">
+        <value>The requested user was not found.</value>
+    </data>
+    <data name="TakeoutImportForbidden" xml:space="preserve">
+        <value>Only administrators can import a takeout document.</value>
+    </data>
+    <data name="TakeoutDocumentRequired" xml:space="preserve">
+        <value>A takeout document is required.</value>
+    </data>
+    <data name="TakeoutImportScopeUnsupported" xml:space="preserve">
+        <value>Only {0} documents can be imported.</value>
+        <comment>{0}: takeout scope name</comment>
+    </data>
+    <data name="TakeoutTooManyEntities" xml:space="preserve">
+        <value>The document contains more than {0} entities.</value>
+        <comment>{0}: max entity count</comment>
+    </data>
+    <data name="CancellationDeadlinePassed" xml:space="preserve">
+        <value>Bookings can only be cancelled up to {0} hours before they start.</value>
+        <comment>{0}: deadline in hours</comment>
+    </data>
+    <data name="NotFoundTitle" xml:space="preserve">
+        <value>Resource not found</value>
+    </data>
+    <data name="ValidationFailedTitle" xml:space="preserve">
+        <value>Request validation failed</value>
+    </data>
+    <data name="UnauthorizedTitle" xml:space="preserve">
+        <value>Authentication failed</value>
+    </data>
+    <data name="ForbiddenTitle" xml:space="preserve">
+        <value>Access to this resource is forbidden</value>
+    </data>
+    <data name="CancellationDeadlinePassedTitle" xml:space="preserve">
+        <value>Cancellation deadline has passed</value>
+    </data>
+    <data name="ConflictTitle" xml:space="preserve">
+        <value>Resource conflict</value>
+    </data>
+    <data name="TooManyRequestsTitle" xml:space="preserve">
+        <value>Too many requests</value>
+    </data>
+    <data name="MidAirCollisionTitle" xml:space="preserve">
+        <value>State changed during operation</value>
     </data>
 </root>

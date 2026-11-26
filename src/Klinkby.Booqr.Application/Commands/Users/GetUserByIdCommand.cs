@@ -24,7 +24,7 @@ public sealed partial class GetUserByIdCommand(
         User? value = await users.GetById(query.Id, cancellation);
         if (value is null)
         {
-            return Problem.NotFound with { Detail = $"{nameof(User)} {query.Id} was not found" };
+            return Problem.NotFound with { Detail = Localized.Format(StringResources.UserNotFound, query.Id) };
         }
 
         // Staff see anyone; a customer may see themselves or any staff profile, but not

@@ -15,8 +15,7 @@ public sealed partial class ExportTakeoutCommand(
 {
     private static readonly PageQuery All = TakeoutQueries.All;
 
-    private static readonly Problem NotAdmin =
-        Problem.Forbidden with { Detail = "Only administrators can export the tenant workspace." };
+    private static Problem NotAdmin => Problem.Forbidden with { Detail = StringResources.TakeoutExportForbidden };
 
     private readonly LoggerMessages _log = new(logger);
 
@@ -33,7 +32,7 @@ public sealed partial class ExportTakeoutCommand(
                 return await ExportCustomerGdpr(query, now, cancellation);
             default:
                 _log.UnsupportedScope(query.AuthenticatedUserId, query.Scope);
-                return Problem.ValidationFailed with { Detail = "Unsupported takeout scope." };
+                return Problem.ValidationFailed with { Detail = StringResources.TakeoutUnsupportedScope };
         }
     }
 
@@ -86,7 +85,7 @@ public sealed partial class ExportTakeoutCommand(
         if (subject is null)
         {
             _log.SubjectNotFound(subjectId);
-            return Problem.NotFound with { Detail = "The requested user was not found." };
+            return Problem.NotFound with { Detail = StringResources.RequestedUserNotFound };
         }
 
         List<Booking> customerBookings = await bookings.GetAll(All, cancellation)

@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:element name="root" msdata:IsDataSet="true">
+
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="TenantNotFound" xml:space="preserve">
+        <value>Hostnavnet svarer ikke til en kendt virksomhed.</value>
+    </data>
+    <data name="TenantMismatch" xml:space="preserve">
+        <value>Login svarer ikke til hostnavn i forespørgslen.</value>
+    </data>
+    <data name="TenantNotFoundTitle" xml:space="preserve">
+        <value>Virksomheden blev ikke fundet</value>
+    </data>
+    <data name="TenantMismatchTitle" xml:space="preserve">
+        <value>Ugyldig virksomhed</value>
+    </data>
+    <data name="Status400Title" xml:space="preserve">
+        <value>Ugyldig forespørgsel</value>
+    </data>
+    <data name="Status401Title" xml:space="preserve">
+        <value>Ikke godkendt</value>
+    </data>
+    <data name="Status403Title" xml:space="preserve">
+        <value>Ikke tilladt</value>
+    </data>
+    <data name="Status409Title" xml:space="preserve">
+        <value>Konflikt</value>
+    </data>
+    <data name="Status500Title" xml:space="preserve">
+        <value>Intern serverfejl</value>
+    </data>
+    <data name="Status501Title" xml:space="preserve">
+        <value>Ikke implementeret</value>
+    </data>
+    <data name="Status502Title" xml:space="preserve">
+        <value>Fejl i bagvedliggende tjeneste</value>
+    </data>
+    <data name="Status503Title" xml:space="preserve">
+        <value>Tjenesten er utilgængelig</value>
+    </data>
+    <data name="Status504Title" xml:space="preserve">
+        <value>Bagvedliggende tjeneste svarede ikke i tide</value>
+    </data>
+</root>

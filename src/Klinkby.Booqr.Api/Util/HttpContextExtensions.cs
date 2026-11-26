@@ -1,5 +1,7 @@
 ﻿using Klinkby.Booqr.Api.Models;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 
 namespace Klinkby.Booqr.Api.Util;
 
@@ -21,6 +23,40 @@ internal static class HttpContextExtensions
     /// <summary>Marks the response as not storable by any cache (signed links and credentials).</summary>
     internal static void SetNoStore(this HttpContext context) =>
         context.Response.Headers.CacheControl = "no-store";
+
+    /// <summary>
+    ///     Marks a response whose text was localized from <c>Accept-Language</c>: tells caches the body varies by it
+    ///     and labels the language chosen. Call only for responses whose text came from the localized resources.
+    /// </summary>
+    internal static void SetContentLanguage(this HttpContext context)
+    {
+        if (context.Features.Get<IRequestCultureFeature>()?.RequestCulture.UICulture.Name is not { Length: > 0 } language)
+        {
+            return;
+        }
+
+        IHeaderDictionary headers = context.Response.Headers;
+        headers.Append(HeaderNames.Vary, HeaderNames.AcceptLanguage);
+        headers.ContentLanguage = language;
+    }
+
+    /// <summary>
+    ///     Writes <paramref name="problem" /> through <see cref="IProblemDetailsService" /> (content negotiation and
+    ///     the central <see cref="ProblemDetailsCustomizer" /> hook). If every writer declines (e.g. <c>Accept: text/html</c>),
+    ///     applies the same customization and forces <c>application/problem+json</c> AOT-safely.
+    /// </summary>
+    internal static async ValueTask WriteProblemAsync(this HttpContext context, ProblemDetails problem, CancellationToken cancellation)
+    {
+        ProblemDetailsContext problemContext = new() { HttpContext = context, ProblemDetails = problem };
+        if (await context.RequestServices.GetRequiredService<IProblemDetailsService>().TryWriteAsync(problemContext))
+        {
+            return;
+        }
+
+        ProblemDetailsCustomizer.Customize(problemContext);
+        await context.Response.WriteAsJsonAsync(
+            problem, AppJsonSerializerContext.Default.ProblemDetails, "application/problem+json", cancellation);
+    }
 
     internal static string GetContextAuthority(this HttpContext context)
     {

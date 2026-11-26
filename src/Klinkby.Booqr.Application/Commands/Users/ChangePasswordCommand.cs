@@ -37,19 +37,19 @@ public partial class ChangePasswordCommand(
                 out QueryStringValidation validation))
         {
             _log.InvalidQueryString(validation);
-            return Problem.ValidationFailed with { Detail = $"Invalid or expired link: {validation}" };
+            return Problem.ValidationFailed with { Detail = Localized.Format(StringResources.InvalidOrExpiredLink, validation) };
         }
 
         if (!int.TryParse(parameters[Query.Id], CultureInfo.InvariantCulture, out var userId))
         {
             _log.UserIdNotAnInteger(parameters[Query.Id]);
-            return Problem.ValidationFailed with { Detail = "User id is not an integer" };
+            return Problem.ValidationFailed with { Detail = StringResources.UserIdNotInteger };
         }
 
         if (parameters[Query.Action] != Query.ChangePasswordAction)
         {
             _log.InvalidAction(parameters[Query.Action]);
-            return Problem.ValidationFailed with { Detail = "Invalid action" };
+            return Problem.ValidationFailed with { Detail = StringResources.InvalidAction };
         }
 
         // Belt-and-braces cross-tenant rejection for reset-link replay: this command runs on the
@@ -66,13 +66,13 @@ public partial class ChangePasswordCommand(
         if (user is null)
         {
             _log.UserNotFound(userId);
-            return Problem.NotFound with { Detail = $"User {userId} was not found" };
+            return Problem.NotFound with { Detail = Localized.Format(StringResources.UserNotFound, userId) };
         }
 
         if (!user.ValidateETagParameter(parameters))
         {
             _log.Conflict(userId);
-            return Problem.MidAirCollision with { Detail = $"User {userId} was updated since the link was generated" };
+            return Problem.MidAirCollision with { Detail = Localized.Format(StringResources.UserUpdatedSinceLinkGenerated, userId) };
         }
 
         _log.ChangePassword(userId);
@@ -80,7 +80,7 @@ public partial class ChangePasswordCommand(
         var patched = await userRepository.Patch(new PartialUser(userId).WithPasswordHash(query.Password.Trim()), cancellation);
         if (!patched)
         {
-            return Problem.MidAirCollision with { Detail = $"User {userId} was already updated." };
+            return Problem.MidAirCollision with { Detail = Localized.Format(StringResources.UserAlreadyUpdated, userId) };
         }
 
         _log.Changed(user.Email);
