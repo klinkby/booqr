@@ -15,7 +15,19 @@ public class MailTimeTests
     }
 
     [Theory]
-    [InlineData("2026-01-15", "2026-01-14T23:00:00", "2026-01-15T23:00:00")] // CET
+    [InlineData(15, "15 min.")]
+    [InlineData(30, "30 min.")]
+    [InlineData(45, "45 min.")]
+    [InlineData(75, "75 min.")]
+    [InlineData(90, "90 min.")]
+    [InlineData(60, "1 t.")]
+    [InlineData(120, "2 t.")]
+    [InlineData(180, "3 t.")]
+    public void GIVEN_Duration_WHEN_FormatDuration_THEN_MinutesOrWholeHours(int minutes, string expected) =>
+        Assert.Equal(expected, MailTime.FormatDuration(TimeSpan.FromMinutes(minutes)));
+
+    [Theory]
+    [InlineData("2026-01-15","2026-01-14T23:00:00", "2026-01-15T23:00:00")] // CET
     [InlineData("2026-07-15", "2026-07-14T22:00:00", "2026-07-15T22:00:00")] // CEST
     [InlineData("2026-03-29", "2026-03-28T23:00:00", "2026-03-29T22:00:00")] // spring forward, 23h
     [InlineData("2026-10-25", "2026-10-24T22:00:00", "2026-10-25T23:00:00")] // fall back, 25h
