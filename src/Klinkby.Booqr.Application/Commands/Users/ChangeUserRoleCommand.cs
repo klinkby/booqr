@@ -36,7 +36,7 @@ public sealed partial class ChangeUserRoleCommand(
         if (query.AuthenticatedUserId == query.Id)
         {
             _log.CannotChangeOwnRole(query.AuthenticatedUserId);
-            return Problem.Forbidden with { Detail = "You cannot change your own role." };
+            return Problem.Forbidden with { Detail = StringResources.ChangeOwnRoleForbidden };
         }
 
         DateTime now = timeProvider.GetUtcNow().UtcDateTime;
@@ -51,14 +51,14 @@ public sealed partial class ChangeUserRoleCommand(
             {
                 await transaction.Rollback(cancellation);
                 _log.CallerNotAdmin(query.AuthenticatedUserId, query.Id);
-                return Problem.Forbidden with { Detail = "You are not permitted to change user roles." };
+                return Problem.Forbidden with { Detail = StringResources.ChangeRoleForbidden };
             }
 
             User? target = await users.GetByIdForUpdate(query.Id, cancellation);
             if (target is null)
             {
                 await transaction.Rollback(cancellation);
-                return Problem.NotFound with { Detail = $"User {query.Id} was not found." };
+                return Problem.NotFound with { Detail = Localized.Format(StringResources.UserNotFound, query.Id) };
             }
 
             fromRole = target.Role;
@@ -76,7 +76,7 @@ public sealed partial class ChangeUserRoleCommand(
                 _log.HasFutureEvents(query.AuthenticatedUserId, query.Id);
                 return Problem.Conflict with
                 {
-                    Detail = $"User {query.Id} has future calendar entries that must be removed before changing the role to {UserRole.Customer}."
+                    Detail = Localized.Format(StringResources.UserHasFutureCalendarEntries, query.Id, UserRole.Customer)
                 };
             }
 
@@ -85,7 +85,7 @@ public sealed partial class ChangeUserRoleCommand(
             if (!await users.Patch(patch, cancellation))
             {
                 await transaction.Rollback(cancellation);
-                return Problem.MidAirCollision with { Detail = $"User {query.Id} was already updated." };
+                return Problem.MidAirCollision with { Detail = Localized.Format(StringResources.UserAlreadyUpdated, query.Id) };
             }
 
             await refreshTokens.RevokeAllForUser(query.Id, now, cancellation);

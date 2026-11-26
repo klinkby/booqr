@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using Klinkby.Booqr.Application.Abstractions;
 using Klinkby.Booqr.Core.Exceptions;
 
@@ -70,7 +71,7 @@ public class UpdateUserProfileCommandTests
 
         // Assert
         Fault err =  Assert.IsType<Fault>(result.Value);
-        Assert.Contains($"User {request.Id}", err.Problem.Detail, StringComparison.Ordinal);
+        Assert.Contains(request.Id.ToString(CultureInfo.InvariantCulture), err.Problem.Detail, StringComparison.Ordinal);
     }
 
     [Theory]

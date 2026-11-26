@@ -38,7 +38,7 @@ public sealed partial class UpdateUserProfileCommand(
         if (!query.IsStaffOrOwner(query.Id))
         {
             _log.CannotChangeProfile(query.AuthenticatedUserId, query.Id);
-            return Problem.Forbidden with { Detail = $"You do not have access to update user {query.Id} profile." };
+            return Problem.Forbidden with { Detail = Localized.Format(StringResources.UpdateUserProfileForbidden, query.Id) };
         }
 
         _log.PatchUser(query.AuthenticatedUserId, query.Id);
@@ -46,7 +46,7 @@ public sealed partial class UpdateUserProfileCommand(
         var updated = await repository.UpdateProfile(partialItem, cancellation);
         if (!updated)
         {
-            return Problem.MidAirCollision with { Detail = $"User {query.Id} was already updated." };
+            return Problem.MidAirCollision with { Detail = Localized.Format(StringResources.UserAlreadyUpdated, query.Id) };
         }
 
         await activityRecorder.Update<User>(new(query.AuthenticatedUserId, query.Id, query.TenantId), cancellation);

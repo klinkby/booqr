@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.Net.Http.Headers;
 
 namespace Klinkby.Booqr.Api;
 
@@ -15,6 +17,7 @@ internal static partial class ProblemDetailsCustomizer
         HttpContext httpContext = context.HttpContext;
         ProblemDetails problem = context.ProblemDetails;
         problem.Extensions["traceId"] = httpContext.TraceIdentifier;
+        LabelLanguage(httpContext);
 
         if ((problem.Status ?? httpContext.Response.StatusCode) != StatusCodes.Status400BadRequest)
         {
@@ -35,6 +38,22 @@ internal static partial class ProblemDetailsCustomizer
         {
             log.BadRequest(request.Method, request.Path, problem.Detail ?? problem.Title);
         }
+    }
+
+    /// <summary>
+    ///     Problem text is localized from <c>Accept-Language</c>, so tell caches the body varies by it and
+    ///     label the language chosen. Scoped to problem responses: other bodies are language-neutral.
+    /// </summary>
+    private static void LabelLanguage(HttpContext httpContext)
+    {
+        if (httpContext.Features.Get<IRequestCultureFeature>()?.RequestCulture.UICulture.Name is not { Length: > 0 } language)
+        {
+            return;
+        }
+
+        IHeaderDictionary headers = httpContext.Response.Headers;
+        headers.Append(HeaderNames.Vary, HeaderNames.AcceptLanguage);
+        headers.ContentLanguage = language;
     }
 
     [ExcludeFromCodeCoverage]

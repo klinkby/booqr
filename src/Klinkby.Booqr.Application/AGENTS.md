@@ -57,7 +57,7 @@ public sealed class DeleteBookingCommand(
     {
         // 1. Authorize
         if (!IsAuthorized(request.User, booking.CustomerId))
-            return Problem.Forbidden with { Detail = "You do not have access to delete this booking" };
+            return Problem.Forbidden with { Detail = StringResources.DeleteBookingForbidden };
 
         // 2. Begin transaction
         await transaction.Begin(IsolationLevel.ReadCommitted, ct);
@@ -88,7 +88,7 @@ public sealed class DeleteBookingCommand(
 Commands report expected failures (not found, forbidden, unauthorized, validation, conflict) as data, not exceptions. `Execute` returns `Task<Result<T>>` (or `Task<Result<bool>>` for delete/update) instead of throwing.
 
 - **`Result<T>`** (`Result.cs`) is a C# 15 `union` over the top-level case records `Success<T>(T Value)` and `Fault(Problem Problem)`. Switches over it are exhaustive without a `_` arm. It is a struct, so it cannot be cast to a case type: pattern-match (`result is Success<int> s`) instead, and in tests assert on the contents (`Assert.IsType<Fault>(result.Value)`).
-- **`Problem`** (`Problem.cs`) is an RFC 7807-shaped record (`Type`, `Title`, `HttpStatusCode`, `Detail`). Reuse the static instances (`Problem.NotFound`, `.ValidationFailed`, `.Unauthorized`, `.Forbidden`, `.CancellationDeadlinePassed`, `.Conflict`, `.MidAirCollision`) and customize with `with { Detail = "..." }`.
+- **`Problem`** (`Problem.cs`) is an RFC 7807-shaped record (`Type`, `Title`, `HttpStatusCode`, `Detail`). Reuse the static instances (`Problem.NotFound`, `.ValidationFailed`, `.Unauthorized`, `.Forbidden`, `.CancellationDeadlinePassed`, `.Conflict`, `.MidAirCollision`) and customize with `with { Detail = StringResources.SomeKey }` (or `Localized.Format(StringResources.SomeKey, args)` for placeholders). Never inline a `Detail` literal: add the key to both `Properties/StringResources.resx` (English) and `StringResources.da.resx` (Danish), and build localized problems per call — not in `static readonly` fields, which pin the first caller's language. See root `AGENTS.md` #15.
 - **Implicit conversions** remove boilerplate: `return someValue;` becomes `Success`, and `return Problem.NotFound with { ... };` becomes `Fault` — no need to construct `new Success<T>(...)` explicitly.
 - **API layer mapping**: `CommandExtensions` (`Klinkby.Booqr.Api/Util/CommandExtensions.cs`) pattern-matches `Result<T>` and calls `Problem.ToProblemHttpResult()` on `Fault`, turning it into a `ProblemHttpResult` via `TypedResults.Problem`. Endpoints never see raw exceptions for these cases.
 - Prefer returning a `Problem` over throwing whenever the failure is an expected outcome of the use case (not found, access denied, validation failed, optimistic-concurrency conflict, business-rule violation the caller can act on).

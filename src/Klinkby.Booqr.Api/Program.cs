@@ -135,6 +135,7 @@ static void ConfigureMiddleware(WebApplication app, bool isMockServer)
     }
 
     app.UseHostFiltering();
+    app.UseRequestLocalization();
     app.UseTenantResolution();
     app.UseRateLimiter();
     app.UseAuthorization();

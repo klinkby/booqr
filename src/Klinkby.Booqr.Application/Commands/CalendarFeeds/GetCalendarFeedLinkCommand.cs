@@ -42,13 +42,13 @@ public sealed partial class GetCalendarFeedLinkCommand(
         if (user is null || user.Deleted is not null)
         {
             _log.UserNotFound(query.Id);
-            return Problem.NotFound with { Detail = $"User {query.Id} was not found" };
+            return Problem.NotFound with { Detail = Localized.Format(StringResources.UserNotFound, query.Id) };
         }
 
         if (user.PasswordHash is null)
         {
             _log.NoPassword(query.Id);
-            return Problem.NotFound with { Detail = $"User {query.Id} has no password yet" };
+            return Problem.NotFound with { Detail = Localized.Format(StringResources.UserHasNoPassword, query.Id) };
         }
 
         TimeSpan lifetime = TimeSpan.FromDays(_settings.CalendarFeedTimeoutDays);

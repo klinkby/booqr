@@ -19,18 +19,18 @@ public sealed partial class GetMyBookingByIdCommand(
         if (!query.IsStaffOrOwner(query.Id))
         {
             _log.CannotInspectBooking(query.AuthenticatedUserId, query.Id);
-            return Problem.Forbidden with { Detail = "You cannot inspect another customer's booking" };
+            return Problem.Forbidden with { Detail = StringResources.InspectOtherCustomersBookingForbidden };
         }
 
         MyBooking? myBooking = await myBookingRepository.GetById(query.BookingId, cancellation);
 
         if (myBooking is null)
-            return Problem.NotFound with { Detail = $"Booking {query.BookingId} was not found"};
+            return Problem.NotFound with { Detail = Localized.Format(StringResources.BookingNotFound, query.BookingId)};
 
         if (!query.IsStaffOrOwner(myBooking.CustomerId))
         {
             _log.CannotInspectBooking(query.AuthenticatedUserId, myBooking.CustomerId);
-            return Problem.Forbidden with { Detail = "You cannot inspect another customer's booking" };
+            return Problem.Forbidden with { Detail = StringResources.InspectOtherCustomersBookingForbidden };
         }
 
         return myBooking;

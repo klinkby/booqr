@@ -37,7 +37,7 @@ public abstract partial class UpdateCommand<TRequest, TItem>(
         var updated = await repository.Update(item, cancellation);
         if (!updated)
         {
-            return Problem.MidAirCollision with { Detail = $"{item.GetType().Name} {query.Id} was not found or already updated." };
+            return Problem.MidAirCollision with { Detail = Localized.Format(StringResources.ItemNotFoundOrAlreadyUpdated, item.GetType().Name, query.Id) };
         }
 
         await activityRecorder.Update<TItem>(new(query.AuthenticatedUserId, query.Id, query.TenantId), cancellation);

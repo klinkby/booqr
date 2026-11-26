@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <NeutralLanguage>da</NeutralLanguage>
+        <!-- English is neutral (main assembly); Danish ships as a satellite (StringResources.da.resx). -->
+        <NeutralLanguage>en</NeutralLanguage>
         <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
     </PropertyGroup>
 
@@ -32,6 +33,15 @@
             <DesignTime>True</DesignTime>
             <AutoGen>True</AutoGen>
             <DependentUpon>StringResources.resx</DependentUpon>
+        </Compile>
+        <EmbeddedResource Update="Properties\MailResources.resx">
+            <Generator>ResXFileCodeGenerator</Generator>
+            <LastGenOutput>MailResources.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
+        <Compile Update="Properties\MailResources.Designer.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>MailResources.resx</DependentUpon>
         </Compile>
 
         <EmbeddedResource Include="Properties\*.handlebars" />

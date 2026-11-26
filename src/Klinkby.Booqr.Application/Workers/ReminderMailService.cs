@@ -100,7 +100,7 @@ internal sealed partial class ReminderMailService(
     {
         return EmbeddedResource.Properties_Reminder_handlebars.ComposeMessage(
             booking.CustomerEmail,
-            StringResources.ReminderSubject,
+            MailResources.ReminderSubject,
             tenantName,
             new Dictionary<string, string>
             {

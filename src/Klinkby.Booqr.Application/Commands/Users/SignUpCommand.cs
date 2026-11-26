@@ -69,7 +69,7 @@ public sealed partial class SignUpCommand(
     private Message ComposeMessage(User user, string authority) =>
         EmbeddedResource.Properties_SignUp_handlebars.ComposeMessage(
             user.Email,
-            StringResources.SignUpSubject,
+            MailResources.SignUpSubject,
             tenantContext.DisplayName,
             new Dictionary<string, string>
             {

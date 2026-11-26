@@ -45,27 +45,177 @@ namespace Klinkby.Booqr.Application.Properties {
             }
         }
         
-        internal static string ResetPasswordSubject {
+        internal static string ItemNotFound {
             get {
-                return ResourceManager.GetString("ResetPasswordSubject", resourceCulture);
+                return ResourceManager.GetString("ItemNotFound", resourceCulture);
             }
         }
         
-        internal static string SignUpSubject {
+        internal static string ItemNotFoundOrAlreadyUpdated {
             get {
-                return ResourceManager.GetString("SignUpSubject", resourceCulture);
+                return ResourceManager.GetString("ItemNotFoundOrAlreadyUpdated", resourceCulture);
             }
         }
         
-        internal static string ReminderSubject {
+        internal static string InvalidOrExpiredLink {
             get {
-                return ResourceManager.GetString("ReminderSubject", resourceCulture);
+                return ResourceManager.GetString("InvalidOrExpiredLink", resourceCulture);
             }
         }
         
-        internal static string NewBooking {
+        internal static string UserIdNotInteger {
             get {
-                return ResourceManager.GetString("NewBooking", resourceCulture);
+                return ResourceManager.GetString("UserIdNotInteger", resourceCulture);
+            }
+        }
+        
+        internal static string InvalidAction {
+            get {
+                return ResourceManager.GetString("InvalidAction", resourceCulture);
+            }
+        }
+        
+        internal static string UserNotFound {
+            get {
+                return ResourceManager.GetString("UserNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string UserUpdatedSinceLinkGenerated {
+            get {
+                return ResourceManager.GetString("UserUpdatedSinceLinkGenerated", resourceCulture);
+            }
+        }
+        
+        internal static string UserAlreadyUpdated {
+            get {
+                return ResourceManager.GetString("UserAlreadyUpdated", resourceCulture);
+            }
+        }
+        
+        internal static string UserHasNoPassword {
+            get {
+                return ResourceManager.GetString("UserHasNoPassword", resourceCulture);
+            }
+        }
+        
+        internal static string UpdateUserProfileForbidden {
+            get {
+                return ResourceManager.GetString("UpdateUserProfileForbidden", resourceCulture);
+            }
+        }
+        
+        internal static string ChangeOwnRoleForbidden {
+            get {
+                return ResourceManager.GetString("ChangeOwnRoleForbidden", resourceCulture);
+            }
+        }
+        
+        internal static string ChangeRoleForbidden {
+            get {
+                return ResourceManager.GetString("ChangeRoleForbidden", resourceCulture);
+            }
+        }
+        
+        internal static string UserHasFutureCalendarEntries {
+            get {
+                return ResourceManager.GetString("UserHasFutureCalendarEntries", resourceCulture);
+            }
+        }
+        
+        internal static string BookingNotFound {
+            get {
+                return ResourceManager.GetString("BookingNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string InspectOtherCustomersBookingForbidden {
+            get {
+                return ResourceManager.GetString("InspectOtherCustomersBookingForbidden", resourceCulture);
+            }
+        }
+        
+        internal static string CreateBookingForOtherCustomerForbidden {
+            get {
+                return ResourceManager.GetString("CreateBookingForOtherCustomerForbidden", resourceCulture);
+            }
+        }
+        
+        internal static string DeleteBookingForbidden {
+            get {
+                return ResourceManager.GetString("DeleteBookingForbidden", resourceCulture);
+            }
+        }
+        
+        internal static string ServiceNotFound {
+            get {
+                return ResourceManager.GetString("ServiceNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string VacancyNotFound {
+            get {
+                return ResourceManager.GetString("VacancyNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string VacancyAlreadyBooked {
+            get {
+                return ResourceManager.GetString("VacancyAlreadyBooked", resourceCulture);
+            }
+        }
+        
+        internal static string BookingWithinRequestedTime {
+            get {
+                return ResourceManager.GetString("BookingWithinRequestedTime", resourceCulture);
+            }
+        }
+        
+        internal static string VacancyWithinRequestedTime {
+            get {
+                return ResourceManager.GetString("VacancyWithinRequestedTime", resourceCulture);
+            }
+        }
+        
+        internal static string TakeoutExportForbidden {
+            get {
+                return ResourceManager.GetString("TakeoutExportForbidden", resourceCulture);
+            }
+        }
+        
+        internal static string TakeoutUnsupportedScope {
+            get {
+                return ResourceManager.GetString("TakeoutUnsupportedScope", resourceCulture);
+            }
+        }
+        
+        internal static string RequestedUserNotFound {
+            get {
+                return ResourceManager.GetString("RequestedUserNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string TakeoutImportForbidden {
+            get {
+                return ResourceManager.GetString("TakeoutImportForbidden", resourceCulture);
+            }
+        }
+        
+        internal static string TakeoutDocumentRequired {
+            get {
+                return ResourceManager.GetString("TakeoutDocumentRequired", resourceCulture);
+            }
+        }
+        
+        internal static string TakeoutImportScopeUnsupported {
+            get {
+                return ResourceManager.GetString("TakeoutImportScopeUnsupported", resourceCulture);
+            }
+        }
+        
+        internal static string TakeoutTooManyEntities {
+            get {
+                return ResourceManager.GetString("TakeoutTooManyEntities", resourceCulture);
             }
         }
     }

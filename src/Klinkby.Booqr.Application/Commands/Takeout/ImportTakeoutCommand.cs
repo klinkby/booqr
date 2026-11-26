@@ -37,8 +37,8 @@ public sealed partial class ImportTakeoutCommand(
 
     private static readonly PageQuery All = TakeoutQueries.All;
 
-    private static readonly Problem NotAdmin =
-        Problem.Forbidden with { Detail = "Only administrators can import a takeout document." };
+    // A property, not a field: the detail is localized to the current request's UI culture.
+    private static Problem NotAdmin => Problem.Forbidden with { Detail = StringResources.TakeoutImportForbidden };
 
     private readonly LoggerMessages _log = new(logger);
 
@@ -57,7 +57,7 @@ public sealed partial class ImportTakeoutCommand(
         TakeoutDocument? document = query.Document;
         if (document is null)
         {
-            return Problem.ValidationFailed with { Detail = "A takeout document is required." };
+            return Problem.ValidationFailed with { Detail = StringResources.TakeoutDocumentRequired };
         }
 
         if (document.Scope != TakeoutScope.TenantWorkspace)
@@ -65,7 +65,7 @@ public sealed partial class ImportTakeoutCommand(
             _log.WrongScope(userId, document.Scope);
             return Problem.ValidationFailed with
             {
-                Detail = $"Only {nameof(TakeoutScope.TenantWorkspace)} documents can be imported."
+                Detail = Localized.Format(StringResources.TakeoutImportScopeUnsupported, nameof(TakeoutScope.TenantWorkspace))
             };
         }
 
@@ -74,7 +74,7 @@ public sealed partial class ImportTakeoutCommand(
         {
             return Problem.ValidationFailed with
             {
-                Detail = $"The document contains more than {MaxEntities} entities."
+                Detail = Localized.Format(StringResources.TakeoutTooManyEntities, MaxEntities)
             };
         }
 

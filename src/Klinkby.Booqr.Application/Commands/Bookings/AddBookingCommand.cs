@@ -44,7 +44,7 @@ public partial class AddBookingCommand(
         if (query.CustomerId is { } customerId && !query.IsStaffOrOwner(customerId))
         {
             _log.CannotBookForOther(userId, customerId);
-            return Problem.Forbidden with { Detail = "You cannot create a booking for another customer." };
+            return Problem.Forbidden with { Detail = StringResources.CreateBookingForOtherCustomerForbidden };
         }
         query = query with { CustomerId = query.CustomerId ?? userId };
 
@@ -88,7 +88,7 @@ public partial class AddBookingCommand(
         Service? service = await GetAndValidateService(query, userId, cancellation);
         if (service is null)
         {
-            return (Problem.NotFound with { Detail = "The requested service was not found." }, false);
+            return (Problem.NotFound with { Detail = StringResources.ServiceNotFound }, false);
         }
 
         query = query with { EndTime = query.StartTime + service.Duration };
@@ -96,7 +96,7 @@ public partial class AddBookingCommand(
         CalendarEvent? vacancy = await GetAndValidateVacancy(query, userId, cancellation);
         if (vacancy is null)
         {
-            return (Problem.NotFound with { Detail = "The requested vacancy was not found." }, false);
+            return (Problem.NotFound with { Detail = StringResources.VacancyNotFound }, false);
         }
 
         if (vacancy.BookingId.HasValue)
@@ -128,7 +128,7 @@ public partial class AddBookingCommand(
     private Problem GetConflict(int userId, int vacancyBookingId)
     {
         _log.BookingConflict(userId, vacancyBookingId);
-        return Problem.Conflict with { Detail = "The requested vacancy was already booked." };
+        return Problem.Conflict with { Detail = StringResources.VacancyAlreadyBooked };
     }
 
     private async Task<CalendarEvent?> GetAndValidateVacancy(AddBookingRequest query, int userId, CancellationToken cancellation)
@@ -209,7 +209,7 @@ public partial class AddBookingCommand(
     {
         return EmbeddedResource.Properties_NewBooking_handlebars.ComposeMessage(
             booking.CustomerEmail,
-            StringResources.NewBooking,
+            MailResources.NewBooking,
             tenantContext.DisplayName,
             new Dictionary<string, string>
             {

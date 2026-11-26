@@ -5,6 +5,7 @@ using Klinkby.Booqr.Api;
 using Klinkby.Booqr.Api.Models;
 using Klinkby.Booqr.Application;
 using Klinkby.Booqr.Application.Models;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -22,6 +23,7 @@ internal static class ServiceCollectionExtensions
         ConfigureJson(services);
         ConfigureRequestMetadata(services);
         ConfigureRateLimiting(services);
+        ConfigureLocalization(services);
     }
 
     /// <summary>
@@ -38,6 +40,23 @@ internal static class ServiceCollectionExtensions
             .ValidateOnStart();
         return services;
     }
+
+    /// <summary>
+    ///     Localizes problem-details text (the <c>StringResources</c> satellites) from the
+    ///     <c>Accept-Language</c> header only. English is the neutral default; Danish is opt-in.
+    ///     Only the UI culture follows the request: <see cref="CultureInfo.CurrentCulture" /> stays
+    ///     invariant so number/date formatting never varies per caller. <c>Vary</c>/<c>Content-Language</c>
+    ///     are set on problem responses only, by <c>ProblemDetailsCustomizer</c>.
+    /// </summary>
+    private static void ConfigureLocalization(IServiceCollection services) =>
+        services.Configure<RequestLocalizationOptions>(static options =>
+        {
+            CultureInfo[] uiCultures = [CultureInfo.GetCultureInfo("en"), CultureInfo.GetCultureInfo("da")];
+            options.DefaultRequestCulture = new RequestCulture(CultureInfo.InvariantCulture, uiCultures[0]);
+            options.SupportedCultures = [CultureInfo.InvariantCulture];
+            options.SupportedUICultures = uiCultures;
+            options.RequestCultureProviders = [new LanguageSubtagRequestCultureProvider()];
+        });
 
     private static void ConfigureAuthentication(IServiceCollection services, IConfiguration configuration)
     {
