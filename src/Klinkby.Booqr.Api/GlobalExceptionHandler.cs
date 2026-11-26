@@ -1,3 +1,4 @@
+using Klinkby.Booqr.Api.Properties;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.WebUtilities;
 
@@ -8,40 +9,38 @@ namespace Klinkby.Booqr.Api;
 ///     <c>application/problem+json</c> regardless of the request's <c>Accept</c> header. The status
 ///     code is chosen by <see cref="StatusCode.FromException" />.
 /// </summary>
-internal sealed class GlobalExceptionHandler(IProblemDetailsService problemDetailsService) : IExceptionHandler
+internal sealed class GlobalExceptionHandler : IExceptionHandler
 {
-    private const string ProblemJsonContentType = "application/problem+json";
-
     public async ValueTask<bool> TryHandleAsync(
         HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         var status = StatusCode.FromException(exception);
         httpContext.Response.StatusCode = status;
 
-        ProblemDetails problem = new()
+        var localizedTitle = LocalizedTitle(status);
+        if (localizedTitle is not null)
         {
-            Status = status,
-            Title = ReasonPhrases.GetReasonPhrase(status)
-        };
-
-        // Common path: honours content negotiation and the central CustomizeProblemDetails (traceId) hook.
-        if (await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
-            {
-                HttpContext = httpContext,
-                ProblemDetails = problem
-            }))
-        {
-            return true;
+            httpContext.SetContentLanguage();
         }
 
-        // Fallback: the writer declined (e.g. Accept: text/html). Force problem+json AOT-safely,
-        // re-adding the traceId extension the customization would otherwise have supplied.
-        problem.Extensions["traceId"] = httpContext.TraceIdentifier;
-        await httpContext.Response.WriteAsJsonAsync(
-            problem,
-            AppJsonSerializerContext.Default.ProblemDetails,
-            ProblemJsonContentType,
+        await httpContext.WriteProblemAsync(
+            new ProblemDetails { Status = status, Title = localizedTitle ?? ReasonPhrases.GetReasonPhrase(status) },
             cancellationToken);
         return true;
     }
+
+    /// <summary>Titles for the statuses <see cref="StatusCode.FromException" /> can produce.</summary>
+    private static string? LocalizedTitle(int status) => status switch
+    {
+        StatusCodes.Status400BadRequest => StringResources.Status400Title,
+        StatusCodes.Status401Unauthorized => StringResources.Status401Title,
+        StatusCodes.Status403Forbidden => StringResources.Status403Title,
+        StatusCodes.Status409Conflict => StringResources.Status409Title,
+        StatusCodes.Status500InternalServerError => StringResources.Status500Title,
+        StatusCodes.Status501NotImplemented => StringResources.Status501Title,
+        StatusCodes.Status502BadGateway => StringResources.Status502Title,
+        StatusCodes.Status503ServiceUnavailable => StringResources.Status503Title,
+        StatusCodes.Status504GatewayTimeout => StringResources.Status504Title,
+        _ => null
+    };
 }

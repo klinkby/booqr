@@ -116,10 +116,8 @@ internal static class ServiceCollectionExtensions
 
                 // Same RFC 7807 shape as the HAProxy gateway and the command Problem responses.
                 Problem problem = Problem.TooManyRequests;
-                HttpResponse response = context.HttpContext.Response;
-                response.ContentType = "application/problem+json";
-                await response.WriteAsync(
-                    $$"""{"type":"{{problem.Type}}","title":"{{problem.Title}}","status":{{problem.HttpStatusCode}},"traceId":"{{context.HttpContext.TraceIdentifier}}"}""",
+                await context.HttpContext.WriteProblemAsync(
+                    new ProblemDetails { Type = problem.Type, Title = problem.Title, Status = problem.HttpStatusCode },
                     cancellation);
             };
             options.AddPolicy(RateLimitPolicies.ChangePassword, static context =>

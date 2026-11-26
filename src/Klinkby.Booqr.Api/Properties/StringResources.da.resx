@@ -19,9 +19,42 @@
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
     <data name="TenantNotFound" xml:space="preserve">
-        <value>Værtsnavnet i forespørgslen svarer ikke til en kendt virksomhed.</value>
+        <value>Hostnavnet svarer ikke til en kendt virksomhed.</value>
     </data>
     <data name="TenantMismatch" xml:space="preserve">
-        <value>Den godkendte virksomhed svarer ikke til værtsnavnet i forespørgslen.</value>
+        <value>Login svarer ikke til hostnavn i forespørgslen.</value>
+    </data>
+    <data name="TenantNotFoundTitle" xml:space="preserve">
+        <value>Virksomheden blev ikke fundet</value>
+    </data>
+    <data name="TenantMismatchTitle" xml:space="preserve">
+        <value>Ugyldig virksomhed</value>
+    </data>
+    <data name="Status400Title" xml:space="preserve">
+        <value>Ugyldig forespørgsel</value>
+    </data>
+    <data name="Status401Title" xml:space="preserve">
+        <value>Ikke godkendt</value>
+    </data>
+    <data name="Status403Title" xml:space="preserve">
+        <value>Ikke tilladt</value>
+    </data>
+    <data name="Status409Title" xml:space="preserve">
+        <value>Konflikt</value>
+    </data>
+    <data name="Status500Title" xml:space="preserve">
+        <value>Intern serverfejl</value>
+    </data>
+    <data name="Status501Title" xml:space="preserve">
+        <value>Ikke implementeret</value>
+    </data>
+    <data name="Status502Title" xml:space="preserve">
+        <value>Fejl i bagvedliggende tjeneste</value>
+    </data>
+    <data name="Status503Title" xml:space="preserve">
+        <value>Tjenesten er utilgængelig</value>
+    </data>
+    <data name="Status504Title" xml:space="preserve">
+        <value>Bagvedliggende tjeneste svarede ikke i tide</value>
     </data>
 </root>

@@ -28,7 +28,7 @@ internal static class CommandExtensions
             await commandResult switch
             {
                 Success<T> s => mapSuccess(s.Value),
-                Fault e => MapFault(e.Problem)
+                Fault e => e.Problem.ToProblemHttpResult()
             };
     }
 
@@ -65,6 +65,7 @@ internal static class CommandExtensions
         await writer.FlushAsync(cancellation);
     }
 
-    private static ProblemHttpResult MapFault(Problem p) =>
+    /// <summary>The single <see cref="Problem" /> → RFC 7807 HTTP result mapping.</summary>
+    internal static ProblemHttpResult ToProblemHttpResult(this Problem p) =>
         TypedResults.Problem(p.Detail, null, p.HttpStatusCode, p.Title, p.Type);
 }

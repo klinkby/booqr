@@ -15,7 +15,6 @@ public sealed partial class ExportTakeoutCommand(
 {
     private static readonly PageQuery All = TakeoutQueries.All;
 
-    // A property, not a field: the detail is localized to the current request's UI culture.
     private static Problem NotAdmin => Problem.Forbidden with { Detail = StringResources.TakeoutExportForbidden };
 
     private readonly LoggerMessages _log = new(logger);

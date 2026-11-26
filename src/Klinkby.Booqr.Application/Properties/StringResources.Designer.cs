@@ -224,5 +224,53 @@ namespace Klinkby.Booqr.Application.Properties {
                 return ResourceManager.GetString("CancellationDeadlinePassed", resourceCulture);
             }
         }
+        
+        internal static string NotFoundTitle {
+            get {
+                return ResourceManager.GetString("NotFoundTitle", resourceCulture);
+            }
+        }
+        
+        internal static string ValidationFailedTitle {
+            get {
+                return ResourceManager.GetString("ValidationFailedTitle", resourceCulture);
+            }
+        }
+        
+        internal static string UnauthorizedTitle {
+            get {
+                return ResourceManager.GetString("UnauthorizedTitle", resourceCulture);
+            }
+        }
+        
+        internal static string ForbiddenTitle {
+            get {
+                return ResourceManager.GetString("ForbiddenTitle", resourceCulture);
+            }
+        }
+        
+        internal static string CancellationDeadlinePassedTitle {
+            get {
+                return ResourceManager.GetString("CancellationDeadlinePassedTitle", resourceCulture);
+            }
+        }
+        
+        internal static string ConflictTitle {
+            get {
+                return ResourceManager.GetString("ConflictTitle", resourceCulture);
+            }
+        }
+        
+        internal static string TooManyRequestsTitle {
+            get {
+                return ResourceManager.GetString("TooManyRequestsTitle", resourceCulture);
+            }
+        }
+        
+        internal static string MidAirCollisionTitle {
+            get {
+                return ResourceManager.GetString("MidAirCollisionTitle", resourceCulture);
+            }
+        }
     }
 }

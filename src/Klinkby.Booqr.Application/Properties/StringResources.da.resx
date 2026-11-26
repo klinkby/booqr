@@ -94,10 +94,10 @@
         <value>Brugeren blev ikke fundet.</value>
     </data>
     <data name="TakeoutImportForbidden" xml:space="preserve">
-        <value>Kun administratorer kan importere et `takeout`-dokument.</value>
+        <value>Kun administratorer kan importere et takeout-dokument.</value>
     </data>
     <data name="TakeoutDocumentRequired" xml:space="preserve">
-        <value>Et `takeout`-dokument er påkrævet.</value>
+        <value>Et takeout-dokument er påkrævet.</value>
     </data>
     <data name="TakeoutImportScopeUnsupported" xml:space="preserve">
         <value>Kun {0}-dokumenter kan importeres.</value>
@@ -107,5 +107,29 @@
     </data>
     <data name="CancellationDeadlinePassed" xml:space="preserve">
         <value>Tidsbestillinger kan kun aflyses op til {0} timer før de starter.</value>
+    </data>
+    <data name="NotFoundTitle" xml:space="preserve">
+        <value>Ressourcen blev ikke fundet</value>
+    </data>
+    <data name="ValidationFailedTitle" xml:space="preserve">
+        <value>Forespørgslen kunne ikke valideres</value>
+    </data>
+    <data name="UnauthorizedTitle" xml:space="preserve">
+        <value>Godkendelse mislykkedes</value>
+    </data>
+    <data name="ForbiddenTitle" xml:space="preserve">
+        <value>Adgang til denne ressource er ikke tilladt</value>
+    </data>
+    <data name="CancellationDeadlinePassedTitle" xml:space="preserve">
+        <value>Fristen for aflysning er overskredet</value>
+    </data>
+    <data name="ConflictTitle" xml:space="preserve">
+        <value>Ressourcekonflikt</value>
+    </data>
+    <data name="TooManyRequestsTitle" xml:space="preserve">
+        <value>For mange forespørgsler</value>
+    </data>
+    <data name="MidAirCollisionTitle" xml:space="preserve">
+        <value>Tilstanden blev ændret undervejs</value>
     </data>
 </root>

@@ -56,5 +56,71 @@ namespace Klinkby.Booqr.Api.Properties {
                 return ResourceManager.GetString("TenantMismatch", resourceCulture);
             }
         }
+        
+        internal static string TenantNotFoundTitle {
+            get {
+                return ResourceManager.GetString("TenantNotFoundTitle", resourceCulture);
+            }
+        }
+        
+        internal static string TenantMismatchTitle {
+            get {
+                return ResourceManager.GetString("TenantMismatchTitle", resourceCulture);
+            }
+        }
+        
+        internal static string Status400Title {
+            get {
+                return ResourceManager.GetString("Status400Title", resourceCulture);
+            }
+        }
+        
+        internal static string Status401Title {
+            get {
+                return ResourceManager.GetString("Status401Title", resourceCulture);
+            }
+        }
+        
+        internal static string Status403Title {
+            get {
+                return ResourceManager.GetString("Status403Title", resourceCulture);
+            }
+        }
+        
+        internal static string Status409Title {
+            get {
+                return ResourceManager.GetString("Status409Title", resourceCulture);
+            }
+        }
+        
+        internal static string Status500Title {
+            get {
+                return ResourceManager.GetString("Status500Title", resourceCulture);
+            }
+        }
+        
+        internal static string Status501Title {
+            get {
+                return ResourceManager.GetString("Status501Title", resourceCulture);
+            }
+        }
+        
+        internal static string Status502Title {
+            get {
+                return ResourceManager.GetString("Status502Title", resourceCulture);
+            }
+        }
+        
+        internal static string Status503Title {
+            get {
+                return ResourceManager.GetString("Status503Title", resourceCulture);
+            }
+        }
+        
+        internal static string Status504Title {
+            get {
+                return ResourceManager.GetString("Status504Title", resourceCulture);
+            }
+        }
     }
 }

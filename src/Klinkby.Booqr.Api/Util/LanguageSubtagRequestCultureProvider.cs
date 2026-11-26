@@ -15,15 +15,11 @@ internal sealed class LanguageSubtagRequestCultureProvider : AcceptLanguageHeade
     public override async Task<ProviderCultureResult?> DetermineProviderCultureResult(HttpContext httpContext)
     {
         ProviderCultureResult? result = await base.DetermineProviderCultureResult(httpContext);
-        if (result is null)
-        {
-            return null;
-        }
-
-        List<StringSegment> languages = result.UICultures
-            .Select(static tag => tag.IndexOf('-') is var dash and > 0 ? tag.Subsegment(0, dash) : tag)
-            .Distinct(StringSegmentComparer.OrdinalIgnoreCase)
-            .ToList();
-        return new ProviderCultureResult(languages);
+        // Duplicates after trimming are harmless: the middleware stops at the first supported match.
+        return result is null || !result.UICultures.Any(static tag => tag.IndexOf('-') > 0)
+            ? result
+            : new ProviderCultureResult(result.UICultures
+                .Select(static tag => tag.IndexOf('-') is var dash and > 0 ? tag.Subsegment(0, dash) : tag)
+                .ToList());
     }
 }

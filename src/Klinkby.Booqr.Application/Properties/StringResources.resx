@@ -121,4 +121,28 @@
         <value>Bookings can only be cancelled up to {0} hours before they start.</value>
         <comment>{0}: deadline in hours</comment>
     </data>
+    <data name="NotFoundTitle" xml:space="preserve">
+        <value>Resource not found</value>
+    </data>
+    <data name="ValidationFailedTitle" xml:space="preserve">
+        <value>Request validation failed</value>
+    </data>
+    <data name="UnauthorizedTitle" xml:space="preserve">
+        <value>Authentication failed</value>
+    </data>
+    <data name="ForbiddenTitle" xml:space="preserve">
+        <value>Access to this resource is forbidden</value>
+    </data>
+    <data name="CancellationDeadlinePassedTitle" xml:space="preserve">
+        <value>Cancellation deadline has passed</value>
+    </data>
+    <data name="ConflictTitle" xml:space="preserve">
+        <value>Resource conflict</value>
+    </data>
+    <data name="TooManyRequestsTitle" xml:space="preserve">
+        <value>Too many requests</value>
+    </data>
+    <data name="MidAirCollisionTitle" xml:space="preserve">
+        <value>State changed during operation</value>
+    </data>
 </root>

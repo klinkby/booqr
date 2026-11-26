@@ -23,4 +23,8 @@
         </AssemblyAttribute>
     </ItemGroup>
 
+    <ItemGroup Label="Shared test helpers">
+        <Compile Include="..\Shared\ResourceAssert.cs" Link="Shared\ResourceAssert.cs" />
+    </ItemGroup>
+
 </Project>
