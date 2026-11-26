@@ -117,4 +117,8 @@
         <value>The document contains more than {0} entities.</value>
         <comment>{0}: max entity count</comment>
     </data>
+    <data name="CancellationDeadlinePassed" xml:space="preserve">
+        <value>Bookings can only be cancelled up to {0} hours before they start.</value>
+        <comment>{0}: deadline in hours</comment>
+    </data>
 </root>

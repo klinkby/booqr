@@ -105,4 +105,7 @@
     <data name="TakeoutTooManyEntities" xml:space="preserve">
         <value>Dokumentet indeholder mere end {0} elementer.</value>
     </data>
+    <data name="CancellationDeadlinePassed" xml:space="preserve">
+        <value>Tidsbestillinger kan kun aflyses op til {0} timer før de starter.</value>
+    </data>
 </root>

@@ -58,7 +58,7 @@ public sealed partial class DeleteBookingCommand(
 
                 return Problem.CancellationDeadlinePassed with
                 {
-                    Detail = "Bookings can only be cancelled up to 24 hours before they start"
+                    Detail = Localized.Format(StringResources.CancellationDeadlinePassed, CustomerCancellationDeadline.TotalHours)
                 };
             }
 

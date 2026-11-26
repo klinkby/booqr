@@ -218,5 +218,11 @@ namespace Klinkby.Booqr.Application.Properties {
                 return ResourceManager.GetString("TakeoutTooManyEntities", resourceCulture);
             }
         }
+        
+        internal static string CancellationDeadlinePassed {
+            get {
+                return ResourceManager.GetString("CancellationDeadlinePassed", resourceCulture);
+            }
+        }
     }
 }
