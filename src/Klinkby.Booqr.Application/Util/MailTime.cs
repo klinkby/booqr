@@ -22,6 +22,18 @@ internal static class MailTime
             $"{DayNames[(int)local.DayOfWeek]} {local.Day}. {MonthAbbreviations[local.Month - 1]} kl. {local:HH:mm}");
     }
 
+    /// <summary>
+    ///     Formats a duration in Danish: whole hours as <c>2 t.</c>, anything else in minutes,
+    ///     e.g. <c>45 min.</c> or <c>75 min.</c>. Sub-minute remainders are truncated.
+    /// </summary>
+    internal static string FormatDuration(TimeSpan duration)
+    {
+        var minutes = (long)duration.TotalMinutes;
+        return minutes > 0 && minutes % 60 == 0
+            ? string.Create(CultureInfo.InvariantCulture, $"{minutes / 60} t.")
+            : string.Create(CultureInfo.InvariantCulture, $"{minutes} min.");
+    }
+
     /// <summary>The Danish calendar date of a UTC instant.</summary>
     internal static DateOnly LocalDate(DateTime utc) =>
         DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), Copenhagen));

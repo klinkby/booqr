@@ -16,6 +16,9 @@ public record Problem(string Type, string Title, int HttpStatusCode, string? Det
     public static Problem Forbidden { get; } =
         new(Prefix + "forbidden", "Access to this resource is forbidden", 403);
 
+    public static Problem CancellationDeadlinePassed { get; } =
+        new(Prefix + "cancellation-deadline-passed", "Cancellation deadline has passed", 403);
+
     public static Problem Conflict { get; } =
         new(Prefix + "conflict", "Resource conflict", 409);
 

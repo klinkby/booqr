@@ -16,6 +16,7 @@ public class DeleteBookingCommandTests
             _calendar.Object,
             _transaction.Object,
             _activityRecorder.Object,
+            TestHelpers.TimeProvider,
             NullLogger<DeleteBookingCommand>.Instance,
             NullLogger<AddVacancyCommand>.Instance);
     }
@@ -107,6 +108,82 @@ public class DeleteBookingCommandTests
         _bookings.Verify(x => x.Delete(request.Id, It.IsAny<CancellationToken>()), Times.Once);
         _calendar.Verify(x => x.Add(It.IsAny<CalendarEvent>(), It.IsAny<CancellationToken>()), Times.Once);
         _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_CustomerOwner_WithinDeadline_WHEN_Execute_THEN_ForbiddenAndNothingDeleted(
+        DateTime t0, Booking autoBooking, CalendarEvent autoEvent)
+    {
+        // Arrange
+        var request = new AuthenticatedByIdRequest(autoBooking.Id) { User = CreateUser(autoBooking.CustomerId, UserRole.Customer) };
+        DateTime start = t0 + DeleteBookingCommand.CustomerCancellationDeadline - TimeSpan.FromMinutes(1);
+        SetupBooking(autoBooking, autoEvent with { BookingId = autoBooking.Id, StartTime = start, EndTime = start.AddHours(1) });
+
+        // Act
+        Result<bool> result = await CreateSut().Execute(request);
+
+        // Assert
+        var fault = Assert.IsType<Fault>(result.Value);
+        Assert.Equal(Problem.CancellationDeadlinePassed.Type, fault.Problem.Type);
+        Assert.Equal(403, fault.Problem.HttpStatusCode);
+        Assert.False(string.IsNullOrWhiteSpace(fault.Problem.Detail));
+        _calendar.Verify(x => x.Delete(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        _bookings.Verify(x => x.Delete(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        _calendar.Verify(x => x.Add(It.IsAny<CalendarEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+        _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Once);
+        _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_CustomerOwner_AtDeadline_WHEN_Execute_THEN_Deletes(
+        DateTime t0, Booking autoBooking, CalendarEvent autoEvent)
+    {
+        // Arrange
+        var request = new AuthenticatedByIdRequest(autoBooking.Id) { User = CreateUser(autoBooking.CustomerId, UserRole.Customer) };
+        DateTime start = t0 + DeleteBookingCommand.CustomerCancellationDeadline;
+        SetupBooking(autoBooking, autoEvent with { BookingId = autoBooking.Id, StartTime = start, EndTime = start.AddHours(1) });
+
+        // Act
+        Result<bool> result = await CreateSut().Execute(request);
+
+        // Assert
+        Assert.True(result.ValueOrDefault());
+        _bookings.Verify(x => x.Delete(autoBooking.Id, It.IsAny<CancellationToken>()), Times.Once);
+        _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
+        _transaction.Verify(x => x.Rollback(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Theory]
+    [ApplicationAutoData]
+    public async Task GIVEN_Employee_WithinDeadline_WHEN_Execute_THEN_Deletes(
+        DateTime t0, Booking autoBooking, CalendarEvent autoEvent, int employeeUserId)
+    {
+        // Arrange
+        var request = new AuthenticatedByIdRequest(autoBooking.Id) { User = CreateUser(employeeUserId, UserRole.Employee) };
+        SetupBooking(autoBooking, autoEvent with { BookingId = autoBooking.Id, StartTime = t0.AddMinutes(1), EndTime = t0.AddHours(1) });
+
+        // Act
+        Result<bool> result = await CreateSut().Execute(request);
+
+        // Assert
+        Assert.True(result.ValueOrDefault());
+        _bookings.Verify(x => x.Delete(autoBooking.Id, It.IsAny<CancellationToken>()), Times.Once);
+        _transaction.Verify(x => x.Commit(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    private void SetupBooking(Booking booking, CalendarEvent calendarEvent)
+    {
+        _bookings.Setup(x => x.GetById(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(booking);
+        _calendar.Setup(x => x.GetByBookingId(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(calendarEvent);
+        _bookings.Setup(x => x.Delete(booking.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        _calendar.Setup(x => x.GetRange(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<IPageQuery>(), true, true,
+                It.IsAny<CancellationToken>()))
+            .Returns(AsyncEnumerable.Empty<CalendarEvent>());
     }
 
     [Theory]
