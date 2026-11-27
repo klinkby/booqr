@@ -89,11 +89,11 @@
       },
       "Testcontainers.XunitV3": {
         "type": "Direct",
-        "requested": "[4.16.0, )",
-        "resolved": "4.16.0",
-        "contentHash": "eVsnhq9BrarzVp/sk4l4ketzhMTFGbPKHtAdNqDNhLxyMAq0CGxZf35FVMtWEh7e5jIx6J3QJSyi3HCBLUZ9Kw==",
+        "requested": "[4.17.0, )",
+        "resolved": "4.17.0",
+        "contentHash": "rDw/QOneRlKFR9Y6EYXPeuFXlhce88Ti4ANNXQ1J48tX0YAhJM9JVisJ3FFPKtOuHOXM1TSCYd15G/myCam2WA==",
         "dependencies": {
-          "Testcontainers": "4.16.0",
+          "Testcontainers": "4.17.0",
           "xunit.v3.extensibility.core": "3.2.2"
         }
       },
